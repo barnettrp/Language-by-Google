@@ -1,42 +1,61 @@
-// Vercel Serverless Function
-// This file will live at the path /api/gemini.js
+// Vercel Serverless Function at /api/gemini.js
 
 export default async function handler(request, response) {
-    // Only allow POST requests
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Securely get the API key from Vercel's environment variables
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
     if (!GEMINI_API_KEY) {
         return response.status(500).json({ error: 'API key not configured.' });
     }
 
-    const { type, history, scenario, textToCorrect, transcript } = request.body;
+    const { type, ...body } = request.body;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
     
     let systemPrompt = "";
     let userPrompt = "";
+    let history = [];
 
-    // Determine prompts based on request type
     switch (type) {
         case 'chat':
-            systemPrompt = `${scenario.systemPrompt} The dialect should be ${scenario.dialect}. The formality should be ${scenario.formality}.`;
-            // The user's latest message is the last one in the history
-            userPrompt = history[history.length - 1].parts[0].text; 
+            const { scenario } = body;
+            systemPrompt = `${scenario.systemPrompt} The dialect should be ${scenario.dialect}. The formality should be ${scenario.formality}. Keep responses to 1-2 sentences.`;
+            
+            // --- FIX: Sanitize the roles before sending to the Gemini API ---
+            history = body.history.map(message => ({
+                role: message.role === 'ai' ? 'model' : 'user', // Convert 'ai' to 'model'
+                parts: message.parts
+            }));
             break;
-        // Cases for 'correction', 'analysis', 'translation' would go here
+            
+        case 'correction':
+            systemPrompt = "You are a helpful language assistant. The user has provided a sentence in Spanish. Correct any grammatical errors and provide a brief, one-sentence explanation of the correction in English. Respond in the format: 'Corrected: [Corrected Spanish sentence]\\nExplanation: [English explanation]'";
+            userPrompt = body.text;
+            break;
+
+        case 'analysis':
+            systemPrompt = `Analyze the following Spanish conversation transcript. The user is the language learner. Provide the following in a strict JSON format with keys "newVocabulary", "grammarFeedback", and "proficiencyScore":
+1. newVocabulary: An array of 3-5 key Spanish words or phrases the user learned or should learn.
+2. grammarFeedback: A brief, encouraging paragraph (2-3 sentences) with one key grammar suggestion.
+3. proficiencyScore: An estimated proficiency score from 0 to 100.`;
+            userPrompt = body.transcript;
+            break;
+            
+        case 'translation':
+            systemPrompt = `You are a helpful translation assistant. Provide a contextual translation for a Spanish word. Respond in the format: '[English Translation]\\nExample: [Spanish example sentence]'`;
+            userPrompt = `Translate the word "${body.word}" given the context of the sentence: "${body.context}"`;
+            break;
+
         default:
             return response.status(400).json({ error: 'Invalid request type' });
     }
     
-    // Construct the payload for the Gemini API
+    const contents = history.length > 0 ? history : [{ role: 'user', parts: [{ text: userPrompt }] }];
+    
     const payload = {
-        // We add the system instruction and the recent chat history for context
         systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: history 
+        contents: contents
     };
 
     try {
@@ -53,13 +72,22 @@ export default async function handler(request, response) {
         }
 
         const result = await geminiResponse.json();
-        const text = result.candidates[0]?.content?.parts[0]?.text;
+        
+        if (type === 'analysis') {
+            try {
+                const analysisData = JSON.parse(result.candidates[0].content.parts[0].text);
+                return response.status(200).json({ data: analysisData });
+            } catch (e) {
+                 console.error("Failed to parse analysis JSON:", e);
+                 return response.status(500).json({ error: 'Could not parse the AI analysis.' });
+            }
+        }
 
+        const text = result.candidates[0]?.content?.parts[0]?.text;
         if (!text) {
              return response.status(500).json({ error: 'Received an empty response from AI.' });
         }
-
-        // Send the AI's response back to the front-end app
+        
         response.status(200).json({ text });
 
     } catch (error) {
@@ -67,3 +95,4 @@ export default async function handler(request, response) {
         response.status(500).json({ error: 'An internal server error occurred.' });
     }
 }
+
