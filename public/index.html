@@ -12,7 +12,6 @@
             background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
-            /* Prevent body from scrolling on mobile */
             overflow: hidden;
         }
         @keyframes pop-in {
@@ -42,7 +41,6 @@
              backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
         }
-        /* --- MOBILE SAFARI FIX --- */
         #chat-input {
             font-size: 16px; /* Prevents auto-zoom on focus */
         }
@@ -50,7 +48,6 @@
 </head>
 <body class="flex items-center justify-center h-screen p-0 md:p-4">
 
-    <!-- Changed h-full to h-screen on body and using flexbox for main container -->
     <div class="w-full h-full md:max-w-lg md:h-[90vh] md:max-h-[700px] contained-chat-area rounded-none md:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
         <!-- Scenario List View -->
@@ -73,7 +70,9 @@
                 </div>
                 <button id="end-session-btn" class="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-red-600 transition-colors">End Session</button>
             </header>
-            <div id="chat-container" class="flex-1 p-4 space-y-4 overflow-y-auto"></div>
+            <!-- --- CHAT CONTAINER FIX --- -->
+            <!-- Changed layout to stack messages from the bottom -->
+            <div id="chat-container" class="flex flex-col justify-end flex-1 p-4 space-y-4 overflow-y-auto"></div>
             <div id="translation-popover" class="hidden absolute bg-black text-white text-xs rounded py-1 px-2 z-10 shadow-lg"></div>
             <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
                 <div class="flex items-center space-x-2">
@@ -115,7 +114,6 @@
     </div>
     
     <script>
-        // --- SCRIPT REMAINS THE SAME ---
         document.addEventListener('DOMContentLoaded', () => {
             const scenarioView = document.getElementById('scenario-view');
             const chatView = document.getElementById('chat-view');
@@ -167,7 +165,11 @@
                     }
                 },
                 async getResponse(history, scenario) {
-                    const payload = { type: 'chat', history, scenario: { ...scenario, ...userSettings } };
+                    const mappedHistory = history.map(m => ({
+                        role: m.role === 'ai' ? 'model' : 'user', // Convert 'ai' to 'model'
+                        parts: m.parts
+                    }));
+                    const payload = { type: 'chat', history: mappedHistory, scenario: { ...scenario, ...userSettings } };
                     const response = await this.callAPI(payload);
                     return response.text || response.error;
                 },
@@ -216,12 +218,11 @@
                 chatView.classList.add('flex');
             };
 
-            const addMessage = (text, role, id = Date.now()) => {
+            const addMessage = (text, role) => {
                 messages.push({ role, parts: [{ text }] });
                 const isUser = role === 'user';
                 const wrapper = document.createElement('div');
                 wrapper.className = `flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`;
-                wrapper.dataset.messageId = id;
                 wrapper.innerHTML = `
                     ${isUser ? `<button title="Correct me" class="correction-btn text-xs bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center mb-1">✨</button>` : ''}
                     <div class="chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai group'}">
@@ -297,7 +298,7 @@
             };
 
             const handleCorrection = async (target) => {
-                const wrapper = target.closest('[data-message-id]');
+                const wrapper = target.closest('.flex.items-end');
                 const messageText = wrapper.querySelector('.chat-bubble').textContent;
                 const correctionText = await AIManager.getCorrection(messageText);
                 const bubble = document.createElement('div');
@@ -370,3 +371,4 @@
     </script>
 </body>
 </html>
+
