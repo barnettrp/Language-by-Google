@@ -276,6 +276,18 @@
         let currentMission = null;
         let messages = [];
         
+        const speak = (textToSpeak) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'es-ES';
+                utterance.rate = 0.9;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Sorry, your browser doesn't support text-to-speech.");
+            }
+        };
+
         const AIManager = {
             async callAPI(payload) {
                 try {
@@ -354,8 +366,21 @@
             messages.push({ role, parts: [{ text }] });
             const isUser = role === 'user';
             const wrapper = document.createElement('div');
-            wrapper.className = `w-full flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`;
-            wrapper.innerHTML = `<div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} w-full"><div class="flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}"><div class="chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai group'}">${text.split(' ').map(word => `<span class="clickable-word cursor-pointer hover:underline">${word}</span>`).join(' ')}</div>${!isUser ? `<button title="Read aloud" class="speaker-btn text-gray-400 hover:text-gray-700 transition-colors mb-1"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7.4 3A1.4 1.4 0 006 4.4v11.2a1.4 1.4 0 002.31 1.05l6.44-5.64a1.4 1.4 0 000-2.1L8.31 3.35A1.4 1.4 0 007.4 3z" /></svg></button>` : ''}</div>${isUser ? `<button title="Correct me" class="correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1">Correct me ✨</button>` : ''}</div>`;
+            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
+            const bubbleWrapper = document.createElement('div');
+            bubbleWrapper.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+            text.split(' ').forEach(word => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'clickable-word cursor-pointer hover:underline';
+                wordSpan.textContent = word + ' ';
+                bubbleWrapper.appendChild(wordSpan);
+            });
+            wrapper.appendChild(bubbleWrapper);
+            if (isUser) {
+                wrapper.innerHTML += `<button title="Correct me" class="correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1">Correct me ✨</button>`;
+            } else {
+                wrapper.innerHTML += `<button title="Read aloud" class="read-aloud-btn text-xs text-gray-500 hover:text-blue-500 mt-1 ml-1">Read Aloud 🔊</button>`;
+            }
             chatContainer.insertBefore(wrapper, chatContainer.firstChild);
         };
 
@@ -382,14 +407,16 @@
         const showReport = async () => {
             reportModal.classList.remove('hidden');
             document.getElementById('report-loading').classList.remove('hidden');
-            document.getElementById('report-content').innerHTML = '';
+            const reportContent = document.getElementById('report-content');
+            reportContent.innerHTML = '';
             const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).join('\n');
             const analysis = await AIManager.analyzeConversation(transcript);
             document.getElementById('report-loading').classList.add('hidden');
             if (analysis.error) {
-                document.getElementById('report-content').innerHTML = `<p class="text-red-500">${analysis.error}</p>`;
+                reportContent.innerHTML = `<p class="text-red-500">${analysis.error}</p>`;
             } else {
-                document.getElementById('report-content').innerHTML = `<div><h3 class="font-bold text-lg">New Vocabulary</h3><p>${analysis.newVocabulary.join(', ')}</p></div><div><h3 class="font-bold text-lg">Grammar Feedback</h3><p>${analysis.grammarFeedback}</p></div><div><h3 class="font-bold text-lg">Proficiency Score</h3><div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: ${analysis.proficiencyScore}%"></div></div><p class="text-right font-semibold">${analysis.proficiencyScore}/100</p></div>`;
+                const vocabList = analysis.newVocabulary.map(item => `<li><strong>${item.spanish}</strong> - ${item.english}</li>`).join('');
+                reportContent.innerHTML = `<div><h3 class="font-bold text-lg">New Vocabulary</h3><ul class="list-disc list-inside">${vocabList}</ul></div><div><h3 class="font-bold text-lg">Grammar Feedback</h3><p>${analysis.grammarFeedback}</p></div><div><h3 class="font-bold text-lg">Proficiency Score</h3><div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: ${analysis.proficiencyScore}%"></div></div><p class="text-right font-semibold">${analysis.proficiencyScore}/100</p></div>`;
             }
         };
 
@@ -407,10 +434,18 @@
         formalitySelect.addEventListener('change', (e) => updateSetting('formality', e.target.value));
         sendBtn.addEventListener('click', handleSendMessage);
         chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
+        
         missionView.addEventListener('click', (e) => {
             const card = e.target.closest('.mission-card');
             if (card && !e.target.closest('.toggle-checkbox, .toggle-label')) {
                 startChat(card.dataset.index);
+            }
+        });
+        
+        chatContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('read-aloud-btn')) {
+                const bubble = e.target.previousElementSibling;
+                if (bubble) speak(bubble.textContent.trim());
             }
         });
         
