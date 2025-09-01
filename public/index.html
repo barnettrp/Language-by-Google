@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spanish Language Tutor</title>
+    <title>ConvoQuest.ai</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
@@ -43,24 +43,24 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; overflow: hidden; }
+        .contained-area { background: rgba(255, 255, 255, 0.80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .auth-input, #chat-input { font-size: 16px; }
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
         @keyframes pop-in { 0% { transform: scale(0.95) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0px); opacity: 1; } }
         .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
         .chat-bubble-user { background-color: #3b82f6; color: white; }
         .chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; }
         #chat-container::-webkit-scrollbar { display: none; }
         #chat-container { -ms-overflow-style: none; scrollbar-width: none; }
-        .contained-area { background: rgba(255, 255, 255, 0.80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-        .auth-input, #chat-input { font-size: 16px; }
     </style>
 </head>
 <body class="flex items-center justify-center h-screen p-0 md:p-4">
 
     <div id="app-container" class="w-full h-full md:max-w-lg md:h-[90vh] md:max-h-[700px] contained-area rounded-none md:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-
-        <!-- Auth Container -->
+        
         <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
-            
             <div id="login-view">
                 <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome Back!</h1>
                 <div class="space-y-4">
@@ -73,7 +73,6 @@
                     <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
                 </div>
             </div>
-
             <div id="signup-view" class="hidden">
                 <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
                 <div class="space-y-4">
@@ -88,14 +87,12 @@
                     <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Log In</button>
                 </div>
             </div>
-
         </div>
         
-        <!-- Main App View -->
         <div id="main-app-view" class="hidden flex-col h-full">
-            <div id="scenario-view" class="flex flex-col h-full">
+            <div id="mission-view" class="flex flex-col h-full">
                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-                    <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Scenario</h1>
+                    <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Mission</h1>
                     <div>
                         <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -107,7 +104,6 @@
                 </header>
                 <div class="p-4 space-y-3 overflow-y-auto"></div>
             </div>
-
             <div id="chat-view" class="hidden flex-col h-full">
                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
                     <div>
@@ -116,7 +112,7 @@
                     </div>
                     <button id="end-session-btn" class="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-red-600 transition-colors">End Session</button>
                 </header>
-                <div id="chat-container" class="flex flex-col justify-end flex-1 p-4 space-y-4 overflow-y-auto"></div>
+                <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
                 <div id="translation-popover" class="hidden absolute bg-black text-white text-xs rounded py-1 px-2 z-10 shadow-lg"></div>
                 <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
                     <div class="flex items-center space-x-2">
@@ -130,7 +126,6 @@
                     </div>
                 </footer>
             </div>
-            
             <div id="report-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
                      <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Session Report</h2><button id="close-report-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
@@ -138,7 +133,6 @@
                     <div id="report-loading" class="hidden text-center"><p>✨ Analyzing your conversation...</p></div>
                 </div>
             </div>
-
             <div id="settings-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
                     <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
@@ -164,19 +158,16 @@
 
         let currentUser = null;
         let userSettings = { dialect: 'Mexico', formality: 'Casual' };
-        let signupName = ''; // Temporary variable to hold name during sign-up
+        let signupName = '';
 
-        // --- DOM ELEMENT REFERENCES ---
         const authContainer = document.getElementById('auth-container');
         const mainAppView = document.getElementById('main-app-view');
-        
         const loginView = document.getElementById('login-view');
         const loginEmailInput = document.getElementById('login-email-input');
         const loginPasswordInput = document.getElementById('login-password-input');
         const loginBtn = document.getElementById('login-btn');
         const showSignupBtn = document.getElementById('show-signup-btn');
         const loginError = document.getElementById('login-error');
-
         const signupView = document.getElementById('signup-view');
         const signupNameInput = document.getElementById('signup-name-input');
         const signupEmailInput = document.getElementById('signup-email-input');
@@ -185,10 +176,9 @@
         const signupBtn = document.getElementById('signup-btn');
         const showLoginBtn = document.getElementById('show-login-btn');
         const signupError = document.getElementById('signup-error');
-
         const logoutBtn = document.getElementById('logout-btn');
         const welcomeMessage = document.getElementById('welcome-message');
-        const scenarioView = document.getElementById('scenario-view');
+        const missionView = document.getElementById('mission-view');
         const chatView = document.getElementById('chat-view');
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
@@ -203,27 +193,15 @@
         const closeReportBtn = document.getElementById('close-report-btn');
         const endSessionBtn = document.getElementById('end-session-btn');
         const translationPopover = document.getElementById('translation-popover');
-        
-        // --- NAVIGATION BETWEEN LOGIN & SIGN-UP ---
-        showSignupBtn.addEventListener('click', () => {
-            loginView.classList.add('hidden');
-            signupView.classList.remove('hidden');
-        });
 
-        showLoginBtn.addEventListener('click', () => {
-            signupView.classList.add('hidden');
-            loginView.classList.remove('hidden');
-        });
+        showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
+        showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
 
-        // --- AUTHENTICATION LOGIC ---
         loginBtn.addEventListener('click', async () => {
             loginError.textContent = '';
             const email = loginEmailInput.value.trim();
             const password = loginPasswordInput.value.trim();
-            if (!email || !password) {
-                loginError.textContent = "Please enter an email and password.";
-                return;
-            }
+            if (!email || !password) { loginError.textContent = "Please enter an email and password."; return; }
             try { await signInWithEmailAndPassword(auth, email, password); } 
             catch (error) { loginError.textContent = error.message; }
         });
@@ -234,51 +212,29 @@
             const email = signupEmailInput.value.trim();
             const password = signupPasswordInput.value.trim();
             const confirmPassword = signupConfirmPasswordInput.value.trim();
-
-            if (!name || !email || !password || !confirmPassword) {
-                signupError.textContent = "Please fill out all fields."; return;
-            }
-            if (password.length < 6) {
-                signupError.textContent = "Password must be at least 6 characters."; return;
-            }
-            if (password !== confirmPassword) {
-                signupError.textContent = "Passwords do not match."; return;
-            }
-            
-            signupName = name; // Store name temporarily before creating user
-
-            try { 
-                await createUserWithEmailAndPassword(auth, email, password);
-            } catch (error) { 
-                signupError.textContent = error.message; 
-                signupName = ''; // Clear name if creation fails
-            }
+            if (!name || !email || !password || !confirmPassword) { signupError.textContent = "Please fill out all fields."; return; }
+            if (password.length < 6) { signupError.textContent = "Password must be at least 6 characters."; return; }
+            if (password !== confirmPassword) { signupError.textContent = "Passwords do not match."; return; }
+            signupName = name;
+            try { await createUserWithEmailAndPassword(auth, email, password); } 
+            catch (error) { signupError.textContent = error.message; signupName = ''; }
         });
         
         logoutBtn.addEventListener('click', () => signOut(auth));
 
-        // --- FIRESTORE LOGIC ---
         const setupNewUser = async (user) => {
             await updateProfile(user, { displayName: signupName });
             const userDocRef = doc(db, 'users', user.uid);
-            const initialSettings = {
-                name: signupName,
-                email: user.email,
-                createdAt: serverTimestamp(),
-                dialect: 'Mexico',
-                formality: 'Casual'
-            };
+            const initialSettings = { name: signupName, email: user.email, createdAt: serverTimestamp(), dialect: 'Mexico', formality: 'Casual' };
             await setDoc(userDocRef, initialSettings);
-            signupName = ''; // Clear the temporary name
+            signupName = '';
             return initialSettings;
         };
 
         const loadUserSettings = async (userId) => {
             const userDocRef = doc(db, 'users', userId);
             const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists() && docSnap.data()) {
-                userSettings = { ...userSettings, ...docSnap.data() };
-            }
+            if (docSnap.exists() && docSnap.data()) { userSettings = { ...userSettings, ...docSnap.data() }; }
             dialectSelect.value = userSettings.dialect;
             formalitySelect.value = userSettings.formality;
         };
@@ -291,28 +247,20 @@
         
         const updateSetting = (key, value) => {
             userSettings[key] = value;
-            if (currentUser) {
-                saveUserSettings(currentUser.uid, { [key]: value });
-            }
+            if (currentUser) { saveUserSettings(currentUser.uid, { [key]: value }); }
         };
 
-        // --- AUTH STATE OBSERVER ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                
-                if (isNewUser && signupName) {
-                    userSettings = await setupNewUser(user);
-                } else {
-                    await loadUserSettings(user.uid);
-                }
-                
+                if (isNewUser && signupName) { userSettings = await setupNewUser(user); } 
+                else { await loadUserSettings(user.uid); }
                 welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
                 authContainer.style.display = 'none';
                 mainAppView.classList.remove('hidden');
                 mainAppView.classList.add('flex');
-                scenarioView.style.display = 'flex';
+                missionView.style.display = 'flex';
                 chatView.classList.add('hidden');
                 chatView.classList.remove('flex');
             } else {
@@ -324,18 +272,10 @@
                 mainAppView.classList.remove('flex');
             }
         });
-        
-        // --- MAIN APP LOGIC ---
-        let currentScenario = null;
-        let messages = [];
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = SpeechRecognition ? new SpeechRecognition() : null;
-        if (recognition) {
-            recognition.continuous = false;
-            recognition.lang = 'es-ES';
-            recognition.interimResults = false;
-        }
 
+        let currentMission = null;
+        let messages = [];
+        
         const AIManager = {
             async callAPI(payload) {
                 try {
@@ -348,9 +288,9 @@
                     return await response.json();
                 } catch (error) { return { error: "Sorry, I couldn't connect to the AI." }; }
             },
-            async getResponse(history, scenario) {
+            async getResponse(history, mission) {
                 const mappedHistory = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
-                const payload = { type: 'chat', history: mappedHistory, scenario: { ...scenario, ...userSettings } };
+                const payload = { type: 'chat', history: mappedHistory, mission: { ...mission, ...userSettings } };
                 const response = await this.callAPI(payload);
                 return response.text || response.error;
             },
@@ -371,34 +311,41 @@
             }
         };
 
-        const scenarios = [
-            { title: "Open Conversation", description: "Practice freely on any topic.", systemPrompt: "You are a friendly Spanish tutor." },
-            { title: "Ordering Coffee", description: "Learn to order drinks and snacks.", systemPrompt: "You are a barista in a Spanish cafe. The user is a customer.", formality: 'Casual' },
-            { title: "At the Airport", description: "Practice checking in and asking for directions.", systemPrompt: "You are an airline agent at an airport. The user is a passenger.", formality: 'Formal' },
-            { title: "Making Plans", description: "Discuss schedules and activities.", systemPrompt: "You are a friend making plans for the weekend with the user in Spanish.", formality: 'Casual' }
+        const missions = [
+            { title: "Open Conversation", description: "Practice freely on any topic.", systemPrompt: "You are a friendly Spanish tutor.", challengePrompt: "Occasionally, ask a surprisingly deep or philosophical question." },
+            { title: "Ordering Coffee", description: "Learn to order drinks and snacks.", systemPrompt: "You are a barista in a Spanish cafe.", formality: 'Casual', challengePrompt: "You are a friendly but very busy and slightly distracted barista. Sometimes mishear the order, requiring the user to correct you politely." },
+            { title: "At the Airport", description: "Practice checking in and asking for directions.", systemPrompt: "You are an airline agent at an airport check-in counter.", formality: 'Formal', challengePrompt: "You are a very strict and formal airline agent. Require precise answers and ask for clarification if the user is vague (e.g., booking number or passport)." },
+            { title: "Making Plans", description: "Discuss schedules and activities.", systemPrompt: "You are a friend making plans for the weekend.", formality: 'Casual', challengePrompt: "You are an indecisive friend. When the user suggests a plan, be hesitant and suggest a slightly different or conflicting alternative, forcing negotiation." }
         ];
 
-        const renderScenarios = () => {
-            const scenarioList = scenarioView.querySelector('.space-y-3');
-            scenarioList.innerHTML = scenarios.map((s, index) => `
-                <div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer scenario-card" data-index="${index}">
-                    <h3 class="font-semibold">${s.title}</h3><p class="text-sm text-gray-600">${s.description}</p>
+        const renderMissions = () => {
+            const missionList = missionView.querySelector('.space-y-3');
+            missionList.innerHTML = missions.map((mission, index) => `
+                <div class="p-4 border rounded-lg hover:bg-gray-50 mission-card" data-index="${index}">
+                    <div class="flex justify-between items-center">
+                        <div><h3 class="font-semibold">${mission.title}</h3><p class="text-sm text-gray-600">${mission.description}</p></div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium text-gray-700">Challenge Mode</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="challenge-toggle-${index}" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="challenge-toggle-${index}" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                    </div>
                 </div>`).join('');
         };
         
-        const startChat = (scenario) => {
-            currentScenario = scenario;
-            if(scenario.formality) {
-                formalitySelect.value = scenario.formality;
-                updateSetting('formality', scenario.formality);
-            } else {
-                formalitySelect.value = userSettings.formality;
-            }
+        const startChat = (missionIndex) => {
+            const mission = missions[missionIndex];
+            const isChallengeMode = document.getElementById(`challenge-toggle-${missionIndex}`).checked;
+            currentMission = { ...mission, isChallengeMode };
+            if(mission.formality) { formalitySelect.value = mission.formality; updateSetting('formality', mission.formality); } 
+            else { formalitySelect.value = userSettings.formality; }
             messages = [];
-            document.getElementById('chat-title').textContent = scenario.title;
-            document.getElementById('chat-description').textContent = scenario.description;
+            document.getElementById('chat-title').textContent = mission.title;
+            document.getElementById('chat-description').textContent = mission.description;
             addMessage("Hola, empecemos. ¿Listo?", 'ai');
-            scenarioView.style.display = 'none';
+            missionView.style.display = 'none';
             chatView.classList.remove('hidden');
             chatView.classList.add('flex');
         };
@@ -408,19 +355,8 @@
             const isUser = role === 'user';
             const wrapper = document.createElement('div');
             wrapper.className = `w-full flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`;
-            wrapper.innerHTML = `
-                <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} w-full">
-                    <div class="flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}">
-                        <div class="chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai group'}">
-                            ${text.split(' ').map(word => `<span class="clickable-word cursor-pointer hover:underline">${word}</span>`).join(' ')}
-                        </div>
-                        ${!isUser ? `<button title="Read aloud" class="speaker-btn text-gray-400 hover:text-gray-700 transition-colors mb-1"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7.4 3A1.4 1.4 0 006 4.4v11.2a1.4 1.4 0 002.31 1.05l6.44-5.64a1.4 1.4 0 000-2.1L8.31 3.35A1.4 1.4 0 007.4 3z" /></svg></button>` : ''}
-                    </div>
-                    ${isUser ? `<button title="Correct me" class="correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1">Correct me ✨</button>` : ''}
-                </div>
-            `;
-            chatContainer.appendChild(wrapper);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            wrapper.innerHTML = `<div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} w-full"><div class="flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}"><div class="chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai group'}">${text.split(' ').map(word => `<span class="clickable-word cursor-pointer hover:underline">${word}</span>`).join(' ')}</div>${!isUser ? `<button title="Read aloud" class="speaker-btn text-gray-400 hover:text-gray-700 transition-colors mb-1"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7.4 3A1.4 1.4 0 006 4.4v11.2a1.4 1.4 0 002.31 1.05l6.44-5.64a1.4 1.4 0 000-2.1L8.31 3.35A1.4 1.4 0 007.4 3z" /></svg></button>` : ''}</div>${isUser ? `<button title="Correct me" class="correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1">Correct me ✨</button>` : ''}</div>`;
+            chatContainer.insertBefore(wrapper, chatContainer.firstChild);
         };
 
         const addTypingIndicator = () => {
@@ -428,10 +364,8 @@
             indicator.id = 'typing-indicator';
             indicator.className = 'flex justify-start';
             indicator.innerHTML = `<div class="chat-bubble-ai p-3 rounded-lg w-fit flex items-center gap-1.5"><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></span></div>`;
-            chatContainer.appendChild(indicator);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            chatContainer.insertBefore(indicator, chatContainer.firstChild);
         };
-        
         const removeTypingIndicator = () => document.getElementById('typing-indicator')?.remove();
         
         const handleSendMessage = async () => {
@@ -440,7 +374,7 @@
             addMessage(userInput, 'user');
             chatInput.value = '';
             addTypingIndicator();
-            const response = await AIManager.getResponse(messages, currentScenario);
+            const response = await AIManager.getResponse(messages.slice(-6), currentMission);
             removeTypingIndicator();
             addMessage(response, 'ai');
         };
@@ -449,30 +383,20 @@
             reportModal.classList.remove('hidden');
             document.getElementById('report-loading').classList.remove('hidden');
             document.getElementById('report-content').innerHTML = '';
-
             const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).join('\n');
             const analysis = await AIManager.analyzeConversation(transcript);
-
             document.getElementById('report-loading').classList.add('hidden');
-
             if (analysis.error) {
                 document.getElementById('report-content').innerHTML = `<p class="text-red-500">${analysis.error}</p>`;
             } else {
-                document.getElementById('report-content').innerHTML = `
-                    <div><h3 class="font-bold text-lg">New Vocabulary</h3><p>${analysis.newVocabulary.join(', ')}</p></div>
-                    <div><h3 class="font-bold text-lg">Grammar Feedback</h3><p>${analysis.grammarFeedback}</p></div>
-                    <div><h3 class="font-bold text-lg">Proficiency Score</h3>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: ${analysis.proficiencyScore}%"></div></div>
-                        <p class="text-right font-semibold">${analysis.proficiencyScore}/100</p>
-                    </div>
-                `;
+                document.getElementById('report-content').innerHTML = `<div><h3 class="font-bold text-lg">New Vocabulary</h3><p>${analysis.newVocabulary.join(', ')}</p></div><div><h3 class="font-bold text-lg">Grammar Feedback</h3><p>${analysis.grammarFeedback}</p></div><div><h3 class="font-bold text-lg">Proficiency Score</h3><div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: ${analysis.proficiencyScore}%"></div></div><p class="text-right font-semibold">${analysis.proficiencyScore}/100</p></div>`;
             }
         };
 
         endSessionBtn.addEventListener('click', showReport);
         closeReportBtn.addEventListener('click', () => {
             reportModal.classList.add('hidden');
-            scenarioView.style.display = 'flex';
+            missionView.style.display = 'flex';
             chatView.classList.add('hidden');
             chatView.classList.remove('flex');
         });
@@ -480,17 +404,17 @@
         settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
         dialectSelect.addEventListener('change', (e) => updateSetting('dialect', e.target.value));
-        formalitySelect.addEventListener('change', (e) => updateSetting('formality', e.test.value));
+        formalitySelect.addEventListener('change', (e) => updateSetting('formality', e.target.value));
         sendBtn.addEventListener('click', handleSendMessage);
         chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
-        scenarioView.addEventListener('click', (e) => {
-            const card = e.target.closest('.scenario-card');
-            if (card) {
-                startChat(scenarios[card.dataset.index]);
+        missionView.addEventListener('click', (e) => {
+            const card = e.target.closest('.mission-card');
+            if (card && !e.target.closest('.toggle-checkbox, .toggle-label')) {
+                startChat(card.dataset.index);
             }
         });
         
-        renderScenarios();
+        renderMissions();
     });
     </script>
 </body>
