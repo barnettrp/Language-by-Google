@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- === FIREBASE CONFIGURATION === -->
+    <!-- Firebase Configuration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -23,22 +23,8 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        window.firebaseInstances = {
-            app: app,
-            auth: getAuth(app),
-            db: getFirestore(app)
-        };
-        window.firebaseFunctions = {
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            onAuthStateChanged,
-            signOut,
-            updateProfile,
-            doc,
-            setDoc,
-            getDoc,
-            serverTimestamp
-        };
+        window.firebaseInstances = { app, auth: getAuth(app), db: getFirestore(app) };
+        window.firebaseFunctions = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
     </script>
     
     <style>
@@ -54,6 +40,8 @@
         #chat-container::-webkit-scrollbar { display: none; }
         #chat-container { -ms-overflow-style: none; scrollbar-width: none; }
         .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+        .mic-active { color: #ef4444; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
 </head>
 <body class="flex items-center justify-center h-screen p-0 md:p-4">
@@ -276,6 +264,20 @@
         let currentMission = null;
         let messages = [];
         
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'es-ES';
+            recognition.interimResults = false;
+
+            recognition.onstart = () => { micBtn.classList.add('mic-active'); };
+            recognition.onresult = (event) => { chatInput.value = event.results[0][0].transcript; };
+            recognition.onerror = (event) => { console.error("Speech recognition error:", event.error); micBtn.classList.remove('mic-active'); };
+            recognition.onend = () => { micBtn.classList.remove('mic-active'); };
+        }
+        
         const speak = (textToSpeak) => {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -442,13 +444,53 @@
             }
         });
         
-        chatContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('read-aloud-btn')) {
-                const bubble = e.target.previousElementSibling;
+        chatContainer.addEventListener('click', async (e) => {
+            const target = e.target;
+            
+            if (target.classList.contains('read-aloud-btn')) {
+                const bubble = target.previousElementSibling;
                 if (bubble) speak(bubble.textContent.trim());
             }
+            
+            if (target.classList.contains('correction-btn')) {
+                const bubble = target.previousElementSibling;
+                if (bubble) {
+                    const originalText = bubble.textContent.trim();
+                    target.textContent = 'Correcting...';
+                    const correction = await AIManager.getCorrection(originalText);
+                    alert(correction);
+                    target.textContent = 'Correct me ✨';
+                }
+            }
+            
+            if (target.classList.contains('clickable-word')) {
+                const word = target.textContent.trim().replace(/[.,¡!¿?]/g, '');
+                if (!word) return;
+                const context = target.parentElement.textContent.trim();
+                
+                translationPopover.innerHTML = 'Translating...';
+                translationPopover.classList.remove('hidden');
+                
+                const rect = target.getBoundingClientRect();
+                const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                
+                translationPopover.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+                translationPopover.style.transform = 'translateX(-50%)';
+                translationPopover.style.top = `${rect.top - containerRect.top - 10}px`; 
+
+                const translation = await AIManager.getTranslation(word, context);
+                translationPopover.innerHTML = translation.replace(/\n/g, '<br>');
+                
+                translationPopover.style.top = `${rect.top - containerRect.top - translationPopover.offsetHeight - 5}px`;
+            }
         });
-        
+
+        document.body.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('clickable-word')) {
+                translationPopover.classList.add('hidden');
+            }
+        }, true);
+
         renderMissions();
     });
     </script>
