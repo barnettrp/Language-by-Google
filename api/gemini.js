@@ -42,7 +42,7 @@ export default async function handler(request, response) {
             break;
 
         case 'analysis':
-            systemPrompt = `Analyze this Spanish conversation. The user is the learner. Provide a JSON object with keys "newVocabulary" (array of 3-5 Spanish words/phrases), "grammarFeedback" (a brief, encouraging paragraph), and "proficiencyScore" (a number 0-100).`;
+            systemPrompt = `Analyze this Spanish conversation. The user is the learner. Provide all feedback in English. Provide a JSON object with keys "newVocabulary" (an array of objects, each with "spanish" and "english" keys), "grammarFeedback" (a brief, encouraging paragraph in English), and "proficiencyScore" (a number 0-100).`;
             userPrompt = body.transcript;
             break;
             
@@ -105,4 +105,5 @@ export default async function handler(request, response) {
         response.status(500).json({ error: 'An internal server error occurred.' });
     }
 }
+
 
