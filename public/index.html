@@ -296,7 +296,7 @@
         const saveUserSettings = async (userId, settings) => {
             if (!userId) return;
             const userDocRef = doc(db, 'users', userId);
-            await setDoc(userDocRef, settings, { merge: true });
+            await updateDoc(userDocRef, settings);
         };
         
         const updateSetting = (key, value) => {
@@ -338,7 +338,6 @@
             recognition.continuous = false;
             recognition.lang = 'es-ES';
             recognition.interimResults = false;
-
             recognition.onstart = () => { isListening = true; micBtn.classList.add('mic-active'); };
             recognition.onresult = (event) => { chatInput.value = event.results[0][0].transcript; };
             recognition.onerror = (event) => {
@@ -455,9 +454,9 @@
             
             mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
             
-            const stageIdsToShow = currentStage ? currentStage.nextStages : ["1"];
+            const nextStageIds = currentStage ? currentStage.nextStages : ["1"];
 
-            stageIdsToShow.forEach((stageId, index) => {
+            nextStageIds.forEach((stageId, index) => {
                 const location = document.createElement('div');
                 location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
                 location.style.left = `${20 + index * 40}%`;
