@@ -331,6 +331,35 @@
         let currentStage = null;
         let messages = [];
         
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'es-ES';
+            recognition.interimResults = false;
+
+            recognition.onstart = () => { isListening = true; micBtn.classList.add('mic-active'); };
+            recognition.onresult = (event) => { chatInput.value = event.results[0][0].transcript; };
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                alert(`Speech recognition error: ${event.error}. Please ensure microphone access is allowed.`);
+            };
+            recognition.onend = () => { isListening = false; micBtn.classList.remove('mic-active'); };
+        }
+        
+        const speak = (textToSpeak) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'es-ES';
+                utterance.rate = 0.9;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Sorry, your browser doesn't support text-to-speech.");
+            }
+        };
+
         const AIManager = {
             async callAPI(payload) {
                 try {
@@ -343,9 +372,9 @@
                     return await response.json();
                 } catch (error) { return { error: "Sorry, I couldn't connect to the AI." }; }
             },
-            async getResponse(history, stage) {
+            async getResponse(history, stage, settings) {
                 const mappedHistory = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
-                const payload = { type: 'chat', history: mappedHistory, mission: { ...stage, ...userSettings } }; // Use mission for backend
+                const payload = { type: 'chat', history: mappedHistory, stage, settings };
                 const response = await this.callAPI(payload);
                 return response.text || response.error;
             },
@@ -369,7 +398,8 @@
                         systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
                         validationPrompt: "Did the user find out the musician's name is 'Carlos' and he was last seen at the 'plaza'?",
                         reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
-                        nextStages: ["2a", "2b"]
+                        nextStages: ["2a", "2b"],
+                        initialMessage: "Good morning. How can I help you today?"
                     },
                     "2a": {
                         characterName: "Elena, the Vendor",
@@ -378,7 +408,8 @@
                         systemPrompt: "You are Elena, a chatty and knowledgeable street vendor in a plaza.",
                         validationPrompt: "Did the user learn that Carlos was talking to another musician named Javier?",
                         reward: { clue: "Carlos was seen with a rival musician, Javier.", xp: 75 },
-                        nextStages: ["3"]
+                        nextStages: ["3"],
+                        initialMessage: "¡Hola! ¿Buscas algo bonito?"
                     },
                     "2b": {
                         characterName: "A Lost Tourist",
@@ -387,7 +418,8 @@
                         systemPrompt: "You are a lost tourist who speaks very little Spanish and saw nothing useful.",
                         validationPrompt: "Did the user learn that you saw nothing useful?",
                         reward: { clue: "The tourist saw nothing. This is a dead end.", xp: 10 },
-                        nextStages: ["2a"]
+                        nextStages: ["2a"],
+                        initialMessage: "Uh... hello? Do you speak English?"
                     },
                      "3": {
                         characterName: "Javier, the Rival",
@@ -396,7 +428,8 @@
                         systemPrompt: "You are Javier, a jealous rival musician. You 'borrowed' the guitar but won't admit it easily.",
                         validationPrompt: "Did the user successfully convince you to return the guitar?",
                         reward: { clue: "You convinced Javier! The guitar is safe.", xp: 100 },
-                        nextStages: [] // End of quest
+                        nextStages: [],
+                        initialMessage: "¿Qué quieres? Estoy ocupado."
                     }
                 }
             }
@@ -422,9 +455,9 @@
             
             mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
             
-            const nextStageIds = currentStage ? currentStage.nextStages : ["1"];
+            const stageIdsToShow = currentStage ? currentStage.nextStages : ["1"];
 
-            nextStageIds.forEach((stageId, index) => {
+            stageIdsToShow.forEach((stageId, index) => {
                 const location = document.createElement('div');
                 location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
                 location.style.left = `${20 + index * 40}%`;
@@ -451,29 +484,57 @@
             messages = [];
             chatView.querySelector('#chat-title').textContent = currentStage.characterName;
             chatView.querySelector('#chat-description').textContent = currentStage.vignette_en.split('.')[1];
-            addMessage(currentStage.initialMessage || `Hola, soy ${currentStage.characterName.split(',')[0]}.`, 'ai');
+            addMessage(currentStage.initialMessage, 'ai');
             vignetteModal.classList.add('hidden');
             questView.style.display = 'none';
             chatView.classList.remove('hidden');
             chatView.classList.add('flex');
         };
         
-        const addMessage = (text, role) => { /* ... (Unchanged) ... */ };
+        const addMessage = (text, role) => {
+            messages.push({ role, parts: [{ text }] });
+            const isUser = role === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
+            const bubbleWrapper = document.createElement('div');
+            bubbleWrapper.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+            text.split(' ').forEach(word => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'clickable-word cursor-pointer hover:underline';
+                wordSpan.textContent = word + ' ';
+                bubbleWrapper.appendChild(wordSpan);
+            });
+            wrapper.appendChild(bubbleWrapper);
+            if (isUser) {
+                wrapper.innerHTML += `<button title="Correct me" class="correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1">Correct me ✨</button>`;
+            } else {
+                wrapper.innerHTML += `<button title="Read aloud" class="read-aloud-btn text-xs text-gray-500 hover:text-blue-500 mt-1 ml-1">Read Aloud 🔊</button>`;
+            }
+            chatContainer.insertBefore(wrapper, chatContainer.firstChild);
+        };
+        
         const handleSendMessage = async () => {
             const userInput = chatInput.value.trim();
             if (!userInput) return;
             addMessage(userInput, 'user');
             chatInput.value = '';
             addTypingIndicator();
-            const response = await AIManager.getResponse(messages.slice(-6), currentStage);
+            const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
             removeTypingIndicator();
             addMessage(response, 'ai');
         };
-        const addTypingIndicator = () => { /* ... (Unchanged) ... */ };
-        const removeTypingIndicator = () => { /* ... (Unchanged) ... */ };
+        
+        const addTypingIndicator = () => {
+            const indicator = document.createElement('div');
+            indicator.id = 'typing-indicator';
+            indicator.className = 'flex justify-start';
+            indicator.innerHTML = `<div class="chat-bubble-ai p-3 rounded-lg w-fit flex items-center gap-1.5"><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></span></div>`;
+            chatContainer.insertBefore(indicator, chatContainer.firstChild);
+        };
+        const removeTypingIndicator = () => document.getElementById('typing-indicator')?.remove();
 
         const endStage = async () => {
-             const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).join('\n');
+            const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).join('\n');
             const result = await AIManager.validateObjective(transcript, currentStage.validationPrompt);
 
             if (result.trim().toUpperCase() === "YES") {
@@ -516,7 +577,7 @@
             if (currentStage.nextStages.length > 0) {
                 showMapView(currentStage.questId);
             } else {
-                alert("Quest Complete!"); // Simple quest complete message
+                alert("Quest Complete! 🎉");
             }
         });
         endSessionBtn.addEventListener('click', endStage);
@@ -529,11 +590,63 @@
         sendBtn.addEventListener('click', handleSendMessage);
         chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
         
+        micBtn.addEventListener('click', () => {
+            if (!recognition) { return alert("Sorry, your browser doesn't support speech recognition."); }
+            if (isListening) { recognition.stop(); return; }
+            try { recognition.start(); } 
+            catch(e) { console.error("Could not start recognition:", e); alert("Could not start speech recognition. Please check permissions."); }
+        });
+        
+        chatContainer.addEventListener('click', async (e) => {
+            const target = e.target;
+            
+            if (target.classList.contains('read-aloud-btn')) {
+                const bubble = target.closest('.flex-col').querySelector('.chat-bubble');
+                if (bubble) speak(bubble.textContent.trim());
+            }
+            
+            if (target.classList.contains('correction-btn')) {
+                const bubble = target.closest('.flex-col').querySelector('.chat-bubble');
+                if (bubble) {
+                    const originalText = bubble.textContent.trim();
+                    target.textContent = 'Correcting...';
+                    const correction = await AIManager.getCorrection(originalText);
+                    alert(correction);
+                    target.textContent = 'Correct me ✨';
+                }
+            }
+            
+            if (target.classList.contains('clickable-word')) {
+                const word = target.textContent.trim().replace(/[.,¡!¿?]/g, '');
+                if (!word) return;
+                const context = target.parentElement.textContent.trim();
+                
+                translationPopover.innerHTML = 'Translating...';
+                translationPopover.classList.remove('hidden');
+                
+                const rect = target.getBoundingClientRect();
+                const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                
+                translationPopover.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+                translationPopover.style.transform = 'translateX(-50%)';
+                translationPopover.style.top = `${rect.top - containerRect.top - 10}px`; 
+
+                const translation = await AIManager.getTranslation(word, context);
+                translationPopover.innerHTML = translation ? translation.replace(/\n/g, '<br>') : 'Error.';
+                
+                translationPopover.style.top = `${rect.top - containerRect.top - translationPopover.offsetHeight - 5}px`;
+            }
+        });
+
+        document.body.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('clickable-word')) {
+                translationPopover.classList.add('hidden');
+            }
+        }, true);
+        
         renderQuests();
     });
     </script>
 </body>
 </html>
-
->
 
