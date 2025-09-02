@@ -23,8 +23,24 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        window.firebaseInstances = { app, auth: getAuth(app), db: getFirestore(app) };
-        window.firebaseFunctions = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, updateDoc, increment };
+        window.firebaseInstances = {
+            app: app,
+            auth: getAuth(app),
+            db: getFirestore(app)
+        };
+        window.firebaseFunctions = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut,
+            updateProfile,
+            doc,
+            setDoc,
+            getDoc,
+            serverTimestamp,
+            updateDoc,
+            increment
+        };
     </script>
     
     <style>
@@ -52,7 +68,7 @@
         
         <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
             <div id="login-view">
-                 <div class="flex justify-center mb-4">
+                <div class="flex justify-center mb-4">
                     <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
@@ -70,7 +86,7 @@
                 </div>
             </div>
             <div id="signup-view" class="hidden">
-                 <div class="flex justify-center mb-4">
+                <div class="flex justify-center mb-4">
                      <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
@@ -381,6 +397,21 @@
                 const payload = { type: 'validation', transcript, validationPrompt };
                 const response = await this.callAPI(payload);
                 return response.text || "NO";
+            },
+            async getCorrection(text) {
+                const payload = { type: 'correction', text };
+                const response = await this.callAPI(payload);
+                return response.text || response.error;
+            },
+            async analyzeConversation(transcript) {
+                const payload = { type: 'analysis', transcript };
+                const response = await this.callAPI(payload);
+                return response.data || { error: response.error };
+            },
+            async getTranslation(word, context) {
+                const payload = { type: 'translation', word, context };
+                const response = await this.callAPI(payload);
+                return response.text || response.error;
             }
         };
 
