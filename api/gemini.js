@@ -2,7 +2,7 @@
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
-        return response.status(405).json({ error: 'Method Not Allowed' });
+        return response.status(405).json({ error: 'Method Not Allowed' }); 
     }
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
