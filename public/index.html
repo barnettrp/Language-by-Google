@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConvoQuest.ai</title>
+    <title>ConvoQuest</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
@@ -64,7 +64,13 @@
         
         <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
             <div id="login-view">
-                <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome Back!</h1>
+                <div class="flex justify-center mb-4">
+                    <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to ConvoQuest</h1>
                 <div class="space-y-4">
                     <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -76,6 +82,12 @@
                 </div>
             </div>
             <div id="signup-view" class="hidden">
+                <div class="flex justify-center mb-4">
+                     <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
+                    </svg>
+                </div>
                 <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
                 <div class="space-y-4">
                     <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -286,7 +298,6 @@
             recognition.continuous = false;
             recognition.lang = 'es-ES';
             recognition.interimResults = false;
-
             recognition.onstart = () => { isListening = true; micBtn.classList.add('mic-active'); };
             recognition.onresult = (event) => { chatInput.value = event.results[0][0].transcript; };
             recognition.onerror = (event) => {
@@ -462,6 +473,13 @@
             }
         });
         
+        micBtn.addEventListener('click', () => {
+            if (!recognition) { return alert("Sorry, your browser doesn't support speech recognition."); }
+            if (isListening) { recognition.stop(); return; }
+            try { recognition.start(); } 
+            catch(e) { console.error("Could not start recognition:", e); alert("Could not start speech recognition. Please check permissions."); }
+        });
+
         chatContainer.addEventListener('click', async (e) => {
             const target = e.target;
             
@@ -497,7 +515,7 @@
                 translationPopover.style.top = `${rect.top - containerRect.top - 10}px`; 
 
                 const translation = await AIManager.getTranslation(word, context);
-                translationPopover.innerHTML = translation ? translation.replace(/\n/g, '<br>') : 'Error translating.';
+                translationPopover.innerHTML = translation ? translation.replace(/\n/g, '<br>') : 'Error.';
                 
                 translationPopover.style.top = `${rect.top - containerRect.top - translationPopover.offsetHeight - 5}px`;
             }
