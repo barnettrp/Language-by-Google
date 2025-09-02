@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- === FIREBASE CONFIGURATION === -->
+    <!-- Firebase Configuration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -23,22 +23,8 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        window.firebaseInstances = {
-            app: app,
-            auth: getAuth(app),
-            db: getFirestore(app)
-        };
-        window.firebaseFunctions = {
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            onAuthStateChanged,
-            signOut,
-            updateProfile,
-            doc,
-            setDoc,
-            getDoc,
-            serverTimestamp
-        };
+        window.firebaseInstances = { app, auth: getAuth(app), db: getFirestore(app) };
+        window.firebaseFunctions = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
     </script>
     
     <style>
@@ -82,7 +68,7 @@
                 </div>
             </div>
             <div id="signup-view" class="hidden">
-                <div class="flex justify-center mb-4">
+                 <div class="flex justify-center mb-4">
                      <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
@@ -105,7 +91,7 @@
         
         <div id="main-app-view" class="hidden flex-col h-full">
             <div id="mission-view" class="flex flex-col h-full">
-                <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
                     <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Mission</h1>
                     <div>
                         <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
@@ -119,7 +105,7 @@
                 <div class="p-4 space-y-3 overflow-y-auto"></div>
             </div>
             <div id="chat-view" class="hidden flex-col h-full">
-                <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
                     <div>
                         <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
                         <p id="chat-description" class="text-sm text-gray-500"></p>
@@ -140,6 +126,7 @@
                     </div>
                 </footer>
             </div>
+            
             <div id="report-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
                      <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Session Report</h2><button id="close-report-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
@@ -159,7 +146,21 @@
                             <label class="font-semibold">Formality</label>
                             <select id="formality-select" class="w-full mt-1 p-2 border rounded-md"><option value="Casual">Casual</option><option value="Formal">Formal</option></select>
                         </div>
+                        <div>
+                            <label for="vignette-lang-select" class="font-semibold">Mission Intro Language</label>
+                            <select id="vignette-lang-select" class="w-full mt-1 p-2 border rounded-md">
+                                <option value="English">English</option>
+                                <option value="Spanish">Spanish</option>
+                            </select>
+                        </div>
                     </div>
+                </div>
+            </div>
+            <div id="vignette-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+                <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+                    <h2 id="vignette-title" class="text-2xl font-bold mb-4"></h2>
+                    <p id="vignette-text" class="text-gray-600 mb-6"></p>
+                    <button id="start-mission-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Start Mission</button>
                 </div>
             </div>
         </div>
@@ -171,7 +172,7 @@
         const { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp } = window.firebaseFunctions;
 
         let currentUser = null;
-        let userSettings = { dialect: 'Mexico', formality: 'Casual' };
+        let userSettings = { dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
         let signupName = '';
         let isListening = false;
 
@@ -208,6 +209,11 @@
         const closeReportBtn = document.getElementById('close-report-btn');
         const endSessionBtn = document.getElementById('end-session-btn');
         const translationPopover = document.getElementById('translation-popover');
+        const vignetteModal = document.getElementById('vignette-modal');
+        const vignetteTitle = document.getElementById('vignette-title');
+        const vignetteText = document.getElementById('vignette-text');
+        const startMissionBtn = document.getElementById('start-mission-btn');
+        const vignetteLangSelect = document.getElementById('vignette-lang-select');
 
         showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
         showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
@@ -240,7 +246,7 @@
         const setupNewUser = async (user) => {
             await updateProfile(user, { displayName: signupName });
             const userDocRef = doc(db, 'users', user.uid);
-            const initialSettings = { name: signupName, email: user.email, createdAt: serverTimestamp(), dialect: 'Mexico', formality: 'Casual' };
+            const initialSettings = { name: signupName, email: user.email, createdAt: serverTimestamp(), dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
             await setDoc(userDocRef, initialSettings);
             signupName = '';
             return initialSettings;
@@ -249,9 +255,12 @@
         const loadUserSettings = async (userId) => {
             const userDocRef = doc(db, 'users', userId);
             const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists() && docSnap.data()) { userSettings = { ...userSettings, ...docSnap.data() }; }
+            if (docSnap.exists() && docSnap.data()) {
+                userSettings = { ...userSettings, ...docSnap.data() };
+            }
             dialectSelect.value = userSettings.dialect;
             formalitySelect.value = userSettings.formality;
+            vignetteLangSelect.value = userSettings.vignetteLanguage;
         };
         
         const saveUserSettings = async (userId, settings) => {
@@ -355,10 +364,10 @@
         };
 
         const missions = [
-            { title: "Open Conversation", description: "Practice freely on any topic.", systemPrompt: "You are a friendly Spanish tutor.", challengePrompt: "Occasionally, ask a surprisingly deep or philosophical question." },
-            { title: "Ordering Coffee", description: "Learn to order drinks and snacks.", systemPrompt: "You are a barista in a Spanish cafe.", formality: 'Casual', challengePrompt: "You are a friendly but very busy and slightly distracted barista. Sometimes mishear the order, requiring the user to correct you politely." },
-            { title: "At the Airport", description: "Practice checking in and asking for directions.", systemPrompt: "You are an airline agent at an airport check-in counter.", formality: 'Formal', challengePrompt: "You are a very strict and formal airline agent. Require precise answers and ask for clarification if the user is vague (e.g., booking number or passport)." },
-            { title: "Making Plans", description: "Discuss schedules and activities.", systemPrompt: "You are a friend making plans for the weekend.", formality: 'Casual', challengePrompt: "You are an indecisive friend. When the user suggests a plan, be hesitant and suggest a slightly different or conflicting alternative, forcing negotiation." }
+            { title: "Open Conversation", description: "Practice freely on any topic.", systemPrompt: "You are a friendly Spanish tutor.", challengePrompt: "Occasionally, ask a surprisingly deep or philosophical question.", vignette_en: "A blank canvas awaits. Feel free to talk about anything you like, from your day to your dreams. Your mission: Have a natural and engaging conversation.", vignette_es: "Un lienzo en blanco te espera. Siéntete libre de hablar de lo que quieras, desde tu día hasta tus sueños. Tu misión: Tener una conversación natural y atractiva." },
+            { title: "Ordering Coffee", description: "Learn to order drinks and snacks.", systemPrompt: "You are a barista in a Spanish cafe.", formality: 'Casual', challengePrompt: "You are a friendly but very busy and slightly distracted barista. Sometimes mishear the order, requiring the user to correct you politely.", vignette_en: "You step into a cozy café in Madrid, the aroma of fresh coffee filling the air. The barista smiles, ready to take your order. Your mission: Order a coffee and a pastry for yourself.", vignette_es: "Entras en una acogedora cafetería en Madrid, el aroma a café recién hecho llena el aire. El barista sonríe, listo para tomar tu pedido. Tu misión: Pedir un café y un pastel para ti." },
+            { title: "At the Airport", description: "Practice checking in and asking for directions.", systemPrompt: "You are an airline agent at an airport check-in counter.", formality: 'Formal', challengePrompt: "You are a very strict and formal airline agent. Require precise answers and ask for clarification if the user is vague (e.g., booking number or passport).", vignette_en: "You've just arrived at El Dorado Airport in Bogotá. You walk up to the check-in counter, passport in hand. Your mission: Check in for your flight to Medellín and ask where your gate is.", vignette_es: "Acabas de llegar al Aeropuerto El Dorado en Bogotá. Te acercas al mostrador de facturación, pasaporte en mano. Tu misión: Facturar para tu vuelo a Medellín y preguntar dónde está tu puerta de embarque." },
+            { title: "Making Plans", description: "Discuss schedules and activities.", systemPrompt: "You are a friend making plans for the weekend.", formality: 'Casual', challengePrompt: "You are an indecisive friend. When the user suggests a plan, be hesitant and suggest a slightly different or conflicting alternative, forcing negotiation.", vignette_en: "Your friend texts you on a Friday afternoon. They want to hang out this weekend, but they aren't sure what to do. Your mission: Suggest an activity and finalize a plan.", vignette_es: "Tu amigo te envía un mensaje un viernes por la tarde. Quiere quedar este fin de semana, pero no está seguro de qué hacer. Tu misión: Sugerir una actividad y concretar un plan." }
         ];
 
         const renderMissions = () => {
@@ -378,16 +387,24 @@
                 </div>`).join('');
         };
         
-        const startChat = (missionIndex) => {
+        const showVignette = (missionIndex) => {
             const mission = missions[missionIndex];
             const isChallengeMode = document.getElementById(`challenge-toggle-${missionIndex}`).checked;
             currentMission = { ...mission, isChallengeMode };
-            if(mission.formality) { formalitySelect.value = mission.formality; updateSetting('formality', mission.formality); } 
+            vignetteTitle.textContent = mission.title;
+            vignetteText.textContent = userSettings.vignetteLanguage === 'Spanish' ? mission.vignette_es : mission.vignette_en;
+            vignetteModal.classList.remove('hidden');
+        };
+
+        const startChat = () => {
+            if (!currentMission) return;
+            if(currentMission.formality) { formalitySelect.value = currentMission.formality; updateSetting('formality', currentMission.formality); } 
             else { formalitySelect.value = userSettings.formality; }
             messages = [];
-            document.getElementById('chat-title').textContent = mission.title;
-            document.getElementById('chat-description').textContent = mission.description;
+            document.getElementById('chat-title').textContent = currentMission.title;
+            document.getElementById('chat-description').textContent = currentMission.description;
             addMessage("Hola, empecemos. ¿Listo?", 'ai');
+            vignetteModal.classList.add('hidden');
             missionView.style.display = 'none';
             chatView.classList.remove('hidden');
             chatView.classList.add('flex');
@@ -461,6 +478,7 @@
         
         settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        vignetteLangSelect.addEventListener('change', (e) => updateSetting('vignetteLanguage', e.target.value));
         dialectSelect.addEventListener('change', (e) => updateSetting('dialect', e.target.value));
         formalitySelect.addEventListener('change', (e) => updateSetting('formality', e.target.value));
         sendBtn.addEventListener('click', handleSendMessage);
@@ -469,9 +487,10 @@
         missionView.addEventListener('click', (e) => {
             const card = e.target.closest('.mission-card');
             if (card && !e.target.closest('.toggle-checkbox, .toggle-label')) {
-                startChat(card.dataset.index);
+                showVignette(card.dataset.index);
             }
         });
+        startMissionBtn.addEventListener('click', startChat);
         
         micBtn.addEventListener('click', () => {
             if (!recognition) { return alert("Sorry, your browser doesn't support speech recognition."); }
@@ -479,7 +498,7 @@
             try { recognition.start(); } 
             catch(e) { console.error("Could not start recognition:", e); alert("Could not start speech recognition. Please check permissions."); }
         });
-
+        
         chatContainer.addEventListener('click', async (e) => {
             const target = e.target;
             
