@@ -23,6 +23,7 @@ export default async function handler(request, response) {
             if (!stage || !settings) {
                 return response.status(400).json({ error: 'Missing stage or settings data for chat.' });
             }
+            // --- FIX: Changed all instances of 'mission' to 'stage' ---
             let finalSystemPrompt = stage.systemPrompt || "You are a friendly Spanish tutor.";
             if (stage.isChallengeMode && stage.challengePrompt) {
                 finalSystemPrompt += ` ${stage.challengePrompt}`;
