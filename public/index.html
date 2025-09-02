@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Firebase Configuration -->
+    <!-- === FIREBASE CONFIGURATION === -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -23,8 +23,22 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        window.firebaseInstances = { app, auth: getAuth(app), db: getFirestore(app) };
-        window.firebaseFunctions = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
+        window.firebaseInstances = {
+            app: app,
+            auth: getAuth(app),
+            db: getFirestore(app)
+        };
+        window.firebaseFunctions = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut,
+            updateProfile,
+            doc,
+            setDoc,
+            getDoc,
+            serverTimestamp
+        };
     </script>
     
     <style>
@@ -68,7 +82,7 @@
                 </div>
             </div>
             <div id="signup-view" class="hidden">
-                 <div class="flex justify-center mb-4">
+                <div class="flex justify-center mb-4">
                      <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
@@ -364,10 +378,10 @@
         };
 
         const missions = [
-            { title: "Open Conversation", description: "Practice freely on any topic.", systemPrompt: "You are a friendly Spanish tutor.", challengePrompt: "Occasionally, ask a surprisingly deep or philosophical question.", vignette_en: "A blank canvas awaits. Feel free to talk about anything you like, from your day to your dreams. Your mission: Have a natural and engaging conversation.", vignette_es: "Un lienzo en blanco te espera. Siéntete libre de hablar de lo que quieras, desde tu día hasta tus sueños. Tu misión: Tener una conversación natural y atractiva." },
-            { title: "Ordering Coffee", description: "Learn to order drinks and snacks.", systemPrompt: "You are a barista in a Spanish cafe.", formality: 'Casual', challengePrompt: "You are a friendly but very busy and slightly distracted barista. Sometimes mishear the order, requiring the user to correct you politely.", vignette_en: "You step into a cozy café in Madrid, the aroma of fresh coffee filling the air. The barista smiles, ready to take your order. Your mission: Order a coffee and a pastry for yourself.", vignette_es: "Entras en una acogedora cafetería en Madrid, el aroma a café recién hecho llena el aire. El barista sonríe, listo para tomar tu pedido. Tu misión: Pedir un café y un pastel para ti." },
-            { title: "At the Airport", description: "Practice checking in and asking for directions.", systemPrompt: "You are an airline agent at an airport check-in counter.", formality: 'Formal', challengePrompt: "You are a very strict and formal airline agent. Require precise answers and ask for clarification if the user is vague (e.g., booking number or passport).", vignette_en: "You've just arrived at El Dorado Airport in Bogotá. You walk up to the check-in counter, passport in hand. Your mission: Check in for your flight to Medellín and ask where your gate is.", vignette_es: "Acabas de llegar al Aeropuerto El Dorado en Bogotá. Te acercas al mostrador de facturación, pasaporte en mano. Tu misión: Facturar para tu vuelo a Medellín y preguntar dónde está tu puerta de embarque." },
-            { title: "Making Plans", description: "Discuss schedules and activities.", systemPrompt: "You are a friend making plans for the weekend.", formality: 'Casual', challengePrompt: "You are an indecisive friend. When the user suggests a plan, be hesitant and suggest a slightly different or conflicting alternative, forcing negotiation.", vignette_en: "Your friend texts you on a Friday afternoon. They want to hang out this weekend, but they aren't sure what to do. Your mission: Suggest an activity and finalize a plan.", vignette_es: "Tu amigo te envía un mensaje un viernes por la tarde. Quiere quedar este fin de semana, pero no está seguro de qué hacer. Tu misión: Sugerir una actividad y concretar un plan." }
+            { title: "Open Conversation", description: "Practice freely on any topic.", systemPrompt: "You are a friendly Spanish tutor.", challengePrompt: "Occasionally, ask a surprisingly deep or philosophical question.", vignette_en: "A blank canvas awaits. Feel free to talk about anything you like, from your day to your dreams. Your mission: Have a natural and engaging conversation.", vignette_es: "Un lienzo en blanco te espera. Siéntete libre de hablar de lo que quieras, desde tu día hasta tus sueños. Tu misión: Tener una conversación natural y atractiva.", initialMessage: "¡Hola! ¿De qué te gustaría hablar hoy?" },
+            { title: "Ordering Coffee", description: "Learn to order drinks and snacks.", systemPrompt: "You are a barista in a Spanish cafe.", formality: 'Casual', challengePrompt: "You are a friendly but very busy and slightly distracted barista. Sometimes mishear the order, requiring the user to correct you politely.", vignette_en: "You step into a cozy café in Madrid, the aroma of fresh coffee filling the air. The barista smiles, ready to take your order. Your mission: Order a coffee and a pastry for yourself.", vignette_es: "Entras en una acogedora cafetería en Madrid, el aroma a café recién hecho llena el aire. El barista sonríe, listo para tomar tu pedido. Tu misión: Pedir un café y un pastel para ti.", initialMessage: "¡Hola! Bienvenido. ¿Qué te pongo?" },
+            { title: "At the Airport", description: "Practice checking in and asking for directions.", systemPrompt: "You are an airline agent at an airport check-in counter.", formality: 'Formal', challengePrompt: "You are a very strict and formal airline agent. Require precise answers and ask for clarification if the user is vague (e.g., booking number or passport).", vignette_en: "You've just arrived at El Dorado Airport in Bogotá. You walk up to the check-in counter, passport in hand. Your mission: Check in for your flight to Medellín and ask where your gate is.", vignette_es: "Acabas de llegar al Aeropuerto El Dorado en Bogotá. Te acercas al mostrador de facturación, pasaporte en mano. Tu misión: Facturar para tu vuelo a Medellín y preguntar dónde está tu puerta de embarque.", initialMessage: "Buenos días. ¿Me permite su pasaporte y su número de reserva, por favor?" },
+            { title: "Making Plans", description: "Discuss schedules and activities.", systemPrompt: "You are a friend making plans for the weekend.", formality: 'Casual', challengePrompt: "You are an indecisive friend. When the user suggests a plan, be hesitant and suggest a slightly different or conflicting alternative, forcing negotiation.", vignette_en: "Your friend texts you on a Friday afternoon. They want to hang out this weekend, but they aren't sure what to do. Your mission: Suggest an activity and finalize a plan.", vignette_es: "Tu amigo te envía un mensaje un viernes por la tarde. Quiere quedar este fin de semana, pero no está seguro de qué hacer. Tu misión: Sugerir una actividad y concretar un plan.", initialMessage: "¡Oye! ¿Qué tal? ¿Hacemos algo este fin de semana?" }
         ];
 
         const renderMissions = () => {
@@ -403,7 +417,7 @@
             messages = [];
             document.getElementById('chat-title').textContent = currentMission.title;
             document.getElementById('chat-description').textContent = currentMission.description;
-            addMessage("Hola, empecemos. ¿Listo?", 'ai');
+            addMessage(currentMission.initialMessage, 'ai');
             vignetteModal.classList.add('hidden');
             missionView.style.display = 'none';
             chatView.classList.remove('hidden');
