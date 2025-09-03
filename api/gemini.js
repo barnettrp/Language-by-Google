@@ -22,12 +22,20 @@ export default async function handler(request, response) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ q: word, source: 'es', target: 'en', format: 'text' })
             });
-            
+
+            // --- NEW: More Robust Error Handling & Logging ---
             if (!translateResponse.ok) {
-                const errorBody = await translateResponse.json();
-                const errorMessage = errorBody.error?.message || "Translation API request failed.";
-                console.error("Google Translate API Error:", errorMessage);
-                return response.status(translateResponse.status).json({ error: errorMessage }); 
+                const errorText = await translateResponse.text(); // Get raw error text
+                console.error("Google Translate API Raw Error:", errorText);
+                try {
+                    // Try to parse it as JSON, as Google often sends structured errors
+                    const errorBody = JSON.parse(errorText);
+                    const errorMessage = errorBody.error?.message || "Translation API request failed with an unknown error.";
+                    return response.status(translateResponse.status).json({ error: errorMessage }); 
+                } catch (e) {
+                    // If it's not JSON, return the raw text
+                    return response.status(translateResponse.status).json({ error: errorText });
+                }
             }
 
             const result = await translateResponse.json();
@@ -40,7 +48,7 @@ export default async function handler(request, response) {
         }
     }
 
-    // All other requests use the Gemini API
+    // --- All other requests use the Gemini API ---
     if (!GEMINI_API_KEY) {
         return response.status(500).json({ error: 'Gemini API key not configured.' });
     }
@@ -84,7 +92,7 @@ export default async function handler(request, response) {
             
         case 'hint':
             const { stage: hintStage, history: hintHistory } = body;
-            systemPrompt = `You are a helpful language tutor. The user is stuck in a conversation and needs a hint. Based on their objective and the last few messages, provide a short, simple phrase or question in Spanish (under 7 words) that they could say to advance the conversation. Do not add quotation marks.`;
+            systemPrompt = `You are a helpful language tutor...`;
             userPrompt = `OBJECTIVE: ${hintStage.vignette_en.split('Your goal: ')[1]}\n\nHISTORY:\n${hintHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}`;
             break;
 
