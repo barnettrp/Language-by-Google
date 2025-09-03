@@ -6,12 +6,10 @@ export default async function handler(request, response) {
     }
 
     const { type, ...body } = request.body;
-
-    // --- UPDATED: Now uses two different keys for two different services ---
+    
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
 
-    // --- NEW: Logic for Google Translate API ---
     if (type === 'translation') {
         if (!GOOGLE_TRANSLATE_API_KEY) {
             return response.status(500).json({ error: 'Translate API key not configured.' });
@@ -22,20 +20,18 @@ export default async function handler(request, response) {
             const translateResponse = await fetch(translateUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    q: word,
-                    source: 'es',
-                    target: 'en',
-                    format: 'text'
-                })
+                body: JSON.stringify({ q: word, source: 'es', target: 'en', format: 'text' })
             });
+            
             if (!translateResponse.ok) {
-                console.error("Google Translate API Error:", await translateResponse.text());
-                return response.status(500).json({ text: "Translation Error" });
+                const errorBody = await translateResponse.json();
+                const errorMessage = errorBody.error?.message || "Translation API request failed.";
+                console.error("Google Translate API Error:", errorMessage);
+                return response.status(translateResponse.status).json({ error: errorMessage }); 
             }
+
             const result = await translateResponse.json();
             const translatedText = result.data.translations[0].translatedText;
-            // We will just return the simple translation for speed. The example sentence can be a future enhancement.
             return response.status(200).json({ text: translatedText });
 
         } catch (error) {
@@ -44,7 +40,7 @@ export default async function handler(request, response) {
         }
     }
 
-    // --- All other requests will use the Gemini API ---
+    // All other requests use the Gemini API
     if (!GEMINI_API_KEY) {
         return response.status(500).json({ error: 'Gemini API key not configured.' });
     }
@@ -71,33 +67,36 @@ export default async function handler(request, response) {
             break;
         
         case 'validation':
-            systemPrompt = `You are a strict game master... Answer ONLY with "YES" or "NO".`;
+            systemPrompt = `You are a strict game master. Based on the conversation transcript, did the user achieve the objective described in the prompt? Answer ONLY with the single word "YES" or "NO". Do not provide any explanation.`;
             userPrompt = `TRANSCRIPT:\n${body.transcript}\n\nOBJECTIVE: ${body.validationPrompt}`;
             break;
 
         case 'analysis':
-            systemPrompt = `Analyze this Spanish conversation... Provide a JSON object...`;
+            systemPrompt = `Analyze this Spanish conversation. The user is the learner. Provide all feedback in English. Provide a JSON object with keys "newVocabulary" (an array of objects, each with "spanish" and "english" keys), "grammarFeedback" (a brief, encouraging paragraph in English), and "proficiencyScore" (a number 0-100).`;
             userPrompt = body.transcript;
             generationConfig.responseMimeType = 'application/json';
             break;
             
         case 'correction':
-            systemPrompt = "Correct the user's Spanish sentence and provide a brief, one-sentence explanation in English...";
+            systemPrompt = "You are a helpful language assistant. Correct the user's Spanish sentence and provide a brief, one-sentence explanation in English. Format: 'Corrected: [Corrected sentence]\\nExplanation: [English explanation]'";
             userPrompt = body.text;
             break;
             
         case 'hint':
-            systemPrompt = `You are a helpful language tutor... provide a short, simple phrase...`;
-            userPrompt = `OBJECTIVE: ${body.stage.vignette_en.split('Your goal: ')[1]}\n\nHISTORY:\n${body.history.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}`;
+            const { stage: hintStage, history: hintHistory } = body;
+            systemPrompt = `You are a helpful language tutor. The user is stuck in a conversation and needs a hint. Based on their objective and the last few messages, provide a short, simple phrase or question in Spanish (under 7 words) that they could say to advance the conversation. Do not add quotation marks.`;
+            userPrompt = `OBJECTIVE: ${hintStage.vignette_en.split('Your goal: ')[1]}\n\nHISTORY:\n${hintHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}`;
             break;
 
         default:
             return response.status(400).json({ error: 'Invalid request type' });
     }
     
+    const contents = history.length > 0 ? history : [{ role: 'user', parts: [{ text: userPrompt }] }];
+    
     const payload = {
         systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: history.length > 0 ? history : [{ role: 'user', parts: [{ text: userPrompt }] }],
+        contents: contents,
         generationConfig: generationConfig
     };
 
@@ -107,16 +106,28 @@ export default async function handler(request, response) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        if (!geminiResponse.ok) { /* ... error handling ... */ }
+
+        if (!geminiResponse.ok) {
+            const errorText = await geminiResponse.text();
+            console.error("Gemini API Error:", errorText);
+            return response.status(geminiResponse.status).json({ error: 'Failed to get response from AI.' });
+        }
+
         const result = await geminiResponse.json();
         const text = result.candidates[0]?.content?.parts[0]?.text;
-        if (!text) { /* ... error handling ... */ }
+
+        if (!text) {
+             return response.status(500).json({ error: 'Received an empty response from AI.' });
+        }
         
         if (type === 'analysis') {
             try {
                 const analysisData = JSON.parse(text);
                 return response.status(200).json({ data: analysisData });
-            } catch (e) { /* ... error handling ... */ }
+            } catch (e) {
+                 console.error("Failed to parse analysis JSON:", text);
+                 return response.status(500).json({ error: 'Could not parse the AI analysis.' });
+            }
         }
         
         response.status(200).json({ text });
