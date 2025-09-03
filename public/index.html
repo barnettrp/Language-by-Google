@@ -51,7 +51,7 @@
         
         <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
             <div id="login-view">
-                <div class="flex justify-center mb-4">
+                 <div class="flex justify-center mb-4">
                     <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
@@ -69,7 +69,7 @@
                 </div>
             </div>
             <div id="signup-view" class="hidden">
-                <div class="flex justify-center mb-4">
+                 <div class="flex justify-center mb-4">
                      <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
@@ -254,25 +254,7 @@
 
         const translationCache = new Map();
         
-        const localDictionary = {
-            "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please",
-            "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when",
-            "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they",
-            "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be",
-            "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have",
-            "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want",
-            "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the",
-            "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without",
-            "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights",
-            "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself",
-            "y": "and", "o": "or", "pero": "but", "porque": "because",
-            "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill",
-            "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza",
-            "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help",
-            "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little",
-            "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always",
-            "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are"
-        };
+        const localDictionary = { "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please", "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when", "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they", "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be", "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have", "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want", "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the", "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without", "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights", "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself", "y": "and", "o": "or", "pero": "but", "porque": "because", "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill", "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza", "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help", "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little", "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always", "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are" };
         
         showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
         showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
@@ -396,9 +378,14 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    if (!response.ok) { return { error: "Sorry, I encountered an error." }; }
-                    return await response.json();
-                } catch (error) { return { error: "Sorry, I couldn't connect to the AI." }; }
+                    const result = await response.json();
+                    if (!response.ok) {
+                        return { error: result.error || "Sorry, an unknown error occurred." }; 
+                    }
+                    return result;
+                } catch (error) { 
+                    return { error: "Sorry, I couldn't connect to the server." }; 
+                }
             },
             async getResponse(history, stage, settings) {
                 const mappedHistory = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
