@@ -251,6 +251,28 @@
         const continueQuestBtn = document.getElementById('continue-quest-btn');
         const hintBtn = document.getElementById('hint-btn');
         const hintPopover = document.getElementById('hint-popover');
+
+        const translationCache = new Map();
+        
+        const localDictionary = {
+            "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please",
+            "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when",
+            "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they",
+            "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be",
+            "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have",
+            "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want",
+            "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the",
+            "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without",
+            "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights",
+            "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself",
+            "y": "and", "o": "or", "pero": "but", "porque": "because",
+            "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill",
+            "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza",
+            "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help",
+            "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little",
+            "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always",
+            "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are"
+        };
         
         showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
         showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
@@ -366,8 +388,6 @@
             }
         };
 
-        const translationCache = new Map();
-        
         const AIManager = {
             async callAPI(payload) {
                 try {
@@ -595,7 +615,7 @@
             hintPopover.querySelector('p').textContent = hint;
             hintBtn.disabled = false;
         };
-        
+
         questView.addEventListener('click', (e) => {
             const card = e.target.closest('.quest-card');
             if(card) showMapView(card.dataset.questId);
@@ -657,45 +677,42 @@
             }
             
             if (target.classList.contains('clickable-word')) {
-                const word = target.textContent.trim().replace(/[.,¡!¿?]/g, '');
+                const word = target.textContent.trim().replace(/[.,¡!¿?]/g, '').toLowerCase();
                 if (!word) return;
-                const context = target.parentElement.textContent.trim();
                 
-                translationPopover.innerHTML = 'Translating...';
-                translationPopover.classList.remove('hidden');
-                
-                const rect = target.getBoundingClientRect();
-                const containerRect = document.getElementById('app-container').getBoundingClientRect();
-                
-                let left = rect.left - containerRect.left + (rect.width / 2) - (translationPopover.offsetWidth / 2);
-                let top = rect.top - containerRect.top - translationPopover.offsetHeight - 8;
-
-                if (left < 8) left = 8;
-                if (left + translationPopover.offsetWidth > containerRect.width - 8) {
-                    left = containerRect.width - translationPopover.offsetWidth - 8;
-                }
-                if (top < 8) {
-                    top = rect.bottom - containerRect.top + 8;
-                }
-
-                translationPopover.style.left = `${left}px`;
-                translationPopover.style.top = `${top}px`;
+                const showTranslation = (translationText) => {
+                    translationPopover.innerHTML = translationText;
+                    const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                    const rect = target.getBoundingClientRect();
+                    const popoverRect = translationPopover.getBoundingClientRect();
+                    let left = rect.left - containerRect.left + (rect.width / 2) - (popoverRect.width / 2);
+                    let top = rect.top - containerRect.top - popoverRect.height - 8;
+                    if (left < 8) left = 8;
+                    if (left + popoverRect.width > containerRect.width - 8) {
+                        left = containerRect.width - popoverRect.width - 8;
+                    }
+                    if (top < 8) {
+                        top = rect.bottom - containerRect.top + 8;
+                    }
+                    translationPopover.style.left = `${left}px`;
+                    translationPopover.style.top = `${top}px`;
+                    translationPopover.classList.remove('hidden');
+                };
 
                 if (translationCache.has(word)) {
-                    translationPopover.innerHTML = translationCache.get(word);
+                    showTranslation(translationCache.get(word));
+                } else if (localDictionary[word]) {
+                    const translation = localDictionary[word];
+                    translationCache.set(word, translation);
+                    showTranslation(translation);
                 } else {
-                    const translation = await AIManager.getTranslation(word, context);
-                    const formattedTranslation = translation ? translation.replace(/\n/g, '<br>') : 'Error.';
+                    showTranslation('Translating...');
+                    const context = target.parentElement.textContent.trim();
+                    const apiTranslation = await AIManager.getTranslation(word, context);
+                    const formattedTranslation = apiTranslation ? apiTranslation.replace(/\n/g, '<br>') : 'Not found.';
                     translationCache.set(word, formattedTranslation);
-                    translationPopover.innerHTML = formattedTranslation;
+                    showTranslation(formattedTranslation);
                 }
-
-                const newPopoverRect = translationPopover.getBoundingClientRect();
-                top = rect.top - containerRect.top - newPopoverRect.height - 8;
-                 if (top < 8) {
-                    top = rect.bottom - containerRect.top + 8;
-                }
-                translationPopover.style.top = `${top}px`;
             }
         });
         
