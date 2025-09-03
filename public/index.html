@@ -298,9 +298,9 @@
             if (docSnap.exists() && docSnap.data()) {
                 userSettings = { ...userSettings, ...docSnap.data() };
             }
-            dialectSelect.value = userSettings.dialect;
-            formalitySelect.value = userSettings.formality;
-            vignetteLangSelect.value = userSettings.vignetteLanguage;
+            if (dialectSelect) dialectSelect.value = userSettings.dialect;
+            if (formalitySelect) formalitySelect.value = userSettings.formality;
+            if (vignetteLangSelect) vignetteLangSelect.value = userSettings.vignetteLanguage;
         };
         
         const saveUserSettings = async (userId, settings) => {
@@ -333,7 +333,6 @@
                     chatView.classList.remove('flex');
                 } catch (error) {
                     console.error("Error during user setup/load:", error);
-                    // If something fails, still show the app but maybe with default settings
                     welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
                     authContainer.style.display = 'none';
                     mainAppView.classList.remove('hidden');
