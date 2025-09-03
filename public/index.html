@@ -13,7 +13,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // --- CORRECTED: This now points to YOUR project. ---
         const firebaseConfig = {
             apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
             authDomain: "spanish-stt-project-470418.firebaseapp.com",
@@ -254,26 +253,7 @@
         const hintPopover = document.getElementById('hint-popover');
 
         const translationCache = new Map();
-        
-        const localDictionary = {
-            "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please",
-            "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when",
-            "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they",
-            "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be",
-            "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have",
-            "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want",
-            "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the",
-            "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without",
-            "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights",
-            "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself",
-            "y": "and", "o": "or", "pero": "but", "porque": "because",
-            "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill",
-            "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza",
-            "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help",
-            "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little",
-            "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always",
-            "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are"
-        };
+        const localDictionary = { "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please", "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when", "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they", "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be", "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have", "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want", "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the", "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without", "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights", "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself", "y": "and", "o": "or", "pero": "but", "porque": "because", "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill", "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza", "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help", "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little", "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always", "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are" };
         
         showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
         showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
@@ -337,16 +317,28 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                if (isNewUser && signupName) { userSettings = await setupNewUser(user); } 
-                else { await loadUserSettings(user.uid); }
-                welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
-                authContainer.style.display = 'none';
-                mainAppView.classList.remove('hidden');
-                mainAppView.classList.add('flex');
-                questView.style.display = 'flex';
-                chatView.classList.add('hidden');
-                chatView.classList.remove('flex');
+                try {
+                    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+                    if (isNewUser && signupName) { 
+                        userSettings = await setupNewUser(user); 
+                    } else { 
+                        await loadUserSettings(user.uid); 
+                    }
+                    welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
+                    authContainer.style.display = 'none';
+                    mainAppView.classList.remove('hidden');
+                    mainAppView.classList.add('flex');
+                    questView.style.display = 'flex';
+                    chatView.classList.add('hidden');
+                    chatView.classList.remove('flex');
+                } catch (error) {
+                    console.error("Error during user setup/load:", error);
+                    // If something fails, still show the app but maybe with default settings
+                    welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
+                    authContainer.style.display = 'none';
+                    mainAppView.classList.remove('hidden');
+                    mainAppView.classList.add('flex');
+                }
             } else {
                 currentUser = null;
                 authContainer.style.display = 'flex';
