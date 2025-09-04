@@ -190,6 +190,30 @@
                     <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Continue Quest</button>
                 </div>
             </div>
+             <div id="correction-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+                <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
+                     <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Correction</h2>
+                        <button id="close-correction-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+                    </div>
+                    <div id="correction-content" class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Your sentence:</p>
+                            <p id="original-sentence" class="italic text-gray-700"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-green-600 font-semibold">Suggested correction:</p>
+                            <p id="corrected-sentence" class="font-semibold text-green-700"></p>
+                        </div>
+                        <div id="explanation-container" class="hidden bg-blue-50 p-3 rounded-md">
+                            <p class="text-sm text-blue-800 font-semibold">Why?</p>
+                            <p id="explanation-text" class="text-sm text-blue-700"></p>
+                        </div>
+                    </div>
+                    <div id="correction-loading" class="hidden text-center"><p>✨ Getting feedback...</p></div>
+                    <button id="explain-rule-btn" class="w-full mt-4 bg-blue-100 text-blue-700 p-2 rounded-md font-semibold hover:bg-blue-200 transition-colors">Explain this rule 💡</button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -251,6 +275,14 @@
         const continueQuestBtn = document.getElementById('continue-quest-btn');
         const hintBtn = document.getElementById('hint-btn');
         const hintPopover = document.getElementById('hint-popover');
+        const correctionModal = document.getElementById('correction-modal');
+        const closeCorrectionBtn = document.getElementById('close-correction-btn');
+        const originalSentenceEl = document.getElementById('original-sentence');
+        const correctedSentenceEl = document.getElementById('corrected-sentence');
+        const explanationContainer = document.getElementById('explanation-container');
+        const explanationText = document.getElementById('explanation-text');
+        const explainRuleBtn = document.getElementById('explain-rule-btn');
+        const correctionLoading = document.getElementById('correction-loading');
 
         const translationCache = new Map();
         const localDictionary = { "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please", "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when", "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they", "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be", "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have", "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want", "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the", "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without", "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights", "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself", "y": "and", "o": "or", "pero": "but", "porque": "because", "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill", "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza", "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help", "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little", "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always", "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are" };
@@ -293,14 +325,18 @@
         };
 
         const loadUserSettings = async (userId) => {
-            const userDocRef = doc(db, 'users', userId);
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists() && docSnap.data()) {
-                userSettings = { ...userSettings, ...docSnap.data() };
+            try {
+                const userDocRef = doc(db, 'users', userId);
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists() && docSnap.data()) {
+                    userSettings = { ...userSettings, ...docSnap.data() };
+                }
+                dialectSelect.value = userSettings.dialect;
+                formalitySelect.value = userSettings.formality;
+                vignetteLangSelect.value = userSettings.vignetteLanguage;
+            } catch (error) {
+                console.error("Error loading user settings:", error);
             }
-            if (dialectSelect) dialectSelect.value = userSettings.dialect;
-            if (formalitySelect) formalitySelect.value = userSettings.formality;
-            if (vignetteLangSelect) vignetteLangSelect.value = userSettings.vignetteLanguage;
         };
         
         const saveUserSettings = async (userId, settings) => {
@@ -317,27 +353,19 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                try {
-                    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                    if (isNewUser && signupName) { 
-                        userSettings = await setupNewUser(user); 
-                    } else { 
-                        await loadUserSettings(user.uid); 
-                    }
-                    welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
-                    authContainer.style.display = 'none';
-                    mainAppView.classList.remove('hidden');
-                    mainAppView.classList.add('flex');
-                    questView.style.display = 'flex';
-                    chatView.classList.add('hidden');
-                    chatView.classList.remove('flex');
-                } catch (error) {
-                    console.error("Error during user setup/load:", error);
-                    welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-                    authContainer.style.display = 'none';
-                    mainAppView.classList.remove('hidden');
-                    mainAppView.classList.add('flex');
+                const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+                if (isNewUser && signupName) { 
+                    userSettings = await setupNewUser(user); 
+                } else { 
+                    await loadUserSettings(user.uid); 
                 }
+                welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
+                authContainer.style.display = 'none';
+                mainAppView.classList.remove('hidden');
+                mainAppView.classList.add('flex');
+                questView.style.display = 'flex';
+                chatView.classList.add('hidden');
+                chatView.classList.remove('flex');
             } else {
                 currentUser = null;
                 authContainer.style.display = 'flex';
@@ -428,6 +456,11 @@
                 const payload = { type: 'hint', history: mappedHistory, stage };
                 const response = await this.callAPI(payload);
                 return response.text || "Try asking a question.";
+            },
+             async getGrammarExplanation(original, corrected) {
+                const payload = { type: 'grammar', original, corrected };
+                const response = await this.callAPI(payload);
+                return response.text || response.error;
             }
         };
 
@@ -612,6 +645,45 @@
             hintPopover.querySelector('p').textContent = hint;
             hintBtn.disabled = false;
         };
+        
+        const showCorrectionModal = async (originalText) => {
+            correctionModal.classList.remove('hidden');
+            correctionLoading.classList.remove('hidden');
+            document.getElementById('correction-content').classList.add('hidden');
+            explanationContainer.classList.add('hidden');
+            explainRuleBtn.classList.remove('hidden');
+            explainRuleBtn.textContent = 'Explain this rule 💡';
+
+            const correctionText = await AIManager.getCorrection(originalText);
+            
+            correctionLoading.classList.add('hidden');
+            document.getElementById('correction-content').classList.remove('hidden');
+
+            if (correctionText.includes('Corrected:')) {
+                const parts = correctionText.split('\n');
+                const corrected = parts[0].replace('Corrected: ', '').trim();
+                originalSentenceEl.textContent = `"${originalText}"`;
+                correctedSentenceEl.textContent = `"${corrected}"`;
+            } else {
+                originalSentenceEl.textContent = "No correction needed, or an error occurred.";
+                correctedSentenceEl.textContent = "";
+                explainRuleBtn.classList.add('hidden');
+            }
+        };
+
+        explainRuleBtn.addEventListener('click', async () => {
+            const original = originalSentenceEl.textContent.slice(1, -1);
+            const corrected = correctedSentenceEl.textContent.slice(1, -1);
+            explainRuleBtn.textContent = 'Explaining...';
+            
+            const explanation = await AIManager.getGrammarExplanation(original, corrected);
+            
+            explanationText.textContent = explanation;
+            explanationContainer.classList.remove('hidden');
+            explainRuleBtn.classList.add('hidden');
+        });
+
+        closeCorrectionBtn.addEventListener('click', () => correctionModal.classList.add('hidden'));
 
         questView.addEventListener('click', (e) => {
             const card = e.target.closest('.quest-card');
@@ -664,13 +736,7 @@
             
             if (target.classList.contains('correction-btn')) {
                 const bubble = target.closest('.flex-col').querySelector('.chat-bubble');
-                if (bubble) {
-                    const originalText = bubble.textContent.trim();
-                    target.textContent = 'Correcting...';
-                    const correction = await AIManager.getCorrection(originalText);
-                    alert(correction);
-                    target.textContent = 'Correct me ✨';
-                }
+                if (bubble) showCorrectionModal(bubble.textContent.trim());
             }
             
             if (target.classList.contains('clickable-word')) {
