@@ -15,10 +15,10 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
-            authDomain: "spanish-ai-project.firebaseapp.com",
-            projectId: "spanish-ai-project",
-            storageBucket: "spanish-ai-project.appspot.com",
-            messagingSenderId: "788393465858",
+            authDomain: "spanish-stt-project-470418.firebaseapp.com",
+            projectId: "spanish-stt-project-470418",
+            storageBucket: "spanish-stt-project-470418.appspot.com",
+            messagingSenderId: "788393465858", 
             appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
         };
 
@@ -36,8 +36,8 @@
         .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
         .chat-bubble-user { background-color: #3b82f6; color: white; }
         .chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; }
-        #chat-container::-webkit-scrollbar { display: none; }
-        #chat-container { -ms-overflow-style: none; scrollbar-width: none; }
+        #chat-container::-webkit-scrollbar, #placement-chat-container::-webkit-scrollbar { display: none; }
+        #chat-container, #placement-chat-container { -ms-overflow-style: none; scrollbar-width: none; }
         .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
         .mic-active { color: #ef4444; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
@@ -90,6 +90,41 @@
             </div>
         </div>
         
+        <div id="placement-view" class="hidden flex-col h-full">
+            <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
+                <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
+                <p class="text-gray-600 mt-2 mb-6">Let's find the right starting point for you.</p>
+                
+                <div id="quiz-question-container">
+                    <p class="text-lg mb-4">Read the sentence and answer the question:</p>
+                    <p class="bg-gray-100 p-4 rounded-lg text-left mb-4 italic">"María va a la tienda a comprar pan."</p>
+                    <p class="text-left font-semibold mb-2">Where is María going?</p>
+                    <div id="quiz-options" class="space-y-2 text-left">
+                        <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="a" class="mr-2"> The park</label>
+                        <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="b" class="mr-2"> The store</label>
+                        <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="c" class="mr-2"> Her house</label>
+                    </div>
+                </div>
+                <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
+            </div>
+
+            <div id="placement-chat-view" class="hidden flex-col h-full">
+                 <header class="p-4 border-b border-gray-200/80 text-center flex-shrink-0">
+                    <h1 class="text-xl font-bold text-gray-800">Let's Chat!</h1>
+                    <p class="text-sm text-gray-500">Answer a few questions to complete your placement.</p>
+                </header>
+                <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+                <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="placement-chat-input" placeholder="Type your answer..." class="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="placement-send-btn" class="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600 transition-colors">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                        </button>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
         <div id="main-app-view" class="hidden flex-col h-full">
             <div id="quest-view" class="flex flex-col h-full">
                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
@@ -283,6 +318,15 @@
         const explanationText = document.getElementById('explanation-text');
         const explainRuleBtn = document.getElementById('explain-rule-btn');
         const correctionLoading = document.getElementById('correction-loading');
+        const placementView = document.getElementById('placement-view');
+        const placementQuizView = document.getElementById('placement-quiz-view');
+        const submitQuizBtn = document.getElementById('submit-quiz-btn');
+        const placementChatView = document.getElementById('placement-chat-view');
+        const placementChatContainer = document.getElementById('placement-chat-container');
+        const placementChatInput = document.getElementById('placement-chat-input');
+        const placementSendBtn = document.getElementById('placement-send-btn');
+        
+        let placementMessages = [];
 
         const translationCache = new Map();
         const localDictionary = { "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please", "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when", "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they", "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be", "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have", "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want", "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the", "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without", "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights", "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself", "y": "and", "o": "or", "pero": "but", "porque": "because", "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill", "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza", "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help", "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little", "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always", "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are" };
@@ -361,33 +405,42 @@
                 try {
                     const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
                     if (isNewUser && signupName) { 
-                        userSettings = await setupNewUser(user); 
+                        // New user just signed up, show placement test
+                        authContainer.style.display = 'none';
+                        placementView.classList.remove('hidden');
+                        placementView.classList.add('flex');
                     } else { 
+                        // Existing user is logging in
                         await loadUserSettings(user.uid); 
+                        showMainApp();
                     }
-                    welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
-                    authContainer.style.display = 'none';
-                    mainAppView.classList.remove('hidden');
-                    mainAppView.classList.add('flex');
-                    questView.style.display = 'flex';
-                    chatView.classList.add('hidden');
-                    chatView.classList.remove('flex');
                 } catch (error) {
                     console.error("CRITICAL ERROR during user setup/load:", error);
                     alert("A critical error occurred while loading your profile. Please check the console for details.");
-                    authContainer.style.display = 'none';
-                    mainAppView.classList.remove('hidden');
-                    mainAppView.classList.add('flex');
+                    // Fallback to still show the app
+                    showMainApp();
                 }
             } else {
                 currentUser = null;
                 authContainer.style.display = 'flex';
+                placementView.classList.add('hidden');
                 signupView.classList.add('hidden');
                 loginView.classList.remove('hidden');
                 mainAppView.classList.add('hidden');
                 mainAppView.classList.remove('flex');
             }
         });
+
+        const showMainApp = () => {
+            welcomeMessage.textContent = `Welcome, ${currentUser.displayName || userSettings.name || 'Friend'}!`;
+            authContainer.style.display = 'none';
+            placementView.classList.add('hidden');
+            mainAppView.classList.remove('hidden');
+            mainAppView.classList.add('flex');
+            questView.style.display = 'flex';
+            chatView.classList.add('hidden');
+            chatView.classList.remove('flex');
+        };
 
         let currentQuest = null;
         let currentStage = null;
@@ -470,10 +523,21 @@
                 const response = await this.callAPI(payload);
                 return response.text || "Try asking a question.";
             },
-             async getGrammarExplanation(original, corrected) {
+            async getGrammarExplanation(original, corrected) {
                 const payload = { type: 'grammar', original, corrected };
                 const response = await this.callAPI(payload);
                 return response.text || response.error;
+            },
+            async getPlacementResponse(history) {
+                const mappedHistory = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
+                const payload = { type: 'placement', history: mappedHistory };
+                const response = await this.callAPI(payload);
+                return response.text || response.error;
+            },
+            async analyzePlacement(transcript) {
+                const payload = { type: 'placement-analysis', transcript };
+                const response = await this.callAPI(payload);
+                return response.text || "A1";
             }
         };
 
@@ -683,6 +747,40 @@
                 explainRuleBtn.classList.add('hidden');
             }
         };
+
+        const addPlacementMessage = (text, role) => {
+            placementMessages.push({ role, parts: [{ text }] });
+            const isUser = role === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
+            const bubbleWrapper = document.createElement('div');
+            bubbleWrapper.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+            bubbleWrapper.textContent = text;
+            wrapper.appendChild(bubbleWrapper);
+            placementChatContainer.insertBefore(wrapper, placementChatContainer.firstChild);
+        };
+        
+        const handlePlacementSend = async () => {
+            const userInput = placementChatInput.value.trim();
+            if (!userInput) return;
+            addPlacementMessage(userInput, 'user');
+            placementChatInput.value = '';
+            
+            if (placementMessages.length >= 4) {
+                addPlacementMessage("¡Gracias! Analizando tu nivel...", 'ai');
+                const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
+                const level = await AIManager.analyzePlacement(transcript);
+                await saveUserSettings(currentUser.uid, { proficiencyLevel: level });
+                alert(`Great, we've placed you at level: ${level}. Let's get started!`);
+                showMainApp();
+            } else {
+                const response = await AIManager.getPlacementResponse(placementMessages);
+                addPlacementMessage(response, 'ai');
+            }
+        };
+
+        placementSendBtn.addEventListener('click', handlePlacementSend);
+        placementChatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handlePlacementSend());
 
         explainRuleBtn.addEventListener('click', async () => {
             const original = originalSentenceEl.textContent.slice(1, -1);
