@@ -330,6 +330,11 @@
                 const docSnap = await getDoc(userDocRef);
                 if (docSnap.exists() && docSnap.data()) {
                     userSettings = { ...userSettings, ...docSnap.data() };
+                } else {
+                    console.log("No user document found, creating one for existing user.");
+                    const initialSettings = { name: currentUser.displayName, email: currentUser.email, createdAt: serverTimestamp(), dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English', xp: 0, completedStages: {} };
+                    await setDoc(userDocRef, initialSettings);
+                    userSettings = { ...userSettings, ...initialSettings };
                 }
                 if (dialectSelect) dialectSelect.value = userSettings.dialect;
                 if (formalitySelect) formalitySelect.value = userSettings.formality;
