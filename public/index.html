@@ -190,7 +190,7 @@
                     <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Continue Quest</button>
                 </div>
             </div>
-             <div id="correction-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+            <div id="correction-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
                      <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-bold">Correction</h2>
@@ -331,9 +331,9 @@
                 if (docSnap.exists() && docSnap.data()) {
                     userSettings = { ...userSettings, ...docSnap.data() };
                 }
-                dialectSelect.value = userSettings.dialect;
-                formalitySelect.value = userSettings.formality;
-                vignetteLangSelect.value = userSettings.vignetteLanguage;
+                if (dialectSelect) dialectSelect.value = userSettings.dialect;
+                if (formalitySelect) formalitySelect.value = userSettings.formality;
+                if (vignetteLangSelect) vignetteLangSelect.value = userSettings.vignetteLanguage;
             } catch (error) {
                 console.error("Error loading user settings:", error);
             }
@@ -353,19 +353,27 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                if (isNewUser && signupName) { 
-                    userSettings = await setupNewUser(user); 
-                } else { 
-                    await loadUserSettings(user.uid); 
+                try {
+                    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+                    if (isNewUser && signupName) { 
+                        userSettings = await setupNewUser(user); 
+                    } else { 
+                        await loadUserSettings(user.uid); 
+                    }
+                    welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
+                    authContainer.style.display = 'none';
+                    mainAppView.classList.remove('hidden');
+                    mainAppView.classList.add('flex');
+                    questView.style.display = 'flex';
+                    chatView.classList.add('hidden');
+                    chatView.classList.remove('flex');
+                } catch (error) {
+                    console.error("CRITICAL ERROR during user setup/load:", error);
+                    alert("A critical error occurred while loading your profile. Please check the console for details.");
+                    authContainer.style.display = 'none';
+                    mainAppView.classList.remove('hidden');
+                    mainAppView.classList.add('flex');
                 }
-                welcomeMessage.textContent = `Welcome, ${user.displayName || userSettings.name || 'Friend'}!`;
-                authContainer.style.display = 'none';
-                mainAppView.classList.remove('hidden');
-                mainAppView.classList.add('flex');
-                questView.style.display = 'flex';
-                chatView.classList.add('hidden');
-                chatView.classList.remove('flex');
             } else {
                 currentUser = null;
                 authContainer.style.display = 'flex';
@@ -645,7 +653,7 @@
             hintPopover.querySelector('p').textContent = hint;
             hintBtn.disabled = false;
         };
-        
+
         const showCorrectionModal = async (originalText) => {
             correctionModal.classList.remove('hidden');
             correctionLoading.classList.remove('hidden');
@@ -684,7 +692,7 @@
         });
 
         closeCorrectionBtn.addEventListener('click', () => correctionModal.classList.add('hidden'));
-
+        
         questView.addEventListener('click', (e) => {
             const card = e.target.closest('.quest-card');
             if(card) showMapView(card.dataset.questId);
