@@ -24,7 +24,7 @@ export default async function handler(request, response) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ q: word, source: 'es', target: 'en', format: 'text' })
             });
-
+            
             if (!translateResponse.ok) {
                 const errorText = await translateResponse.text();
                 console.error("Google Translate API Raw Error:", errorText);
@@ -61,7 +61,7 @@ export default async function handler(request, response) {
 
     switch (type) {
         case 'chat':
-            const { stage, settings, history: requestHistory } = body;
+            const { stage, settings, history: chatHistory } = body;
             if (!stage || !settings) {
                 return response.status(400).json({ error: 'Missing stage or settings data for chat.' });
             }
@@ -70,7 +70,7 @@ export default async function handler(request, response) {
                 finalSystemPrompt += ` ${stage.challengePrompt}`;
             }
             systemPrompt = `${finalSystemPrompt} The dialect should be ${settings.dialect}. The formality should be ${settings.formality}. Keep responses to 1-2 sentences.`;
-            history = requestHistory.map(m => ({ role: m.role === 'ai' ? 'model' : m.role, parts: m.parts }));
+            history = chatHistory.map(m => ({ role: m.role === 'ai' ? 'model' : m.role, parts: m.parts }));
             break;
         
         case 'validation':
@@ -121,14 +121,15 @@ export default async function handler(request, response) {
 
         if (!geminiResponse.ok) {
             const errorText = await geminiResponse.text();
-            console.error("Gemini API Error:", errorText);
-            return response.status(geminiResponse.status).json({ error: 'Failed to get response from AI.' });
+            console.error("FATAL: Gemini API returned an error.", { status: geminiResponse.status, body: errorText });
+            return response.status(geminiResponse.status).json({ error: `AI Error: ${errorText}` });
         }
 
         const result = await geminiResponse.json();
         const text = result.candidates[0]?.content?.parts[0]?.text;
 
         if (!text) {
+             console.error("Gemini response was successful but contained no text.");
              return response.status(500).json({ error: 'Received an empty response from AI.' });
         }
         
@@ -145,7 +146,7 @@ export default async function handler(request, response) {
         response.status(200).json({ text });
 
     } catch (error) {
-        console.error("Server Error with Gemini:", error);
+        console.error("FATAL: An unhandled exception occurred in the serverless function:", error);
         response.status(500).json({ error: 'An internal server error occurred.' });
     }
 }
