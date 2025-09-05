@@ -195,6 +195,7 @@
                                 <option value="Spanish">Spanish</option>
                             </select>
                         </div>
+                        <button id="retake-placement-btn" class="w-full mt-4 bg-gray-200 text-gray-700 p-2 rounded-md font-semibold hover:bg-gray-300 transition-colors">Retake Placement Test</button>
                     </div>
                 </div>
             </div>
@@ -325,6 +326,7 @@
         const placementChatContainer = document.getElementById('placement-chat-container');
         const placementChatInput = document.getElementById('placement-chat-input');
         const placementSendBtn = document.getElementById('placement-send-btn');
+        const retakePlacementBtn = document.getElementById('retake-placement-btn');
         
         let placementMessages = [];
 
@@ -399,37 +401,21 @@
             if (currentUser) { saveUserSettings(currentUser.uid, { [key]: value }); }
         };
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                try {
-                    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                    if (isNewUser && signupName) { 
-                        // New user just signed up, show placement test
-                        authContainer.style.display = 'none';
-                        placementView.classList.remove('hidden');
-                        placementView.classList.add('flex');
-                    } else { 
-                        // Existing user is logging in
-                        await loadUserSettings(user.uid); 
-                        showMainApp();
-                    }
-                } catch (error) {
-                    console.error("CRITICAL ERROR during user setup/load:", error);
-                    alert("A critical error occurred while loading your profile. Please check the console for details.");
-                    // Fallback to still show the app
-                    showMainApp();
-                }
-            } else {
-                currentUser = null;
-                authContainer.style.display = 'flex';
-                placementView.classList.add('hidden');
-                signupView.classList.add('hidden');
-                loginView.classList.remove('hidden');
-                mainAppView.classList.add('hidden');
-                mainAppView.classList.remove('flex');
-            }
-        });
+        const startPlacementTest = () => {
+            placementMessages = [];
+            const checkedRadio = document.querySelector('input[name="quiz"]:checked');
+            if(checkedRadio) checkedRadio.checked = false;
+            
+            authContainer.style.display = 'none';
+            mainAppView.classList.add('hidden');
+            settingsModal.classList.add('hidden');
+            placementView.classList.remove('hidden');
+            placementView.classList.add('flex');
+            placementQuizView.classList.remove('hidden');
+            placementQuizView.classList.add('flex');
+            placementChatView.classList.add('hidden');
+            placementChatView.classList.remove('flex');
+        };
 
         const showMainApp = () => {
             welcomeMessage.textContent = `Welcome, ${currentUser.displayName || userSettings.name || 'Friend'}!`;
@@ -441,6 +427,33 @@
             chatView.classList.add('hidden');
             chatView.classList.remove('flex');
         };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    await loadUserSettings(user.uid); 
+                    
+                    if (!userSettings.proficiencyLevel) {
+                        startPlacementTest();
+                    } else {
+                        showMainApp();
+                    }
+                } catch (error) {
+                    console.error("CRITICAL ERROR during user setup/load:", error);
+                    alert("A critical error occurred while loading your profile. Please check the console for details.");
+                    showMainApp(); // Fallback to show the app anyway
+                }
+            } else {
+                currentUser = null;
+                authContainer.style.display = 'flex';
+                placementView.classList.add('hidden');
+                signupView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+                mainAppView.classList.add('hidden');
+                mainAppView.classList.remove('flex');
+            }
+        });
 
         let currentQuest = null;
         let currentStage = null;
@@ -523,7 +536,7 @@
                 const response = await this.callAPI(payload);
                 return response.text || "Try asking a question.";
             },
-            async getGrammarExplanation(original, corrected) {
+             async getGrammarExplanation(original, corrected) {
                 const payload = { type: 'grammar', original, corrected };
                 const response = await this.callAPI(payload);
                 return response.text || response.error;
@@ -780,7 +793,7 @@
         };
 
         placementSendBtn.addEventListener('click', handlePlacementSend);
-        placementChatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handlePlacementSend());
+        placementChatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handlePlacementSend);
 
         explainRuleBtn.addEventListener('click', async () => {
             const original = originalSentenceEl.textContent.slice(1, -1);
@@ -824,6 +837,7 @@
 
         settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        retakePlacementBtn.addEventListener('click', startPlacementTest);
         vignetteLangSelect.addEventListener('change', (e) => updateSetting('vignetteLanguage', e.target.value));
         dialectSelect.addEventListener('change', (e) => updateSetting('dialect', e.target.value));
         formalitySelect.addEventListener('change', (e) => updateSetting('formality', e.target.value));
