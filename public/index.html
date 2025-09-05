@@ -764,7 +764,7 @@
                 explainRuleBtn.classList.add('hidden');
             }
         };
-        
+
         const addPlacementMessage = (text, role) => {
             placementMessages.push({ role, parts: [{ text }] });
             const isUser = role === 'user';
@@ -788,7 +788,7 @@
                 const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
                 const level = await AIManager.analyzePlacement(transcript);
                 await saveUserSettings(currentUser.uid, { proficiencyLevel: level });
-                userSettings.proficiencyLevel = level; // Update local settings immediately
+                userSettings.proficiencyLevel = level;
                 alert(`Great, we've placed you at level: ${level}. Let's get started!`);
                 showMainApp();
             } else {
