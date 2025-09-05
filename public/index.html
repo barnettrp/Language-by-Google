@@ -195,7 +195,7 @@
                                 <option value="Spanish">Spanish</option>
                             </select>
                         </div>
-                        <button id="retake-placement-btn" class="w-full mt-4 bg-gray-200 text-gray-700 p-2 rounded-md font-semibold hover:bg-gray-300 transition-colors">Retake Placement Test</button>
+                         <button id="retake-placement-btn" class="w-full mt-4 bg-gray-200 text-gray-700 p-2 rounded-md font-semibold hover:bg-gray-300 transition-colors">Retake Placement Test</button>
                     </div>
                 </div>
             </div>
@@ -432,7 +432,11 @@
             if (user) {
                 currentUser = user;
                 try {
-                    await loadUserSettings(user.uid); 
+                    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+                    if (isNewUser && signupName) { 
+                        userSettings = await setupNewUser(user);
+                    }
+                    await loadUserSettings(user.uid);
                     
                     if (!userSettings.proficiencyLevel) {
                         startPlacementTest();
@@ -442,7 +446,7 @@
                 } catch (error) {
                     console.error("CRITICAL ERROR during user setup/load:", error);
                     alert("A critical error occurred while loading your profile. Please check the console for details.");
-                    showMainApp(); // Fallback to show the app anyway
+                    showMainApp();
                 }
             } else {
                 currentUser = null;
@@ -760,7 +764,7 @@
                 explainRuleBtn.classList.add('hidden');
             }
         };
-
+        
         const addPlacementMessage = (text, role) => {
             placementMessages.push({ role, parts: [{ text }] });
             const isUser = role === 'user';
@@ -784,6 +788,7 @@
                 const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
                 const level = await AIManager.analyzePlacement(transcript);
                 await saveUserSettings(currentUser.uid, { proficiencyLevel: level });
+                userSettings.proficiencyLevel = level; // Update local settings immediately
                 alert(`Great, we've placed you at level: ${level}. Let's get started!`);
                 showMainApp();
             } else {
@@ -791,9 +796,29 @@
                 addPlacementMessage(response, 'ai');
             }
         };
+        
+        submitQuizBtn.addEventListener('click', () => {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            if (!selected) {
+                alert("Please select an answer.");
+                return;
+            }
+            if (selected.value === 'b') {
+                placementQuizView.classList.add('hidden');
+                placementChatView.classList.remove('hidden');
+                placementChatView.classList.add('flex');
+                addPlacementMessage("¡Hola! Mucho gusto. ¿Cómo te llamas?", 'ai');
+            } else {
+                alert("Not quite! Let's start with the basics.");
+                saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }).then(() => {
+                    userSettings.proficiencyLevel = 'A1';
+                    showMainApp();
+                });
+            }
+        });
 
         placementSendBtn.addEventListener('click', handlePlacementSend);
-        placementChatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handlePlacementSend);
+        placementChatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handlePlacementSend());
 
         explainRuleBtn.addEventListener('click', async () => {
             const original = originalSentenceEl.textContent.slice(1, -1);
