@@ -1018,6 +1018,106 @@ if (loginBtn) {
       if (loginError) {
         loginError.textContent = map[code] || (error && error.message ? error.message : 'Login failed.');
       }
+       /* ================== UI DIAGNOSTIC & HARD FLIP (append at end) ================== */
+
+// Wrap existing showMainApp to add diag + belt-and-suspenders flip
+(function wrapShowMainApp() {
+  if (typeof showMainApp !== 'function') return;
+
+  const original = showMainApp;
+  window.showMainApp = function wrappedShowMainApp() {
+    original();               // your normal flip
+    __uiHardFlipAndDiag('showMainApp() called');
+  };
+})();
+
+// Call also right after login success just in case (in case you missed earlier patch)
+(function hookLoginSuccess() {
+  try {
+    // Find existing listener by patching signIn handler outcome via a small global hook
+    window.__afterLoginSuccess = function () {
+      __uiHardFlipAndDiag('post-login success');
+    };
+  } catch (e) {}
+})();
+
+function __uiHardFlipAndDiag(source) {
+  try {
+    const ribbon = document.getElementById('debug-ribbon');
+    const set = (t) => { if (ribbon) ribbon.textContent = t; };
+    const el = (id) => document.getElementById(id);
+
+    const auth = el('auth-container');
+    const main = el('main-app-view');
+    const quest = el('quest-view');
+    const chat  = el('chat-view');
+
+    // 1) Hard flip
+    if (auth) auth.style.display = 'none';
+    if (main) {
+      main.classList.remove('hidden');
+      main.classList.add('flex');
+      // Nuke any inline display:none someone might have set
+      main.style.removeProperty('display');
+      // Give it a minimum height so it can't collapse
+      main.style.minHeight = '60vh';
+      // TEMP banner so you 100% see it on iPad
+      if (!main.querySelector('#___mainBanner')) {
+        const b = document.createElement('div');
+        b.id = '___mainBanner';
+        b.textContent = 'MAIN APP VIEW — if you see this, UI flip worked ✅';
+        b.style.cssText = 'background:#10b981;color:white;padding:8px;text-align:center;font-weight:600;';
+        main.insertBefore(b, main.firstChild);
+        setTimeout(() => b.remove(), 2500);
+      }
+    }
+    if (quest) quest.style.display = 'flex';
+    if (chat)  { chat.classList.add('hidden'); chat.classList.remove('flex'); }
+
+    // 2) Compute visibility
+    function vis(n) {
+      if (!n) return 'missing';
+      const cs = getComputedStyle(n);
+      return (cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0') ? 'visible' : 'hidden';
+    }
+    const diag = [
+      `src=${source}`,
+      `auth=${auth ? vis(auth) : 'missing'}`,
+      `main=${main ? vis(main) : 'missing'}`,
+      `quest=${quest ? vis(quest) : 'missing'}`,
+      `chat=${chat ? vis(chat) : 'missing'}`
+    ].join(' | ');
+
+    // 3) Put a concise status in ribbon and console
+    set(`UI diag: ${diag}`);
+    console.log('[UI DIAG]', diag, {
+      mainClasses: main ? main.className : null,
+      mainInlineDisplay: main ? main.style.display : null
+    });
+  } catch (e) {
+    console.error('[UI DIAG] failed', e);
+    const ribbon = document.getElementById('debug-ribbon');
+    if (ribbon) ribbon.textContent = 'UI diag failed: ' + e.message;
+  }
+}
+
+// If login handler is ours, call the hook after success (non-fatal if not used)
+(function patchLoginButtonHook() {
+  try {
+    const loginBtn = document.getElementById('login-btn');
+    if (!loginBtn) return;
+    // Don’t rebind the click; just add a one-time listener for when auth state flips
+    let armed = true;
+    const unsub = onAuthStateChanged(auth, function(user) {
+      if (!armed) return;
+      if (user) {
+        armed = false;
+        setTimeout(() => (window.__afterLoginSuccess && window.__afterLoginSuccess()), 0);
+        try { unsub && unsub(); } catch {}
+      }
+    });
+  } catch (e) { /* ignore */ }
+})();
     }
   });
 }
