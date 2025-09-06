@@ -4,23 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ConvoQuest</title>
+
+  <!-- Tailwind + Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
-  <!-- ⬇️ REMOVE the old inline Firebase init block here -->
-
-  <!-- ⬇️ ADD this line to load your new file -->
+  <!-- ✅ External Firebase init (replace config inside /firebase-init.js) -->
   <script type="module" src="/firebase-init.js"></script>
 
   <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop'); 
-      background-size: cover; 
-      background-position: center; 
-      overflow: auto; 
-      padding-bottom: 100px;
-    }
+    body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; overflow: auto; padding-bottom: 100px; }
     .contained-area { background: rgba(255, 255, 255, 0.80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
     .auth-input, #chat-input { font-size: 16px; }
     @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -38,24 +31,229 @@
   </style>
 </head>
 <body class="flex items-center justify-center h-screen p-0 md:p-4">
+  <!-- Small top ribbon (app.js may update this for quick status) -->
+  <div id="debug-ribbon" style="position:sticky;top:0;left:0;width:100%;background:#ffefef;color:#b00020;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;font-size:12px;letter-spacing:.2px;padding:6px 10px;z-index:2147483647;box-shadow:0 1px 4px rgba(0,0,0,.15)">
+    Loading…
+  </div>
+
   <div id="app-container" class="w-full h-full md:max-w-lg md:h-[90vh] md:max-h-[700px] contained-area rounded-none md:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
-    <!-- Keep all your existing auth/placement/main-app HTML here unchanged -->
-    <!-- Example: -->
+    <!-- ================== AUTH ================== -->
     <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
-      <!-- login/signup views here -->
+      <div id="login-view">
+        <div class="flex justify-center mb-4">
+          <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to ConvoQuest</h1>
+        <div class="space-y-4">
+          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Log In</button>
+          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+        </div>
+      </div>
+
+      <div id="signup-view" class="hidden">
+        <div class="flex justify-center mb-4">
+          <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
+        <div class="space-y-4">
+          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="signup-confirm-password-input" placeholder="Confirm Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="signup-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Create Account</button>
+          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Log In</button>
+        </div>
+      </div>
     </div>
 
+    <!-- ================== PLACEMENT ================== -->
     <div id="placement-view" class="hidden flex-col h-full">
-      <!-- placement test UI here -->
+      <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
+        <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
+        <p class="text-gray-600 mt-2 mb-6">Let's find the right starting point for you.</p>
+
+        <div id="quiz-question-container">
+          <p class="text-lg mb-4">Read the sentence and answer the question:</p>
+          <p class="bg-gray-100 p-4 rounded-lg text-left mb-4 italic">"María va a la tienda a comprar pan."</p>
+          <p class="text-left font-semibold mb-2">Where is María going?</p>
+          <div id="quiz-options" class="space-y-2 text-left">
+            <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="a" class="mr-2"> The park</label>
+            <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="b" class="mr-2"> The store</label>
+            <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="c" class="mr-2"> Her house</label>
+          </div>
+        </div>
+        <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
+      </div>
+
+      <div id="placement-chat-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 text-center flex-shrink-0">
+          <h1 class="text-xl font-bold text-gray-800">Let's Chat!</h1>
+          <p class="text-sm text-gray-500">Answer a few questions to complete your placement.</p>
+        </header>
+        <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+        <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
+          <div class="flex items-center space-x-2">
+            <input type="text" id="placement-chat-input" placeholder="Type your answer..." class="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="placement-send-btn" class="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600 transition-colors">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+            </button>
+          </div>
+        </footer>
+      </div>
     </div>
 
+    <!-- ================== MAIN APP ================== -->
     <div id="main-app-view" class="hidden flex-col h-full">
-      <!-- quest/chat UI here -->
+      <div id="quest-view" class="flex flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
+          <div>
+            <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </button>
+            <button id="logout-btn" title="Log Out" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
+          </div>
+        </header>
+        <div class="p-4 space-y-3 overflow-y-auto"></div>
+      </div>
+
+      <div id="chat-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <div>
+            <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+            <p id="chat-description" class="text-sm text-gray-500"></p>
+          </div>
+          <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
+        </header>
+        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+        <div id="translation-popover" class="hidden absolute bg-black text-white text-xs rounded py-1 px-2 z-10 shadow-lg text-center"></div>
+        <div id="hint-popover" class="hidden absolute bottom-20 left-1/2 -translate-x-1/2 bg-white p-2 rounded-lg shadow-lg cursor-pointer hint-popover z-10">
+          <p class="text-sm text-gray-700"></p>
+        </div>
+        <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
+          <div class="flex items-center space-x-2">
+            <button id="hint-btn" class="text-gray-500 hover:text-yellow-500 rounded-full p-3 transition-colors">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            </button>
+            <input type="text" id="chat-input" placeholder="Type or tap the mic..." class="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="mic-btn" class="text-gray-500 hover:text-blue-500 rounded-full p-3 transition-colors">
+              <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z" /><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM2 10a2 2 0 114 0v1a2 2 0 11-4 0v-1zm14-1a2 2 0 10-4 0v1a2 2 0 104 0v-1z" clip-rule="evenodd" /></svg>
+            </button>
+            <button id="send-btn" class="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600 transition-colors">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+            </button>
+          </div>
+        </footer>
+      </div>
+
+      <!-- ================== MODALS ================== -->
+      <div id="report-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
+          <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Session Report</h2><button id="close-report-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
+          <div id="report-content" class="space-y-4"></div>
+          <div id="report-loading" class="hidden text-center"><p>✨ Analyzing your conversation...</p></div>
+        </div>
+      </div>
+
+      <div id="settings-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
+          <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
+          <div class="space-y-4">
+            <div>
+              <label class="font-semibold">Dialect</label>
+              <select id="dialect-select" class="w-full mt-1 p-2 border rounded-md"><option value="Mexico">Mexico</option><option value="Spain">Spain</option></select>
+            </div>
+            <div>
+              <label class="font-semibold">Formality</label>
+              <select id="formality-select" class="w-full mt-1 p-2 border rounded-md"><option value="Casual">Casual</option><option value="Formal">Formal</option></select>
+            </div>
+            <div>
+              <label for="vignette-lang-select" class="font-semibold">Quest Intro Language</label>
+              <select id="vignette-lang-select" class="w-full mt-1 p-2 border rounded-md">
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+              </select>
+            </div>
+            <button id="retake-placement-btn" class="w-full mt-4 bg-gray-200 text-gray-700 p-2 rounded-md font-semibold hover:bg-gray-300 transition-colors">Retake Placement Test</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="vignette-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center modal-content">
+          <h2 id="vignette-title" class="text-2xl font-bold mb-4"></h2>
+          <p id="vignette-text" class="text-gray-600 mb-6"></p>
+          <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Begin Conversation</button>
+        </div>
+      </div>
+
+      <div id="map-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center modal-content">
+          <h2 id="map-title" class="text-2xl font-bold mb-2">Quest Objective</h2>
+          <p id="map-objective" class="text-gray-600 mb-4"></p>
+          <div id="map-container" class="relative bg-gray-200 rounded-lg overflow-hidden">
+            <img id="map-image" src="https://placehold.co/600x400/E2E8F0/A0AEC0?text=Map" class="w-full h-auto">
+          </div>
+        </div>
+      </div>
+
+      <div id="stage-complete-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center modal-content">
+          <h2 class="text-2xl font-bold text-green-600 mb-2">Objective Complete!</h2>
+          <p class="text-gray-700 mb-4">You found a new clue:</p>
+          <div id="clue-card" class="bg-yellow-100 border border-yellow-300 rounded-lg p-4 mb-4">
+            <p id="clue-text" class="font-semibold text-yellow-800"></p>
+          </div>
+          <p id="xp-gain-text" class="text-lg font-semibold text-blue-600 mb-6"></p>
+          <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Continue Quest</button>
+        </div>
+      </div>
+
+      <div id="correction-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Correction</h2>
+            <button id="close-correction-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+          </div>
+          <div id="correction-content" class="space-y-4">
+            <div>
+              <p class="text-sm text-gray-500">Your sentence:</p>
+              <p id="original-sentence" class="italic text-gray-700"></p>
+            </div>
+            <div>
+              <p class="text-sm text-green-600 font-semibold">Suggested correction:</p>
+              <p id="corrected-sentence" class="font-semibold text-green-700"></p>
+            </div>
+            <div id="explanation-container" class="hidden bg-blue-50 p-3 rounded-md">
+              <p class="text-sm text-blue-800 font-semibold">Why?</p>
+              <p id="explanation-text" class="text-sm text-blue-700"></p>
+            </div>
+          </div>
+          <div id="correction-loading" class="hidden text-center"><p>✨ Getting feedback...</p></div>
+          <button id="explain-rule-btn" class="w-full mt-4 bg-blue-100 text-blue-700 p-2 rounded-md font-semibold hover:bg-blue-200 transition-colors">Explain this rule 💡</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Your main app logic -->
+  <!-- ✅ Frontend app logic (moved out of HTML) -->
   <script src="/app.js" defer></script>
 </body>
 </html>
