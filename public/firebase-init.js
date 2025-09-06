@@ -1,30 +1,37 @@
-// firebase-init.js
+// public/firebase-init.js  (module)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-  onAuthStateChanged, signOut, updateProfile 
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { 
-  getFirestore, doc, setDoc, getDoc, 
-  serverTimestamp, updateDoc, increment 
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ⬇️ Replace this entire object with the config shown in Firebase Console
+// TODO: replace with YOUR project's values (from Firebase console)
 const firebaseConfig = {
-  apiKey: "AIzaSyCSITfE-dJD-uBK4sXb4_mJlkquiT4YKg0",
-  authDomain: "ai-span-lang.firebaseapp.com",
-  projectId: "ai-span-lang",
-  storageBucket: "ai-span-lang.firebasestorage.app",
-  messagingSenderId: "259630637016",
-  appId: "1:259630637016:web:a27e9b16a1f57573379cad"
+  apiKey:        "…",
+  authDomain:    "…",   // looks like myapp.firebaseapp.com
+  projectId:     "…",
+  storageBucket: "…",
+  messagingSenderId: "…",
+  appId:         "…"
 };
 
-// Initialize
 const app = initializeApp(firebaseConfig);
 
-// Expose to window so your other scripts can use it
-window.firebaseInstances = { app, auth: getAuth(app), db: getFirestore(app) };
-window.firebaseFunctions = { 
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, 
-  signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, updateDoc, increment 
+// EXPOSE to window for app.js (non-module) to consume.
+window.firebaseInstances = {
+  app,
+  auth: getAuth(app),
+  db: getFirestore(app)
+};
+
+window.firebaseFunctions = {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  doc, setDoc, getDoc, updateDoc, serverTimestamp, increment
 };
