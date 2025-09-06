@@ -3,6 +3,7 @@
    Loads AFTER /firebase-init.js
    ========================================================================= */
 
+/* ------------------------ Ribbon helper (global) -------------------- */
 (function initRibbon() {
   const el = document.getElementById('debug-ribbon');
   const set = (msg) => { if (el) el.textContent = msg; };
@@ -126,19 +127,18 @@ const retakePlacementBtn = document.getElementById('retake-placement-btn');
 /* ------------------------ Utilities / Speech ------------------------ */
 const translationCache = new Map();
 const localDictionary = {
-  "hola": "hello","adiós": "goodbye","gracias": "thank you","por": "for/by","favor": "please","sí": "yes","no": "no",
-  "qué": "what","cómo": "how","dónde": "where","quién": "who","cuándo": "when","yo": "I","tú": "you",
-  "él": "he","ella": "she","nosotros": "we","ellos": "they","ellas": "they","estoy": "I am","estás": "you are",
-  "es": "is","somos": "we are","son": "are","ser": "to be","estar": "to be","tengo": "I have","tienes": "you have",
-  "tiene": "has","tenemos": "we have","tienen": "have","tener": "to have","quiero": "I want","quieres": "you want",
-  "quiere": "wants","queremos": "we want","quieren": "want","querer": "to want","un": "a/an","una": "a/an",
-  "el": "the","la": "the","los": "the","las": "the","a": "to/at","de": "of/from","en": "in/on","con": "with",
-  "sin": "without","buenos": "good","días": "days","tardes": "afternoons","noches": "nights","nombre": "name",
-  "mi": "my","me": "me","llamo": "I call myself","y": "and","o": "or","pero": "but","porque": "because",
-  "café": "coffee","agua": "water","comida": "food","cuenta": "bill","hotel": "hotel","aeropuerto": "airport",
-  "calle": "street","plaza": "plaza","amigo": "friend","amiga": "friend","familia": "family","ayuda": "help",
-  "bien": "well","mal": "bad","mucho": "a lot","poco": "a little","ahora": "now","hoy": "today","mañana": "tomorrow",
-  "siempre": "always","necesito": "I need","puedo": "I can","voy": "I go","hay": "there is/are"
+  "hola":"hello","adiós":"goodbye","gracias":"thank you","por":"for/by","favor":"please","sí":"yes","no":"no",
+  "qué":"what","cómo":"how","dónde":"where","quién":"who","cuándo":"when","yo":"I","tú":"you","él":"he","ella":"she",
+  "nosotros":"we","ellos":"they","ellas":"they","estoy":"I am","estás":"you are","es":"is","somos":"we are","son":"are",
+  "ser":"to be","estar":"to be","tengo":"I have","tienes":"you have","tiene":"has","tenemos":"we have","tienen":"have",
+  "tener":"to have","quiero":"I want","quieres":"you want","quiere":"wants","queremos":"we want","quieren":"want",
+  "querer":"to want","un":"a/an","una":"a/an","el":"the","la":"the","los":"the","las":"the","a":"to/at","de":"of/from",
+  "en":"in/on","con":"with","sin":"without","buenos":"good","días":"days","tardes":"afternoons","noches":"nights",
+  "nombre":"name","mi":"my","me":"me","llamo":"I call myself","y":"and","o":"or","pero":"but","porque":"because",
+  "café":"coffee","agua":"water","comida":"food","cuenta":"bill","hotel":"hotel","aeropuerto":"airport","calle":"street",
+  "plaza":"plaza","amigo":"friend","amiga":"friend","familia":"family","ayuda":"help","bien":"well","mal":"bad",
+  "mucho":"a lot","poco":"a little","ahora":"now","hoy":"today","mañana":"tomorrow","siempre":"always",
+  "necesito":"I need","puedo":"I can","voy":"I go","hay":"there is/are"
 };
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -508,11 +508,8 @@ async function saveUserSettings(userId, settings) {
 function updateSetting(key, value) {
   userSettings[key] = value;
   if (currentUser) {
-    saveUserSettings(currentUser.uid, (function () {
-      const obj = {};
-      obj[key] = value;
-      return obj;
-    })());
+    const obj = {}; obj[key] = value;
+    saveUserSettings(currentUser.uid, obj);
   }
 }
 
@@ -604,19 +601,29 @@ function startPlacementTest() {
   }
 }
 
-/* ---------------------- Auth State + Fallback Patch ----------------- */
-// 🔧 global manual helper
+/* ---------------------- Auth State + Diagnostics -------------------- */
+
+// Global manual helper to force main UI
 window.__forceMainApp = function () {
   try {
     console.log('[Debug] Forcing main app UI');
     const el = document.getElementById('auth-container');
     if (el) el.style.display = 'none';
     const mv = document.getElementById('main-app-view');
-    if (mv) { mv.classList.remove('hidden'); mv.classList.add('flex'); }
+    if (mv) { mv.classList.remove('hidden'); mv.classList.add('flex'); mv.style.removeProperty('display'); mv.style.minHeight = '60vh'; }
     const qv = document.getElementById('quest-view');
     const cv = document.getElementById('chat-view');
     if (qv) qv.style.display = 'flex';
     if (cv) { cv.classList.add('hidden'); cv.classList.remove('flex'); }
+    // add temporary banner
+    if (mv && !mv.querySelector('#___mainBanner')) {
+      const b = document.createElement('div');
+      b.id = '___mainBanner';
+      b.textContent = 'MAIN APP VIEW — if you see this, UI flip worked ✅';
+      b.style.cssText = 'background:#10b981;color:white;padding:8px;text-align:center;font-weight:600;';
+      mv.insertBefore(b, mv.firstChild);
+      setTimeout(() => b.remove(), 2500);
+    }
     window.__setRibbon && window.__setRibbon('UI: main app (forced)');
   } catch (e) {
     console.error('forceMainApp failed', e);
@@ -652,7 +659,7 @@ async function handleSignedInUser(user) {
 
     await loadUserSettings(user.uid);
 
-    // 🔧 TEMP: force a level so we always show the main app UI.
+    // TEMP: force a level so we always show the main app UI.
     if (!userSettings.proficiencyLevel) {
       userSettings.proficiencyLevel = 'A1';
       try { await saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }); } catch {}
@@ -670,18 +677,17 @@ async function handleSignedInUser(user) {
   }
 }
 
-// Listener
+// Primary auth listener
 onAuthStateChanged(auth, async function (user) {
   console.log('[ConvoQuest] onAuthStateChanged fired', { hasUser: !!user });
   window.__setRibbon && window.__setRibbon('Auth state: event fired');
   await handleSignedInUser(user);
 });
 
-// 🐶 Watchdog: if signed in but UI didn't flip, force it.
+// Watchdog: if signed in but UI didn't flip, force it.
 setTimeout(() => {
   const ribbonText = (document.getElementById('debug-ribbon') || {}).textContent || '';
   const mv = document.getElementById('main-app-view');
-  const authShown = document.getElementById('auth-container') && getComputedStyle(document.getElementById('auth-container')).display !== 'none';
   const uiShown = mv && mv.classList.contains('flex');
   if (!uiShown && /signed in/i.test(ribbonText)) {
     console.warn('[ConvoQuest] Watchdog forcing main app UI.');
@@ -984,7 +990,7 @@ if (logoutBtn) {
   });
 }
 
-// Login (kept here for completeness; UI flip is now also watchdogged)
+// Login
 if (loginBtn) {
   loginBtn.addEventListener('click', async function () {
     window.__setRibbon && window.__setRibbon('Click: Login button');
@@ -1004,6 +1010,10 @@ if (loginBtn) {
       console.log('[ConvoQuest] signInWithEmailAndPassword resolved', { uid: cred.user ? cred.user.uid : null });
       window.__setRibbon && window.__setRibbon('Auth: success (post-login UI)');
       await handleSignedInUser(auth.currentUser || cred.user);
+      // extra hook for diag
+      if (typeof window.__afterLoginSuccess === 'function') {
+        window.__afterLoginSuccess();
+      }
     } catch (error) {
       console.error('[ConvoQuest] Login error:', error);
       window.__setRibbon && window.__setRibbon('Auth: error ' + (error && error.code ? error.code : 'unknown'));
@@ -1018,12 +1028,15 @@ if (loginBtn) {
       if (loginError) {
         loginError.textContent = map[code] || (error && error.message ? error.message : 'Login failed.');
       }
-       /* ================== UI DIAGNOSTIC & HARD FLIP (append at end) ================== */
+    }
+  });
+}
+
+/* ================== UI DIAGNOSTIC & HARD FLIP (append at end) ================== */
 
 // Wrap existing showMainApp to add diag + belt-and-suspenders flip
 (function wrapShowMainApp() {
   if (typeof showMainApp !== 'function') return;
-
   const original = showMainApp;
   window.showMainApp = function wrappedShowMainApp() {
     original();               // your normal flip
@@ -1031,10 +1044,9 @@ if (loginBtn) {
   };
 })();
 
-// Call also right after login success just in case (in case you missed earlier patch)
+// Call also right after login success just in case
 (function hookLoginSuccess() {
   try {
-    // Find existing listener by patching signIn handler outcome via a small global hook
     window.__afterLoginSuccess = function () {
       __uiHardFlipAndDiag('post-login success');
     };
@@ -1057,11 +1069,8 @@ function __uiHardFlipAndDiag(source) {
     if (main) {
       main.classList.remove('hidden');
       main.classList.add('flex');
-      // Nuke any inline display:none someone might have set
-      main.style.removeProperty('display');
-      // Give it a minimum height so it can't collapse
+      main.style.removeProperty('display'); // nuke inline display:none
       main.style.minHeight = '60vh';
-      // TEMP banner so you 100% see it on iPad
       if (!main.querySelector('#___mainBanner')) {
         const b = document.createElement('div');
         b.id = '___mainBanner';
@@ -1118,6 +1127,3 @@ function __uiHardFlipAndDiag(source) {
     });
   } catch (e) { /* ignore */ }
 })();
-    }
-  });
-}
