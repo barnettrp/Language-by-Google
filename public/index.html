@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ConvoQuest</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
     <!-- === FIREBASE CONFIGURATION === -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -18,7 +18,7 @@
             authDomain: "spanish-stt-project-470418.firebaseapp.com",
             projectId: "spanish-stt-project-470418",
             storageBucket: "spanish-stt-project-470418.appspot.com",
-            messagingSenderId: "788393465858", 
+            messagingSenderId: "788393465858",
             appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
         };
 
@@ -26,7 +26,7 @@
         window.firebaseInstances = { app, auth: getAuth(app), db: getFirestore(app) };
         window.firebaseFunctions = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, updateDoc, increment };
     </script>
-    
+
     <style>
         body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; overflow: hidden; }
         .contained-area { background: rgba(255, 255, 255, 0.80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
@@ -48,7 +48,8 @@
 <body class="flex items-center justify-center h-screen p-0 md:p-4">
 
     <div id="app-container" class="w-full h-full md:max-w-lg md:h-[90vh] md:max-h-[700px] contained-area rounded-none md:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        
+
+        <!-- ===== AUTH ===== -->
         <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
             <div id="login-view">
                 <div class="flex justify-center mb-4">
@@ -70,7 +71,7 @@
             </div>
             <div id="signup-view" class="hidden">
                 <div class="flex justify-center mb-4">
-                     <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
                     </svg>
@@ -89,12 +90,13 @@
                 </div>
             </div>
         </div>
-        
+
+        <!-- ===== PLACEMENT ===== -->
         <div id="placement-view" class="hidden flex-col h-full">
             <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
                 <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
                 <p class="text-gray-600 mt-2 mb-6">Let's find the right starting point for you.</p>
-                
+
                 <div id="quiz-question-container">
                     <p class="text-lg mb-4">Read the sentence and answer the question:</p>
                     <p class="bg-gray-100 p-4 rounded-lg text-left mb-4 italic">"María va a la tienda a comprar pan."</p>
@@ -109,11 +111,12 @@
             </div>
 
             <div id="placement-chat-view" class="hidden flex-col h-full">
-                 <header class="p-4 border-b border-gray-200/80 text-center flex-shrink-0">
+                <header class="p-4 border-b border-gray-200/80 text-center flex-shrink-0">
                     <h1 class="text-xl font-bold text-gray-800">Let's Chat!</h1>
                     <p class="text-sm text-gray-500">Answer a few questions to complete your placement.</p>
                 </header>
-                <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+                <!-- NOTE: removed flex-col-reverse; we now append and auto-scroll -->
+                <div id="placement-chat-container" class="flex flex-col flex-1 p-4 space-y-4 overflow-y-auto"></div>
                 <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
                     <div class="flex items-center space-x-2">
                         <input type="text" id="placement-chat-input" placeholder="Type your answer..." class="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -125,13 +128,14 @@
             </div>
         </div>
 
+        <!-- ===== MAIN APP ===== -->
         <div id="main-app-view" class="hidden flex-col h-full">
             <div id="quest-view" class="flex flex-col h-full">
                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
                     <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
                     <div>
                         <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
-                           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94 1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </button>
                         <button id="logout-btn" title="Log Out" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -140,6 +144,7 @@
                 </header>
                 <div class="p-4 space-y-3 overflow-y-auto"></div>
             </div>
+
             <div id="chat-view" class="hidden flex-col h-full">
                 <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
                     <div>
@@ -148,14 +153,15 @@
                     </div>
                     <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
                 </header>
-                <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+                <!-- NOTE: removed flex-col-reverse; we now append and auto-scroll -->
+                <div id="chat-container" class="flex flex-col flex-1 p-4 space-y-4 overflow-y-auto"></div>
                 <div id="translation-popover" class="hidden absolute bg-black text-white text-xs rounded py-1 px-2 z-10 shadow-lg text-center"></div>
                 <div id="hint-popover" class="hidden absolute bottom-20 left-1/2 -translate-x-1/2 bg-white p-2 rounded-lg shadow-lg cursor-pointer hint-popover z-10">
                     <p class="text-sm text-gray-700"></p>
                 </div>
                 <footer class="p-4 border-t border-gray-200/80 flex-shrink-0">
                     <div class="flex items-center space-x-2">
-                         <button id="hint-btn" class="text-gray-500 hover:text-yellow-500 rounded-full p-3 transition-colors">
+                        <button id="hint-btn" class="text-gray-500 hover:text-yellow-500 rounded-full p-3 transition-colors">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                         </button>
                         <input type="text" id="chat-input" placeholder="Type or tap the mic..." class="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -168,16 +174,18 @@
                     </div>
                 </footer>
             </div>
-            
+
+            <!-- Modals -->
             <div id="report-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
-                     <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Session Report</h2><button id="close-report-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Session Report</h2><button id="close-report-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
                     <div id="report-content" class="space-y-4"></div>
                     <div id="report-loading" class="hidden text-center"><p>✨ Analyzing your conversation...</p></div>
                 </div>
             </div>
+
             <div id="settings-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
-                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
+                <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
                     <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
                     <div class="space-y-4">
                         <div>
@@ -195,10 +203,11 @@
                                 <option value="Spanish">Spanish</option>
                             </select>
                         </div>
-                         <button id="retake-placement-btn" class="w-full mt-4 bg-gray-200 text-gray-700 p-2 rounded-md font-semibold hover:bg-gray-300 transition-colors">Retake Placement Test</button>
+                        <button id="retake-placement-btn" class="w-full mt-4 bg-gray-200 text-gray-700 p-2 rounded-md font-semibold hover:bg-gray-300 transition-colors">Retake Placement Test</button>
                     </div>
                 </div>
             </div>
+
             <div id="vignette-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center modal-content">
                     <h2 id="vignette-title" class="text-2xl font-bold mb-4"></h2>
@@ -206,15 +215,17 @@
                     <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Begin Conversation</button>
                 </div>
             </div>
+
             <div id="map-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center modal-content">
                     <h2 id="map-title" class="text-2xl font-bold mb-2">Quest Objective</h2>
                     <p id="map-objective" class="text-gray-600 mb-4"></p>
                     <div id="map-container" class="relative bg-gray-200 rounded-lg overflow-hidden">
-                        <img id="map-image" src="https://placehold.co/600x400/E2E8F0/A0AEC0?text=Map" class="w-full h-auto">
+                        <img id="map-image" src="https://placehold.co/600x400/E2E8F0/A0AEC0?text=Map" class="w-full h-auto" alt="Map" />
                     </div>
                 </div>
             </div>
+
             <div id="stage-complete-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center modal-content">
                     <h2 class="text-2xl font-bold text-green-600 mb-2">Objective Complete!</h2>
@@ -226,9 +237,10 @@
                     <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Continue Quest</button>
                 </div>
             </div>
+
             <div id="correction-modal" class="hidden modal-bg fixed inset-0 flex items-center justify-center p-4 z-20">
                 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content">
-                     <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-bold">Correction</h2>
                         <button id="close-correction-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
                     </div>
@@ -252,17 +264,19 @@
             </div>
         </div>
     </div>
-    
+
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const { auth, db } = window.firebaseInstances;
         const { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, updateDoc, increment } = window.firebaseFunctions;
 
+        // ===== Global state =====
         let currentUser = null;
         let userSettings = { dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English', xp: 0, completedStages: {} };
         let signupName = '';
         let isListening = false;
-        
+
+        // ===== DOM refs =====
         const authContainer = document.getElementById('auth-container');
         const mainAppView = document.getElementById('main-app-view');
         const loginView = document.getElementById('login-view');
@@ -326,26 +340,28 @@
         const placementChatContainer = document.getElementById('placement-chat-container');
         const placementChatInput = document.getElementById('placement-chat-input');
         const placementSendBtn = document.getElementById('placement-send-btn');
-        const retakePlacementBtn = document.getElementById('retake-placement-btn');
-        
+
+        // Placement buffer
         let placementMessages = [];
 
+        // Translation helpers
         const translationCache = new Map();
         const localDictionary = { "hola": "hello", "adiós": "goodbye", "gracias": "thank you", "por": "for/by", "favor": "please", "sí": "yes", "no": "no", "qué": "what", "cómo": "how", "dónde": "where", "quién": "who", "cuándo": "when", "yo": "I", "tú": "you", "él": "he", "ella": "she", "nosotros": "we", "ellos": "they", "ellas": "they", "estoy": "I am", "estás": "you are", "es": "is", "somos": "we are", "son": "are", "ser": "to be", "estar": "to be", "tengo": "I have", "tienes": "you have", "tiene": "has", "tenemos": "we have", "tienen": "have", "tener": "to have", "quiero": "I want", "quieres": "you want", "quiere": "wants", "queremos": "we want", "quieren": "want", "querer": "to want", "un": "a/an", "una": "a/an", "el": "the", "la": "the", "los": "the", "las": "the", "a": "to/at", "de": "of/from", "en": "in/on", "con": "with", "sin": "without", "buenos": "good", "días": "days", "tardes": "afternoons", "noches": "nights", "nombre": "name", "mi": "my", "me": "me", "llamo": "I call myself", "y": "and", "o": "or", "pero": "but", "porque": "because", "café": "coffee", "agua": "water", "comida": "food", "cuenta": "bill", "hotel": "hotel", "aeropuerto": "airport", "calle": "street", "plaza": "plaza", "amigo": "friend", "amiga": "friend", "familia": "family", "ayuda": "help", "bien": "well", "mal": "bad", "mucho": "a lot", "poco": "a little", "ahora": "now", "hoy": "today", "mañana": "tomorrow", "siempre": "always", "necesito": "I need", "puedo": "I can", "voy": "I go", "hay": "there is/are" };
-        
-        showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
-        showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
-        
-        loginBtn.addEventListener('click', async () => {
+
+        // ===== Auth UI toggles =====
+        if (showSignupBtn) showSignupBtn.addEventListener('click', () => { loginView.classList.add('hidden'); signupView.classList.remove('hidden'); });
+        if (showLoginBtn) showLoginBtn.addEventListener('click', () => { signupView.classList.add('hidden'); loginView.classList.remove('hidden'); });
+
+        if (loginBtn) loginBtn.addEventListener('click', async () => {
             loginError.textContent = '';
             const email = loginEmailInput.value.trim();
             const password = loginPasswordInput.value.trim();
             if (!email || !password) { loginError.textContent = "Please enter an email and password."; return; }
-            try { await signInWithEmailAndPassword(auth, email, password); } 
+            try { await signInWithEmailAndPassword(auth, email, password); }
             catch (error) { loginError.textContent = error.message; }
         });
 
-        signupBtn.addEventListener('click', async () => {
+        if (signupBtn) signupBtn.addEventListener('click', async () => {
             signupError.textContent = '';
             const name = signupNameInput.value.trim();
             const email = signupEmailInput.value.trim();
@@ -355,11 +371,11 @@
             if (password.length < 6) { signupError.textContent = "Password must be at least 6 characters."; return; }
             if (password !== confirmPassword) { signupError.textContent = "Passwords do not match."; return; }
             signupName = name;
-            try { await createUserWithEmailAndPassword(auth, email, password); } 
+            try { await createUserWithEmailAndPassword(auth, email, password); }
             catch (error) { signupError.textContent = error.message; signupName = ''; }
         });
-        
-        logoutBtn.addEventListener('click', () => signOut(auth));
+
+        if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth));
 
         const setupNewUser = async (user) => {
             await updateProfile(user, { displayName: signupName });
@@ -377,25 +393,23 @@
                 if (docSnap.exists() && docSnap.data()) {
                     userSettings = { ...userSettings, ...docSnap.data() };
                 } else {
-                    console.log("No user document found, creating one for existing user.");
-                    const initialSettings = { name: currentUser.displayName, email: currentUser.email, createdAt: serverTimestamp(), dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English', xp: 0, completedStages: {} };
+                    const initialSettings = { name: currentUser?.displayName, email: currentUser?.email, createdAt: serverTimestamp(), dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English', xp: 0, completedStages: {} };
                     await setDoc(userDocRef, initialSettings);
                     userSettings = { ...userSettings, ...initialSettings };
                 }
                 if (dialectSelect) dialectSelect.value = userSettings.dialect;
                 if (formalitySelect) formalitySelect.value = userSettings.formality;
                 if (vignetteLangSelect) vignetteLangSelect.value = userSettings.vignetteLanguage;
-            } catch (error) {
-                console.error("Error loading user settings:", error);
-            }
+            } catch (error) { console.error("Error loading user settings:", error); }
         };
-        
+
         const saveUserSettings = async (userId, settings) => {
             if (!userId) return;
             const userDocRef = doc(db, 'users', userId);
-            await updateDoc(userDocRef, settings);
+            try { await updateDoc(userDocRef, settings); }
+            catch (e) { await setDoc(userDocRef, settings, { merge: true }); }
         };
-        
+
         const updateSetting = (key, value) => {
             userSettings[key] = value;
             if (currentUser) { saveUserSettings(currentUser.uid, { [key]: value }); }
@@ -404,8 +418,8 @@
         const startPlacementTest = () => {
             placementMessages = [];
             const checkedRadio = document.querySelector('input[name="quiz"]:checked');
-            if(checkedRadio) checkedRadio.checked = false;
-            
+            if (checkedRadio) checkedRadio.checked = false;
+
             authContainer.style.display = 'none';
             mainAppView.classList.add('hidden');
             settingsModal.classList.add('hidden');
@@ -418,14 +432,16 @@
         };
 
         const showMainApp = () => {
-            welcomeMessage.textContent = `Welcome, ${currentUser.displayName || userSettings.name || 'Friend'}!`;
+            if (welcomeMessage) {
+                const name = (currentUser?.displayName || userSettings.name || 'Friend');
+                welcomeMessage.textContent = `Welcome, ${name}!`;
+            }
             authContainer.style.display = 'none';
             placementView.classList.add('hidden');
             mainAppView.classList.remove('hidden');
             mainAppView.classList.add('flex');
-            questView.style.display = 'flex';
-            chatView.classList.add('hidden');
-            chatView.classList.remove('flex');
+            if (questView) questView.style.display = 'flex';
+            if (chatView) { chatView.classList.add('hidden'); chatView.classList.remove('flex'); }
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -433,11 +449,11 @@
                 currentUser = user;
                 try {
                     const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                    if (isNewUser && signupName) { 
+                    if (isNewUser && signupName) {
                         userSettings = await setupNewUser(user);
+                    } else {
+                        await loadUserSettings(user.uid);
                     }
-                    await loadUserSettings(user.uid);
-                    
                     if (!userSettings.proficiencyLevel) {
                         startPlacementTest();
                     } else {
@@ -459,10 +475,7 @@
             }
         });
 
-        let currentQuest = null;
-        let currentStage = null;
-        let messages = [];
-        
+        // ===== Speech =====
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
         if (SpeechRecognition) {
@@ -472,13 +485,10 @@
             recognition.interimResults = false;
             recognition.onstart = () => { isListening = true; micBtn.classList.add('mic-active'); };
             recognition.onresult = (event) => { chatInput.value = event.results[0][0].transcript; };
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                alert(`Speech recognition error: ${event.error}. Please ensure microphone access is allowed.`);
-            };
+            recognition.onerror = (event) => { console.error("Speech recognition error:", event.error); alert(`Speech recognition error: ${event.error}. Please ensure microphone access is allowed.`); };
             recognition.onend = () => { isListening = false; micBtn.classList.remove('mic-active'); };
         }
-        
+
         const speak = (textToSpeak) => {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -486,11 +496,10 @@
                 utterance.rate = 0.9;
                 window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert("Sorry, your browser doesn't support text-to-speech.");
-            }
+            } else { alert("Sorry, your browser doesn't support text-to-speech."); }
         };
 
+        // ===== AI Manager =====
         const AIManager = {
             async callAPI(payload) {
                 try {
@@ -500,13 +509,9 @@
                         body: JSON.stringify(payload)
                     });
                     const result = await response.json();
-                    if (!response.ok) {
-                        return { error: result.error || "Sorry, an unknown error occurred." }; 
-                    }
+                    if (!response.ok) return { error: result.error || 'Sorry, an unknown error occurred.' };
                     return result;
-                } catch (error) { 
-                    return { error: "Sorry, I couldn't connect to the server." }; 
-                }
+                } catch (error) { return { error: "Sorry, I couldn't connect to the server." }; }
             },
             async getResponse(history, stage, settings) {
                 const mappedHistory = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
@@ -540,7 +545,7 @@
                 const response = await this.callAPI(payload);
                 return response.text || "Try asking a question.";
             },
-             async getGrammarExplanation(original, corrected) {
+            async getGrammarExplanation(original, corrected) {
                 const payload = { type: 'grammar', original, corrected };
                 const response = await this.callAPI(payload);
                 return response.text || response.error;
@@ -558,6 +563,7 @@
             }
         };
 
+        // ===== Quests data =====
         const quests = {
             "missing-guitar": {
                 title: "The Missing Guitar",
@@ -594,7 +600,7 @@
                         nextStages: ["2a"],
                         initialMessage: "Uh... hello? Do you speak English?"
                     },
-                     "3": {
+                    "3": {
                         characterName: "Javier, the Rival",
                         vignette_en: "You find Javier in an alley. He looks nervous. Your goal: Convince him to return the guitar.",
                         vignette_es: "Encuentras a Javier en un callejón. Parece nervioso. Tu objetivo: Convencerlo de que devuelva la guitarra.",
@@ -618,18 +624,21 @@
                         </div>`;
             }).join('');
         };
-        
+
+        let currentQuest = null;
+        let currentStage = null;
+        let messages = [];
+
         const showMapView = (questId) => {
             currentQuest = { ...quests[questId], id: questId };
             mapTitle.textContent = currentQuest.title;
             mapObjective.textContent = currentQuest.objective;
-            
             document.getElementById('map-image').src = currentQuest.mapImage;
-            
-            mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
-            
-            const nextStageIds = currentStage ? currentStage.nextStages : ["1"];
 
+            // Clear previous markers
+            mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
+
+            const nextStageIds = currentStage ? currentStage.nextStages : ["1"];
             nextStageIds.forEach((stageId, index) => {
                 const location = document.createElement('div');
                 location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
@@ -640,7 +649,7 @@
                 location.dataset.stageId = stageId;
                 mapContainer.appendChild(location);
             });
-            
+
             mapModal.classList.remove('hidden');
         };
 
@@ -651,41 +660,50 @@
             vignetteText.textContent = userSettings.vignetteLanguage === 'Spanish' ? currentStage.vignette_es : currentStage.vignette_en;
             vignetteModal.classList.remove('hidden');
         };
-        
-        const startStage = () => { 
-            if (!currentStage) return;
-            messages = [];
-            chatView.querySelector('#chat-title').textContent = currentStage.characterName;
-            chatView.querySelector('#chat-description').textContent = currentStage.vignette_en.split('.')[1];
-            addMessage(currentStage.initialMessage, 'ai');
-            vignetteModal.classList.add('hidden');
-            questView.style.display = 'none';
-            chatView.classList.remove('hidden');
-            chatView.classList.add('flex');
-        };
-        
+
+        const scrollToBottom = (el) => { el.scrollTop = el.scrollHeight; };
+
         const addMessage = (text, role) => {
             messages.push({ role, parts: [{ text }] });
             const isUser = role === 'user';
+
             const wrapper = document.createElement('div');
             wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
+
             const bubbleWrapper = document.createElement('div');
             bubbleWrapper.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+
+            // word-by-word spans for translation click
             text.split(' ').forEach(word => {
                 const wordSpan = document.createElement('span');
                 wordSpan.className = 'clickable-word cursor-pointer hover:underline';
                 wordSpan.textContent = word + ' ';
                 bubbleWrapper.appendChild(wordSpan);
             });
+
             wrapper.appendChild(bubbleWrapper);
-            if (isUser) {
-                wrapper.innerHTML += `<button title="Correct me" class="correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1">Correct me ✨</button>`;
-            } else {
-                wrapper.innerHTML += `<button title="Read aloud" class="read-aloud-btn text-xs text-gray-500 hover:text-blue-500 mt-1 ml-1">Read Aloud 🔊</button>`;
-            }
-            chatContainer.insertBefore(wrapper, chatContainer.firstChild);
+
+            // Add button using DOM API (no innerHTML +=)
+            const btn = document.createElement('button');
+            btn.className = `${isUser ? 'correction-btn' : 'read-aloud-btn'} text-xs text-gray-500 hover:text-blue-500 mt-1 ${isUser ? 'mr-1' : 'ml-1'}`;
+            btn.title = isUser ? 'Correct me' : 'Read aloud';
+            btn.textContent = isUser ? 'Correct me ✨' : 'Read Aloud 🔊';
+            wrapper.appendChild(btn);
+
+            chatContainer.appendChild(wrapper);
+            scrollToBottom(chatContainer);
         };
-        
+
+        const addTypingIndicator = () => {
+            const indicator = document.createElement('div');
+            indicator.id = 'typing-indicator';
+            indicator.className = 'flex justify-start';
+            indicator.innerHTML = `<div class="chat-bubble-ai p-3 rounded-lg w-fit flex items-center gap-1.5"><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></span></div>`;
+            chatContainer.appendChild(indicator);
+            scrollToBottom(chatContainer);
+        };
+        const removeTypingIndicator = () => document.getElementById('typing-indicator')?.remove();
+
         const handleSendMessage = async () => {
             const userInput = chatInput.value.trim();
             if (!userInput) return;
@@ -696,15 +714,6 @@
             removeTypingIndicator();
             addMessage(response, 'ai');
         };
-        
-        const addTypingIndicator = () => {
-            const indicator = document.createElement('div');
-            indicator.id = 'typing-indicator';
-            indicator.className = 'flex justify-start';
-            indicator.innerHTML = `<div class="chat-bubble-ai p-3 rounded-lg w-fit flex items-center gap-1.5"><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></span><span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></span></div>`;
-            chatContainer.insertBefore(indicator, chatContainer.firstChild);
-        };
-        const removeTypingIndicator = () => document.getElementById('typing-indicator')?.remove();
 
         const endStage = async () => {
             const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).join('\n');
@@ -713,20 +722,18 @@
             if (result.trim().toUpperCase() === "YES") {
                 const stageKey = `${currentStage.questId}-${currentStage.id}`;
                 if (!userSettings.completedStages[stageKey]) {
-                    clueText.textContent = currentStage.reward.clue;
-                    xpGainText.textContent = `+${currentStage.reward.xp} XP`;
-                    userSettings.xp += currentStage.reward.xp;
+                    clueText.textContent = currentStage.reward?.clue || '';
+                    xpGainText.textContent = `+${currentStage.reward?.xp || 0} XP`;
+                    userSettings.xp += currentStage.reward?.xp || 0;
                     userSettings.completedStages[stageKey] = true;
-                    saveUserSettings(currentUser.uid, { xp: increment(currentStage.reward.xp), completedStages: userSettings.completedStages });
+                    saveUserSettings(currentUser.uid, { xp: increment(currentStage.reward?.xp || 0), completedStages: userSettings.completedStages });
                     stageCompleteModal.classList.remove('hidden');
                 } else {
                     chatView.classList.add('hidden');
                     questView.style.display = 'flex';
                     showMapView(currentStage.questId);
                 }
-            } else {
-                alert("Objective not met. Try asking again in a different way.");
-            }
+            } else { alert("Objective not met. Try asking again in a different way."); }
         };
 
         const showHint = async () => {
@@ -735,7 +742,6 @@
             hintPopover.classList.remove('hidden');
 
             const hint = await AIManager.getHint(messages.slice(-6), currentStage);
-            
             hintPopover.querySelector('p').textContent = hint;
             hintBtn.disabled = false;
         };
@@ -749,11 +755,11 @@
             explainRuleBtn.textContent = 'Explain this rule 💡';
 
             const correctionText = await AIManager.getCorrection(originalText);
-            
+
             correctionLoading.classList.add('hidden');
             document.getElementById('correction-content').classList.remove('hidden');
 
-            if (correctionText.includes('Corrected:')) {
+            if (typeof correctionText === 'string' && correctionText.includes('Corrected:')) {
                 const parts = correctionText.split('\n');
                 const corrected = parts[0].replace('Corrected: ', '').trim();
                 originalSentenceEl.textContent = `"${originalText}"`;
@@ -764,191 +770,31 @@
                 explainRuleBtn.classList.add('hidden');
             }
         };
-        
+
         const addPlacementMessage = (text, role) => {
             placementMessages.push({ role, parts: [{ text }] });
             const isUser = role === 'user';
             const wrapper = document.createElement('div');
             wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
-            const bubbleWrapper = document.createElement('div');
-            bubbleWrapper.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
-            bubbleWrapper.textContent = text;
-            wrapper.appendChild(bubbleWrapper);
-            placementChatContainer.insertBefore(wrapper, placementChatContainer.firstChild);
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+            bubble.textContent = text;
+            wrapper.appendChild(bubble);
+            placementChatContainer.appendChild(wrapper);
+            scrollToBottom(placementChatContainer);
         };
-        
+
         const handlePlacementSend = async () => {
             const userInput = placementChatInput.value.trim();
             if (!userInput) return;
             addPlacementMessage(userInput, 'user');
             placementChatInput.value = '';
-            
-            if (placementMessages.length >= 4) {
+
+            // End after 2 user messages (4 total entries in placementMessages)
+            const userMsgCount = placementMessages.filter(m => m.role === 'user').length;
+            if (userMsgCount >= 2) {
                 addPlacementMessage("¡Gracias! Analizando tu nivel...", 'ai');
-                const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
+                const transcript = placementMessages.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).join('\n');
                 const level = await AIManager.analyzePlacement(transcript);
                 await saveUserSettings(currentUser.uid, { proficiencyLevel: level });
-                userSettings.proficiencyLevel = level;
-                alert(`Great, we've placed you at level: ${level}. Let's get started!`);
-                showMainApp();
-            } else {
-                const response = await AIManager.getPlacementResponse(placementMessages);
-                addPlacementMessage(response, 'ai');
-            }
-        };
-        
-        submitQuizBtn.addEventListener('click', () => {
-            const selected = document.querySelector('input[name="quiz"]:checked');
-            if (!selected) {
-                alert("Please select an answer.");
-                return;
-            }
-            if (selected.value === 'b') {
-                placementQuizView.classList.add('hidden');
-                placementChatView.classList.remove('hidden');
-                placementChatView.classList.add('flex');
-                addPlacementMessage("¡Hola! Mucho gusto. ¿Cómo te llamas?", 'ai');
-            } else {
-                alert("Not quite! Let's start with the basics.");
-                saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }).then(() => {
-                    userSettings.proficiencyLevel = 'A1';
-                    showMainApp();
-                });
-            }
-        });
-
-        placementSendBtn.addEventListener('click', handlePlacementSend);
-        placementChatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handlePlacementSend());
-
-        explainRuleBtn.addEventListener('click', async () => {
-            const original = originalSentenceEl.textContent.slice(1, -1);
-            const corrected = correctedSentenceEl.textContent.slice(1, -1);
-            explainRuleBtn.textContent = 'Explaining...';
-            
-            const explanation = await AIManager.getGrammarExplanation(original, corrected);
-            
-            explanationText.textContent = explanation;
-            explanationContainer.classList.remove('hidden');
-            explainRuleBtn.classList.add('hidden');
-        });
-
-        closeCorrectionBtn.addEventListener('click', () => correctionModal.classList.add('hidden'));
-        
-        questView.addEventListener('click', (e) => {
-            const card = e.target.closest('.quest-card');
-            if(card) showMapView(card.dataset.questId);
-        });
-        
-        mapContainer.addEventListener('click', (e) => {
-            const location = e.target.closest('.map-location');
-            if(location) {
-                mapModal.classList.add('hidden');
-                showVignette(location.dataset.questId, location.dataset.stageId);
-            }
-        });
-        
-        startStageBtn.addEventListener('click', startStage);
-        continueQuestBtn.addEventListener('click', () => {
-            stageCompleteModal.classList.add('hidden');
-            chatView.classList.add('hidden');
-            questView.style.display = 'flex';
-            if (currentStage.nextStages.length > 0) {
-                showMapView(currentStage.questId);
-            } else {
-                alert("Quest Complete! 🎉");
-            }
-        });
-        endSessionBtn.addEventListener('click', endStage);
-
-        settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
-        closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-        retakePlacementBtn.addEventListener('click', startPlacementTest);
-        vignetteLangSelect.addEventListener('change', (e) => updateSetting('vignetteLanguage', e.target.value));
-        dialectSelect.addEventListener('change', (e) => updateSetting('dialect', e.target.value));
-        formalitySelect.addEventListener('change', (e) => updateSetting('formality', e.target.value));
-        sendBtn.addEventListener('click', handleSendMessage);
-        chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
-        
-        micBtn.addEventListener('click', () => {
-            if (!recognition) { return alert("Sorry, your browser doesn't support speech recognition."); }
-            if (isListening) { recognition.stop(); return; }
-            try { recognition.start(); } 
-            catch(e) { console.error("Could not start recognition:", e); alert("Could not start speech recognition. Please check permissions."); }
-        });
-        
-        chatContainer.addEventListener('click', async (e) => {
-            const target = e.target;
-            
-            if (target.classList.contains('read-aloud-btn')) {
-                const bubble = target.closest('.flex-col').querySelector('.chat-bubble');
-                if (bubble) speak(bubble.textContent.trim());
-            }
-            
-            if (target.classList.contains('correction-btn')) {
-                const bubble = target.closest('.flex-col').querySelector('.chat-bubble');
-                if (bubble) showCorrectionModal(bubble.textContent.trim());
-            }
-            
-            if (target.classList.contains('clickable-word')) {
-                const word = target.textContent.trim().replace(/[.,¡!¿?]/g, '').toLowerCase();
-                if (!word) return;
-                
-                const showTranslation = (translationText) => {
-                    translationPopover.innerHTML = translationText;
-                    const containerRect = document.getElementById('app-container').getBoundingClientRect();
-                    const rect = target.getBoundingClientRect();
-                    const popoverRect = translationPopover.getBoundingClientRect();
-                    let left = rect.left - containerRect.left + (rect.width / 2) - (popoverRect.width / 2);
-                    let top = rect.top - containerRect.top - popoverRect.height - 8;
-                    if (left < 8) left = 8;
-                    if (left + popoverRect.width > containerRect.width - 8) {
-                        left = containerRect.width - popoverRect.width - 8;
-                    }
-                    if (top < 8) {
-                        top = rect.bottom - containerRect.top + 8;
-                    }
-                    translationPopover.style.left = `${left}px`;
-                    translationPopover.style.top = `${top}px`;
-                    translationPopover.classList.remove('hidden');
-                };
-
-                if (translationCache.has(word)) {
-                    showTranslation(translationCache.get(word));
-                } else if (localDictionary[word]) {
-                    const translation = localDictionary[word];
-                    translationCache.set(word, translation);
-                    showTranslation(translation);
-                } else {
-                    showTranslation('Translating...');
-                    const context = target.parentElement.textContent.trim();
-                    const apiTranslation = await AIManager.getTranslation(word, context);
-                    const formattedTranslation = apiTranslation ? apiTranslation.replace(/\n/g, '<br>') : 'Not found.';
-                    translationCache.set(word, formattedTranslation);
-                    showTranslation(formattedTranslation);
-                }
-            }
-        });
-        
-        hintBtn.addEventListener('click', showHint);
-        hintPopover.addEventListener('click', () => {
-            const hintText = hintPopover.querySelector('p').textContent;
-            if (hintText && hintText !== 'Getting hint...') {
-                chatInput.value = hintText;
-                hintPopover.classList.add('hidden');
-                chatInput.focus();
-            }
-        });
-
-        document.body.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('clickable-word') && !e.target.closest('#hint-btn')) {
-                translationPopover.classList.add('hidden');
-                hintPopover.classList.add('hidden');
-            }
-        }, true);
-        
-        renderQuests();
-    });
-    </script>
-</body>
-</html>
-
+                userSettings.proficiencyLevel = le
