@@ -28,7 +28,7 @@
     </script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; overflow: auto; padding-bottom: 100px; }
         .contained-area { background: rgba(255, 255, 255, 0.80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .auth-input, #chat-input { font-size: 16px; }
         @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -269,7 +269,7 @@
   try {
     const logBox = document.createElement('div');
     logBox.id = 'logBox';
-    logBox.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;height:80px;overflow:auto;font-family:monospace;font-size:11px;background:#111;color:#0f0;z-index:9999;padding:4px;box-shadow:0 -2px 8px rgba(0,0,0,.25)';
+    logBox.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;height:80px;overflow:auto;font-family:monospace;font-size:11px;background:#111;color:#0f0;z-index:2147483647;padding:4px;box-shadow:0 -2px 8px rgba(0,0,0,.25);pointer-events:auto;';
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '×';
     closeBtn.ariaLabel = 'Close log';
@@ -279,7 +279,7 @@
     const pre = document.createElement('pre');
     pre.style.margin = '0';
     logBox.appendChild(pre);
-    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(logBox));
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', () => document.body.appendChild(logBox)); } else { document.body.appendChild(logBox); }
     const write = (...parts) => { pre.textContent += parts.map(p => (typeof p === 'object' ? JSON.stringify(p) : String(p))).join(' ') + '
 '; pre.scrollTop = pre.scrollHeight; };
     const oldLog = console.log; console.log = function(...args){ try{ oldLog.apply(console, args); }catch{} write(...args); };
