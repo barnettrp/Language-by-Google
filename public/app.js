@@ -1,6 +1,6 @@
 /* =========================================================================
    ConvoQuest — Frontend App (public/app.js)
-   Loads AFTER /firebase-init.js
+   Loads AFTER /firebase-init.js (module) which sets window.firebaseInstances/functions
    ========================================================================= */
 
 /* ------------------------ Ribbon helper (global) -------------------- */
@@ -566,6 +566,7 @@ function showMainApp() {
     const name = (currentUser && currentUser.displayName) || userSettings.name || 'Friend';
     welcomeMessage.textContent = 'Welcome, ' + name + '!';
   }
+  // Keep original visibility changes (CSS flip via body class is now the primary)
   if (authContainer) authContainer.style.display = 'none';
   if (placementView) placementView.classList.add('hidden');
   if (mainAppView) {
@@ -603,10 +604,13 @@ function startPlacementTest() {
 
 /* ---------------------- Auth State + Diagnostics -------------------- */
 
-// Global manual helper to force main UI
+// Manual helper to force main UI
 window.__forceMainApp = function () {
   try {
     console.log('[Debug] Forcing main app UI');
+    document.body.classList.add('signed-in');
+    document.body.classList.remove('signed-out');
+
     const el = document.getElementById('auth-container');
     if (el) el.style.display = 'none';
     const mv = document.getElementById('main-app-view');
@@ -615,7 +619,6 @@ window.__forceMainApp = function () {
     const cv = document.getElementById('chat-view');
     if (qv) qv.style.display = 'flex';
     if (cv) { cv.classList.add('hidden'); cv.classList.remove('flex'); }
-    // add temporary banner
     if (mv && !mv.querySelector('#___mainBanner')) {
       const b = document.createElement('div');
       b.id = '___mainBanner';
@@ -632,19 +635,26 @@ window.__forceMainApp = function () {
 
 async function handleSignedInUser(user) {
   window.__setRibbon && window.__setRibbon('Auth state: handling user...');
-  console.log('[ConvoQuest] handleSignedInUser start', { uid: user ? user.uid : null });
 
   if (!user) {
+    // signed OUT
+    document.body.classList.remove('signed-in');
+    document.body.classList.add('signed-out');
+
     console.log('[ConvoQuest] No user (signed out)');
-    window.__setRibbon && window.__setRibbon('Auth state: signed out');
     currentUser = null;
     if (authContainer) authContainer.style.display = 'flex';
     if (placementView) placementView.classList.add('hidden');
     if (signupView) signupView.classList.add('hidden');
     if (loginView) loginView.classList.remove('hidden');
     if (mainAppView) { mainAppView.classList.add('hidden'); mainAppView.classList.remove('flex'); }
+    window.__setRibbon && window.__setRibbon('Auth state: signed out');
     return;
   }
+
+  // signed IN
+  document.body.classList.add('signed-in');
+  document.body.classList.remove('signed-out');
 
   try {
     currentUser = user;
@@ -659,20 +669,18 @@ async function handleSignedInUser(user) {
 
     await loadUserSettings(user.uid);
 
-    // TEMP: force a level so we always show the main app UI.
+    // Ensure a level so main app shows
     if (!userSettings.proficiencyLevel) {
       userSettings.proficiencyLevel = 'A1';
       try { await saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }); } catch {}
     }
 
-    // Show the main app unconditionally for now.
-    showMainApp();
-    console.log('[ConvoQuest] Showing main app (forced).');
-    window.__setRibbon && window.__setRibbon('UI: main app');
+    showMainApp(); // normal logic
+    console.log('[ConvoQuest] Showing main app.');
+    window.__setRibbon && window.__setRibbon('UI: main app (CSS flip active)');
   } catch (error) {
     console.error('CRITICAL ERROR during user setup/load:', error);
     window.__setRibbon && window.__setRibbon('Auth state: error (showing main)');
-    alert('A critical error occurred while loading your profile. Please check the console for details.');
     showMainApp();
   }
 }
@@ -684,33 +692,28 @@ onAuthStateChanged(auth, async function (user) {
   await handleSignedInUser(user);
 });
 
-// Watchdog: if signed in but UI didn't flip, force it.
+// Watchdog: if signed in but UI didn't flip, force CSS class flip.
 setTimeout(() => {
-  const ribbonText = (document.getElementById('debug-ribbon') || {}).textContent || '';
-  const mv = document.getElementById('main-app-view');
-  const uiShown = mv && mv.classList.contains('flex');
-  if (!uiShown && /signed in/i.test(ribbonText)) {
-    console.warn('[ConvoQuest] Watchdog forcing main app UI.');
-    if (typeof window.__forceMainApp === 'function') {
-      window.__forceMainApp();
-    } else {
-      const el = document.getElementById('auth-container');
-      if (el) el.style.display = 'none';
-      if (mv) { mv.classList.remove('hidden'); mv.classList.add('flex'); }
-      const qv = document.getElementById('quest-view');
-      if (qv) qv.style.display = 'flex';
-      window.__setRibbon && window.__setRibbon('UI: main app (watchdog)');
+  try {
+    if (auth && auth.currentUser) {
+      document.body.classList.add('signed-in');
+      document.body.classList.remove('signed-out');
+      window.__setRibbon && window.__setRibbon('UI: forced CSS flip (watchdog)');
     }
-  }
-}, 1200);
+  } catch (e) {}
+}, 2000);
 
 /* --------------------------- Settings UI ---------------------------- */
 if (settingsBtn) settingsBtn.addEventListener('click', function () { settingsModal.classList.remove('hidden'); });
 if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', function () { settingsModal.classList.add('hidden'); });
-if (retakePlacementBtn) retakePlacementBtn.addEventListener('click', startPlacementTest);
+if (retakePlacementBtn) retakePlacementTestSafe();
 if (vignetteLangSelect) vignetteLangSelect.addEventListener('change', function (e) { updateSetting('vignetteLanguage', e.target.value); });
 if (dialectSelect) dialectSelect.addEventListener('change', function (e) { updateSetting('dialect', e.target.value); });
 if (formalitySelect) formalitySelect.addEventListener('change', function (e) { updateSetting('formality', e.target.value); });
+
+function retakePlacementTestSafe() {
+  if (retakePlacementBtn) retakePlacementBtn.addEventListener('click', startPlacementTest);
+}
 
 /* ----------------------------- Chat UI ------------------------------ */
 if (sendBtn) sendBtn.addEventListener('click', handleSendMessage);
@@ -985,8 +988,16 @@ if (showLoginBtn) {
 
 // Logout
 if (logoutBtn) {
-  logoutBtn.addEventListener('click', function () {
-    signOut(auth);
+  logoutBtn.addEventListener('click', async function () {
+    try {
+      await signOut(auth);
+      console.log('Signed out');
+      document.body.classList.add('signed-out');
+      document.body.classList.remove('signed-in');
+      window.__setRibbon && window.__setRibbon('Auth state: signed out (manual)');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   });
 }
 
@@ -1010,7 +1021,6 @@ if (loginBtn) {
       console.log('[ConvoQuest] signInWithEmailAndPassword resolved', { uid: cred.user ? cred.user.uid : null });
       window.__setRibbon && window.__setRibbon('Auth: success (post-login UI)');
       await handleSignedInUser(auth.currentUser || cred.user);
-      // extra hook for diag
       if (typeof window.__afterLoginSuccess === 'function') {
         window.__afterLoginSuccess();
       }
@@ -1032,7 +1042,7 @@ if (loginBtn) {
   });
 }
 
-/* ================== UI DIAGNOSTIC & HARD FLIP (append at end) ================== */
+/* ================== UI DIAGNOSTIC & HARD FLIP (kept) ================== */
 
 // Wrap existing showMainApp to add diag + belt-and-suspenders flip
 (function wrapShowMainApp() {
@@ -1059,13 +1069,17 @@ function __uiHardFlipAndDiag(source) {
     const set = (t) => { if (ribbon) ribbon.textContent = t; };
     const el = (id) => document.getElementById(id);
 
-    const auth = el('auth-container');
+    const authEl = el('auth-container');
     const main = el('main-app-view');
     const quest = el('quest-view');
     const chat  = el('chat-view');
 
-    // 1) Hard flip
-    if (auth) auth.style.display = 'none';
+    // Add CSS flip class every time, just to be sure
+    document.body.classList.add('signed-in');
+    document.body.classList.remove('signed-out');
+
+    // 1) Hard flip (legacy)
+    if (authEl) authEl.style.display = 'none';
     if (main) {
       main.classList.remove('hidden');
       main.classList.add('flex');
@@ -1091,7 +1105,7 @@ function __uiHardFlipAndDiag(source) {
     }
     const diag = [
       `src=${source}`,
-      `auth=${auth ? vis(auth) : 'missing'}`,
+      `auth=${authEl ? vis(authEl) : 'missing'}`,
       `main=${main ? vis(main) : 'missing'}`,
       `quest=${quest ? vis(quest) : 'missing'}`,
       `chat=${chat ? vis(chat) : 'missing'}`
@@ -1113,9 +1127,8 @@ function __uiHardFlipAndDiag(source) {
 // If login handler is ours, call the hook after success (non-fatal if not used)
 (function patchLoginButtonHook() {
   try {
-    const loginBtn = document.getElementById('login-btn');
-    if (!loginBtn) return;
-    // Don’t rebind the click; just add a one-time listener for when auth state flips
+    const btn = document.getElementById('login-btn');
+    if (!btn) return;
     let armed = true;
     const unsub = onAuthStateChanged(auth, function(user) {
       if (!armed) return;
