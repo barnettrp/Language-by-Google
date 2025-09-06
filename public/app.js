@@ -20,7 +20,6 @@ if (!window.firebaseInstances || !window.firebaseFunctions) {
     warn.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#531;color:#fff;padding:8px;z-index:2147483647;font:12px/1.3 system-ui';
     document.body.appendChild(warn);
   })();
-  // Stop execution to avoid cascading errors
   throw new Error('Firebase init missing');
 }
 
@@ -52,7 +51,6 @@ let messages = [];
 let placementMessages = [];
 
 /* --------------------------- DOM Queries ---------------------------- */
-// Auth / main views
 const authContainer = document.getElementById('auth-container');
 const mainAppView = document.getElementById('main-app-view');
 const loginView = document.getElementById('login-view');
@@ -75,7 +73,6 @@ const signupError = document.getElementById('signup-error');
 const logoutBtn = document.getElementById('logout-btn');
 const welcomeMessage = document.getElementById('welcome-message');
 
-// App
 const questView = document.getElementById('quest-view');
 const chatView = document.getElementById('chat-view');
 const chatContainer = document.getElementById('chat-container');
@@ -117,7 +114,6 @@ const explanationText = document.getElementById('explanation-text');
 const explainRuleBtn = document.getElementById('explain-rule-btn');
 const correctionLoading = document.getElementById('correction-loading');
 
-// Placement
 const placementView = document.getElementById('placement-view');
 const placementQuizView = document.getElementById('placement-quiz-view');
 const submitQuizBtn = document.getElementById('submit-quiz-btn');
@@ -145,7 +141,6 @@ const localDictionary = {
   "siempre": "always","necesito": "I need","puedo": "I can","voy": "I go","hay": "there is/are"
 };
 
-// Speech Recognition
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 if (SpeechRecognition) {
@@ -158,9 +153,7 @@ if (SpeechRecognition) {
     if (micBtn) micBtn.classList.add('mic-active');
   };
   recognition.onresult = function (event) {
-    if (chatInput) {
-      chatInput.value = event.results[0][0].transcript;
-    }
+    if (chatInput) chatInput.value = event.results[0][0].transcript;
   };
   recognition.onerror = function (event) {
     console.error('Speech recognition error:', event.error);
@@ -570,60 +563,6 @@ async function loadUserSettings(userId) {
   }
 }
 
-/* ---------------------------- Auth Wiring --------------------------- */
-// Signup
-if (signupBtn) {
-  signupBtn.addEventListener('click', async function () {
-    signupError.textContent = '';
-    const name = signupNameInput ? signupNameInput.value.trim() : '';
-    const email = signupEmailInput ? signupEmailInput.value.trim() : '';
-    const password = signupPasswordInput ? signupPasswordInput.value.trim() : '';
-    const confirmPassword = signupConfirmPasswordInput ? signupConfirmPasswordInput.value.trim() : '';
-
-    if (!name || !email || !password || !confirmPassword) {
-      signupError.textContent = 'Please fill out all fields.';
-      return;
-    }
-    if (password.length < 6) {
-      signupError.textContent = 'Password must be at least 6 characters.';
-      return;
-    }
-    if (password !== confirmPassword) {
-      signupError.textContent = 'Passwords do not match.';
-      return;
-    }
-
-    signupName = name;
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      signupError.textContent = error && error.message ? error.message : 'Sign up failed.';
-      signupName = '';
-    }
-  });
-}
-
-// Show/hide auth screens
-if (showSignupBtn) {
-  showSignupBtn.addEventListener('click', function () {
-    if (loginView) loginView.classList.add('hidden');
-    if (signupView) signupView.classList.remove('hidden');
-  });
-}
-if (showLoginBtn) {
-  showLoginBtn.addEventListener('click', function () {
-    if (signupView) signupView.classList.add('hidden');
-    if (loginView) loginView.classList.remove('hidden');
-  });
-}
-
-// Logout
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', function () {
-    signOut(auth);
-  });
-}
-
 /* -------------------------- UI Switch Helpers ---------------------- */
 function showMainApp() {
   if (welcomeMessage) {
@@ -646,9 +585,8 @@ function showMainApp() {
 function startPlacementTest() {
   placementMessages = [];
   const checked = document.querySelector('input[name="quiz"]:checked');
-  if (checked && checked.checked) {
-    checked.checked = false;
-  }
+  if (checked && checked.checked) checked.checked = false;
+
   if (authContainer) authContainer.style.display = 'none';
   if (mainAppView) mainAppView.classList.add('hidden');
   if (settingsModal) settingsModal.classList.add('hidden');
@@ -667,6 +605,24 @@ function startPlacementTest() {
 }
 
 /* ---------------------- Auth State + Fallback Patch ----------------- */
+// 🔧 global manual helper
+window.__forceMainApp = function () {
+  try {
+    console.log('[Debug] Forcing main app UI');
+    const el = document.getElementById('auth-container');
+    if (el) el.style.display = 'none';
+    const mv = document.getElementById('main-app-view');
+    if (mv) { mv.classList.remove('hidden'); mv.classList.add('flex'); }
+    const qv = document.getElementById('quest-view');
+    const cv = document.getElementById('chat-view');
+    if (qv) qv.style.display = 'flex';
+    if (cv) { cv.classList.add('hidden'); cv.classList.remove('flex'); }
+    window.__setRibbon && window.__setRibbon('UI: main app (forced)');
+  } catch (e) {
+    console.error('forceMainApp failed', e);
+  }
+};
+
 async function handleSignedInUser(user) {
   window.__setRibbon && window.__setRibbon('Auth state: handling user...');
   console.log('[ConvoQuest] handleSignedInUser start', { uid: user ? user.uid : null });
@@ -679,10 +635,7 @@ async function handleSignedInUser(user) {
     if (placementView) placementView.classList.add('hidden');
     if (signupView) signupView.classList.add('hidden');
     if (loginView) loginView.classList.remove('hidden');
-    if (mainAppView) {
-      mainAppView.classList.add('hidden');
-      mainAppView.classList.remove('flex');
-    }
+    if (mainAppView) { mainAppView.classList.add('hidden'); mainAppView.classList.remove('flex'); }
     return;
   }
 
@@ -690,7 +643,7 @@ async function handleSignedInUser(user) {
     currentUser = user;
     const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
     console.log('[ConvoQuest] Signed in. isNewUser=', isNewUser);
-    window.__setRibbon && window.__setRibbon('Auth state: signed in');
+    window.__setRibbon && window.__setRibbon('Auth state: signed in (loading settings)');
 
     if (isNewUser && signupName) {
       userSettings = await setupNewUser(user);
@@ -698,17 +651,17 @@ async function handleSignedInUser(user) {
     }
 
     await loadUserSettings(user.uid);
-    console.log('[ConvoQuest] Settings loaded', userSettings);
 
+    // 🔧 TEMP: force a level so we always show the main app UI.
     if (!userSettings.proficiencyLevel) {
-      startPlacementTest();
-      console.log('[ConvoQuest] Started placement test.');
-      window.__setRibbon && window.__setRibbon('UI: placement');
-    } else {
-      showMainApp();
-      console.log('[ConvoQuest] Showing main app.');
-      window.__setRibbon && window.__setRibbon('UI: main app');
+      userSettings.proficiencyLevel = 'A1';
+      try { await saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }); } catch {}
     }
+
+    // Show the main app unconditionally for now.
+    showMainApp();
+    console.log('[ConvoQuest] Showing main app (forced).');
+    window.__setRibbon && window.__setRibbon('UI: main app');
   } catch (error) {
     console.error('CRITICAL ERROR during user setup/load:', error);
     window.__setRibbon && window.__setRibbon('Auth state: error (showing main)');
@@ -724,44 +677,26 @@ onAuthStateChanged(auth, async function (user) {
   await handleSignedInUser(user);
 });
 
-// Login (patched with immediate UI fallback)
-if (loginBtn) {
-  loginBtn.addEventListener('click', async function () {
-    window.__setRibbon && window.__setRibbon('Click: Login button');
-    console.log('[ConvoQuest] Login button clicked');
-
-    if (loginError) loginError.textContent = '';
-    const email = loginEmailInput ? loginEmailInput.value.trim() : '';
-    const password = loginPasswordInput ? loginPasswordInput.value.trim() : '';
-
-    if (!email || !password) {
-      if (loginError) loginError.textContent = 'Please enter an email and password.';
-      return;
+// 🐶 Watchdog: if signed in but UI didn't flip, force it.
+setTimeout(() => {
+  const ribbonText = (document.getElementById('debug-ribbon') || {}).textContent || '';
+  const mv = document.getElementById('main-app-view');
+  const authShown = document.getElementById('auth-container') && getComputedStyle(document.getElementById('auth-container')).display !== 'none';
+  const uiShown = mv && mv.classList.contains('flex');
+  if (!uiShown && /signed in/i.test(ribbonText)) {
+    console.warn('[ConvoQuest] Watchdog forcing main app UI.');
+    if (typeof window.__forceMainApp === 'function') {
+      window.__forceMainApp();
+    } else {
+      const el = document.getElementById('auth-container');
+      if (el) el.style.display = 'none';
+      if (mv) { mv.classList.remove('hidden'); mv.classList.add('flex'); }
+      const qv = document.getElementById('quest-view');
+      if (qv) qv.style.display = 'flex';
+      window.__setRibbon && window.__setRibbon('UI: main app (watchdog)');
     }
-
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      console.log('[ConvoQuest] signInWithEmailAndPassword resolved', { uid: cred.user ? cred.user.uid : null });
-      window.__setRibbon && window.__setRibbon('Auth: success (post-login UI)');
-      // Fallback: flip UI immediately in case the listener is delayed
-      await handleSignedInUser(auth.currentUser || cred.user);
-    } catch (error) {
-      console.error('[ConvoQuest] Login error:', error);
-      window.__setRibbon && window.__setRibbon('Auth: error ' + (error && error.code ? error.code : 'unknown'));
-      const map = {
-        'auth/invalid-email': 'That email looks invalid.',
-        'auth/user-disabled': 'This account is disabled.',
-        'auth/user-not-found': 'No account with that email.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/operation-not-allowed': 'Email/password sign-in is not enabled.'
-      };
-      const code = (error && error.code) ? error.code : '';
-      if (loginError) {
-        loginError.textContent = map[code] || (error && error.message ? error.message : 'Login failed.');
-      }
-    }
-  });
-}
+  }
+}, 1200);
 
 /* --------------------------- Settings UI ---------------------------- */
 if (settingsBtn) settingsBtn.addEventListener('click', function () { settingsModal.classList.remove('hidden'); });
@@ -995,5 +930,94 @@ if (placementChatInput) {
   });
 }
 
-/* ---------------------- Auth State Listener end --------------------- */
-// onAuthStateChanged already attached above
+/* -------------------------- Auth Actions ---------------------------- */
+// Signup
+if (signupBtn) {
+  signupBtn.addEventListener('click', async function () {
+    signupError.textContent = '';
+    const name = signupNameInput ? signupNameInput.value.trim() : '';
+    const email = signupEmailInput ? signupEmailInput.value.trim() : '';
+    const password = signupPasswordInput ? signupPasswordInput.value.trim() : '';
+    const confirmPassword = signupConfirmPasswordInput ? signupConfirmPasswordInput.value.trim() : '';
+
+    if (!name || !email || !password || !confirmPassword) {
+      signupError.textContent = 'Please fill out all fields.';
+      return;
+    }
+    if (password.length < 6) {
+      signupError.textContent = 'Password must be at least 6 characters.';
+      return;
+    }
+    if (password !== confirmPassword) {
+      signupError.textContent = 'Passwords do not match.';
+      return;
+    }
+
+    signupName = name;
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      signupError.textContent = error && error.message ? error.message : 'Sign up failed.';
+      signupName = '';
+    }
+  });
+}
+
+// Show/hide auth screens
+if (showSignupBtn) {
+  showSignupBtn.addEventListener('click', function () {
+    if (loginView) loginView.classList.add('hidden');
+    if (signupView) signupView.classList.remove('hidden');
+  });
+}
+if (showLoginBtn) {
+  showLoginBtn.addEventListener('click', function () {
+    if (signupView) signupView.classList.add('hidden');
+    if (loginView) loginView.classList.remove('hidden');
+  });
+}
+
+// Logout
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', function () {
+    signOut(auth);
+  });
+}
+
+// Login (kept here for completeness; UI flip is now also watchdogged)
+if (loginBtn) {
+  loginBtn.addEventListener('click', async function () {
+    window.__setRibbon && window.__setRibbon('Click: Login button');
+    console.log('[ConvoQuest] Login button clicked');
+
+    if (loginError) loginError.textContent = '';
+    const email = loginEmailInput ? loginEmailInput.value.trim() : '';
+    const password = loginPasswordInput ? loginPasswordInput.value.trim() : '';
+
+    if (!email || !password) {
+      if (loginError) loginError.textContent = 'Please enter an email and password.';
+      return;
+    }
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      console.log('[ConvoQuest] signInWithEmailAndPassword resolved', { uid: cred.user ? cred.user.uid : null });
+      window.__setRibbon && window.__setRibbon('Auth: success (post-login UI)');
+      await handleSignedInUser(auth.currentUser || cred.user);
+    } catch (error) {
+      console.error('[ConvoQuest] Login error:', error);
+      window.__setRibbon && window.__setRibbon('Auth: error ' + (error && error.code ? error.code : 'unknown'));
+      const map = {
+        'auth/invalid-email': 'That email looks invalid.',
+        'auth/user-disabled': 'This account is disabled.',
+        'auth/user-not-found': 'No account with that email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/operation-not-allowed': 'Email/password sign-in is not enabled.'
+      };
+      const code = (error && error.code) ? error.code : '';
+      if (loginError) {
+        loginError.textContent = map[code] || (error && error.message ? error.message : 'Login failed.');
+      }
+    }
+  });
+}
