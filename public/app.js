@@ -991,10 +991,6 @@ if (logoutBtn) {
   logoutBtn.addEventListener('click', async function () {
     try {
       await signOut(auth);
-      console.log('Signed out');
-      document.body.classList.add('signed-out');
-      document.body.classList.remove('signed-in');
-      window.__setRibbon && window.__setRibbon('Auth state: signed out (manual)');
     } catch (err) {
       console.error('Logout error:', err);
     }
@@ -1004,9 +1000,6 @@ if (logoutBtn) {
 // Login
 if (loginBtn) {
   loginBtn.addEventListener('click', async function () {
-    window.__setRibbon && window.__setRibbon('Click: Login button');
-    console.log('[ConvoQuest] Login button clicked');
-
     if (loginError) loginError.textContent = '';
     const email = loginEmailInput ? loginEmailInput.value.trim() : '';
     const password = loginPasswordInput ? loginPasswordInput.value.trim() : '';
@@ -1017,27 +1010,22 @@ if (loginBtn) {
     }
 
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      console.log('[ConvoQuest] signInWithEmailAndPassword resolved', { uid: cred.user ? cred.user.uid : null });
-      window.__setRibbon && window.__setRibbon('Auth: success (post-login UI)');
-      await handleSignedInUser(auth.currentUser || cred.user);
-      if (typeof window.__afterLoginSuccess === 'function') {
-        window.__afterLoginSuccess();
-      }
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      console.error('[ConvoQuest] Login error:', error);
-      window.__setRibbon && window.__setRibbon('Auth: error ' + (error && error.code ? error.code : 'unknown'));
+      console.error('[ConvoQuest] Login failed with error:', error.code);
       const map = {
         'auth/invalid-email': 'That email looks invalid.',
         'auth/user-disabled': 'This account is disabled.',
         'auth/user-not-found': 'No account with that email.',
         'auth/wrong-password': 'Incorrect password.',
-        'auth/operation-not-allowed': 'Email/password sign-in is not enabled.'
+        'auth/operation-not-allowed': 'Email/password sign-in is not enabled.',
+        'auth/network-request-failed': 'Network error. Check internet connection or firewall.'
       };
       const code = (error && error.code) ? error.code : '';
       if (loginError) {
-        loginError.textContent = map[code] || (error && error.message ? error.message : 'Login failed.');
+        loginError.textContent = map[code] || `An unexpected error occurred.`;
       }
     }
   });
 }
+
