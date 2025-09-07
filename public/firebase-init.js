@@ -1,33 +1,31 @@
 /* =============================
-File: /public/firebase-init.js
+File: /firebase-init.js
 Single source of truth for Firebase web init (Auth + Firestore)
 ============================= */
 
 // Use ES module imports from the Firebase CDN
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {
-    getAuth,
-    setPersistence,
-    browserLocalPersistence,
+import { 
+    getAuth, 
+    setPersistence, 
+    browserLocalPersistence, 
     onAuthStateChanged,
-    // ADDED: Functions needed by app.js
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
     updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {
+import { 
     getFirestore,
-    // ADDED: Functions needed by app.js
-    doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    serverTimestamp,
-    increment
+    doc, 
+    setDoc, 
+    getDoc, 
+    updateDoc, 
+    serverTimestamp, 
+    increment 
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// ---- Your Firebase project config ----
+// ---- Your Firebase project configuration ----
 const firebaseConfig = {
     apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
     authDomain: "spanish-ai-project.firebaseapp.com",
@@ -47,37 +45,18 @@ setPersistence(auth, browserLocalPersistence).catch((e) => {
     console.warn('Auth persistence warning:', e?.message || e);
 });
 
-// Tiny status hook to flip UI and update the debug ribbon
-onAuthStateChanged(auth, (user) => {
-    try {
-        const isSignedIn = !!user;
-        document.body.classList.toggle('signed-in', isSignedIn);
-        document.body.classList.toggle('signed-out', !isSignedIn);
-
-        const ribbon = document.getElementById('debug-ribbon');
-        if (ribbon) {
-            ribbon.textContent = user ? `Signed in: ${user.email}` : 'Not signed in';
-        }
-    } catch (err) {
-        console.error("Error in onAuthStateChanged UI update:", err);
-    }
-});
-
-
-// Expose instances for app.js (and handy for quick console debugging)
-// This object is what app.js looks for.
+// Expose instances for app.js to consume
 window.firebaseInstances = { app, auth, db };
 
-// Expose functions for app.js
-// This object is also what app.js looks for.
+// Expose functions for app.js to consume
 window.firebaseFunctions = {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
   signOut,
   updateProfile,
-  doc, setDoc, getDoc, updateDoc, serverTimestamp, increment
+  doc, setDoc, getDoc, serverTimestamp, updateDoc, increment
 };
 
-// Export for potential use in other ES modules
 export { app, auth, db };
+
