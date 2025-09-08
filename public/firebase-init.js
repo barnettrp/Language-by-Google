@@ -10,12 +10,12 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-
 
 // ⬇️ Paste your real config here (from Firebase Console → Project settings → Your apps → Config)
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_BUCKET", // use one consistent host (.appspot.com OR .firebasestorage.app)
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyCSITfE-dJD-uBK4sXb4_mJlkquiT4YKg0",
+  authDomain: "ai-span-lang.firebaseapp.com",
+  projectId: "ai-span-lang",
+  storageBucket: "ai-span-lang.firebasestorage.app",
+  messagingSenderId: "259630637016",
+  appId: "1:259630637016:web:a27e9b16a1f57573379cad"
 };
 
 const app = initializeApp(firebaseConfig);
