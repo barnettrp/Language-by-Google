@@ -22,12 +22,12 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-
  *   Do not mix both forms in different files.
  */
 const firebaseConfig = {
-  apiKey:        "PASTE_YOURS",
-  authDomain:    "PASTE_YOURS",
-  projectId:     "PASTE_YOURS",
-  storageBucket: "PASTE_YOURS", // e.g., "your-project.firebasestorage.app" OR "your-project.appspot.com"
-  messagingSenderId: "PASTE_YOURS",
-  appId:         "PASTE_YOURS",
+  apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+  authDomain: "spanish-ai-project.firebaseapp.com",
+  projectId: "spanish-ai-project",
+  storageBucket: "spanish-ai-project.firebasestorage.app",
+  messagingSenderId: "788393465858",
+  appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
 };
 
 // --- Initialize once ---
