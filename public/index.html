@@ -207,17 +207,17 @@
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // This configuration will be provided by the environment.
-    const firebaseConfig = typeof __firebase_config !== 'undefined' 
-        ? JSON.parse(__firebase_config)
-        : {
-              apiKey: "YOUR_API_KEY",
-              authDomain: "YOUR_AUTH_DOMAIN",
-              projectId: "YOUR_PROJECT_ID",
-              storageBucket: "YOUR_STORAGE_BUCKET",
-              messagingSenderId: "YOUR_SENDER_ID",
-              appId: "YOUR_APP_ID"
-          };
+    // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
+    // You can find this in your Firebase project settings under "General".
+    // It's important to use your actual config for Vercel deployment.
+    const firebaseConfig = {
+      apiKey: "AIza...",
+      authDomain: "your-project.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abc123def456"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -682,4 +682,5 @@
   </script>
 </body>
 </html>
+
 
