@@ -36,19 +36,6 @@
     .map-location { cursor: pointer; transition: transform 0.2s; }
     .map-location:hover { transform: scale(1.1); }
 
-    /* Debug ribbon */
-    #debug-ribbon {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      background: #b91c1c;
-      color: #fff;
-      text-align: center;
-      padding: 4px;
-      font-size: 14px;
-      z-index: 99999;
-      -webkit-user-select: none; user-select: none;
-    }
-
     /* App container sizing */
     #app-container {
       width: 100%;
@@ -67,8 +54,6 @@
   </style>
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
-  <!-- Debug ribbon -->
-  <div id="debug-ribbon">Loading…</div>
 
   <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
     <!-- AUTH VIEW -->
@@ -214,7 +199,6 @@
     <div id="hint-popover" class="hidden hint-popover absolute bg-white border rounded-md p-3 z-50 shadow-lg w-48 cursor-pointer bottom-16 left-4">
         <p class="text-sm text-gray-700">Click to use this hint</p>
     </div>
-    <div id="report-modal" class="hidden"></div>
   </div>
 
   <!-- Firebase init -->
@@ -251,7 +235,6 @@
         signInWithCustomToken
     };
 
-    // This promise simply waits for the initial auth state to be known.
     window.firebaseAuthPromise = new Promise(async (resolve) => {
         try {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -262,7 +245,7 @@
         }
         
         const unsub = onAuthStateChanged(auth, (user) => {
-            unsub(); // We only want the very first state
+            unsub(); 
             resolve(user);
         });
     });
@@ -270,20 +253,9 @@
   
   <!-- Main app logic -->
   <script defer id="app-logic-script">
-    /* =========================================================================
-       ConvoQuest — Frontend App
-       ========================================================================= */
-    (function initRibbon() {
-      const el = document.getElementById('debug-ribbon');
-      const set = (msg) => { if (el) el.textContent = msg; };
-      window.__setRibbon = set;
-      set('JS: starting');
-    })();
-
     function main() {
         if (!window.firebaseInstances || !window.firebaseFunctions) {
             console.error('[ConvoQuest] Firebase modules did not load.');
-            window.__setRibbon('JS: Firebase failed to load');
             return;
         }
 
@@ -412,14 +384,12 @@
 
         /* --------------------------- View Management ------------------------ */
         function showView(viewId) {
-            console.log(`[DEBUG] 6. Attempting to show view: ${viewId}`);
             document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
             const view = document.getElementById(viewId);
             if (view) {
                 view.classList.add('active');
-                console.log(`[DEBUG] 7. Successfully showed view: ${viewId}`);
             } else {
-                console.error(`[DEBUG] ERROR: View not found: ${viewId}`);
+                console.error(`ERROR: View not found: ${viewId}`);
             }
         }
 
@@ -457,7 +427,7 @@
             currentQuest = { ...quests[questId], id: questId };
             currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
             dom.vignetteTitle.textContent = currentStage.characterName;
-            dom.vignetteText.textContent = currentStage.vignette_en; // Simplified
+            dom.vignetteText.textContent = currentStage.vignette_en; 
             dom.vignetteModal.classList.remove('hidden');
         }
 
@@ -475,7 +445,7 @@
         
         /* --------------------------- Chat Logic ---------------------------- */
         function addMessage(text, role, container = dom.chatContainer) {
-            const history = role === 'user' ? messages : placementMessages;
+            const history = (container === dom.placementChatContainer) ? placementMessages : messages;
             history.push({ role: role, parts: [{ text: text }] });
             
             const isUser = role === 'user';
@@ -522,7 +492,7 @@
             addMessage(userInput, 'user', dom.placementChatContainer);
             dom.placementChatInput.value = '';
 
-            if (placementMessages.length >= 3) {
+            if (placementMessages.length >= 2) { // Shortened for testing
                  addMessage('¡Gracias! Analizando tu nivel...', 'ai', dom.placementChatContainer);
                  const level = await AIManager.analyzePlacement('');
                  await saveUserSettings(currentUser.uid, { proficiencyLevel: level });
@@ -563,7 +533,7 @@
             if (snap.exists() && snap.data()) {
                 userSettings = { ...userSettings, ...snap.data() };
             } else {
-                console.log('No user settings document found, creating one.');
+                console.log('No user settings document found, creating one for existing user.');
                 const initialSettings = {
                     name: currentUser.displayName || 'User',
                     email: currentUser.email,
@@ -591,10 +561,8 @@
         /* -------------------------- Auth Handling --------------------------- */
         async function handleUserSignIn(user) {
             if (!user) return;
-            console.log("[DEBUG] 4. Inside handleUserSignIn for user:", user.uid);
             currentUser = user;
             await loadUserSettings(user.uid);
-            console.log("[DEBUG] 5. User settings loaded:", userSettings);
             dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
             if (!userSettings.proficiencyLevel) {
                 showView('placement-view');
@@ -616,6 +584,7 @@
         // Auth
         dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
         dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
+        
         dom.signupBtn.addEventListener('click', async () => {
             dom.signupError.textContent = '';
             const name = dom.signupNameInput.value.trim();
@@ -625,26 +594,23 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await setupNewUser(cred.user, name);
-                await handleUserSignIn(cred.user);
+                // onAuthStateChanged will handle the UI flip.
             } catch (error) { dom.signupError.textContent = error.message; }
         });
+        
         dom.loginBtn.addEventListener('click', async () => {
-            console.log("[DEBUG] 1. Login button clicked.");
             dom.loginError.textContent = '';
             const email = dom.loginEmailInput.value.trim();
             const password = dom.loginPasswordInput.value.trim();
             if (!email || !password) { dom.loginError.textContent = 'Please enter email and password.'; return; }
             try {
-                console.log("[DEBUG] 2. Calling Firebase to sign in...");
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log("[DEBUG] 3. Firebase login successful! User:", userCredential.user.uid);
-                // The onAuthStateChanged listener will automatically call handleUserSignIn.
-                // No need to call it directly here.
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will handle the UI flip.
             } catch (error) {
-                console.error("[DEBUG] Firebase login error:", error);
                 dom.loginError.textContent = error.message;
             }
         });
+        
         dom.logoutBtn.addEventListener('click', () => signOut(auth));
 
         // Modals & Popovers
@@ -671,7 +637,7 @@
             dom.chatView.classList.add('hidden');
             dom.chatView.classList.remove('flex');
             dom.questView.style.display = 'flex';
-            if (currentStage && currentStage.nextStages.length > 0) {
+            if (currentStage && currentStage.nextStages && currentStage.nextStages.length > 0) {
                 showMapView(currentStage.questId);
             } else {
                 alert('Quest Complete! 🎉');
@@ -705,7 +671,6 @@
 
         /* -------------------------- Initial Render -------------------------- */
         renderQuests();
-        window.__setRibbon('App Initialized');
     }
 
     // Wait for the Firebase script to be ready, then run the app logic.
