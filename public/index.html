@@ -17,12 +17,12 @@
       min-height: 100vh;
     }
     .contained-area {
-      background: rgba(255, 255, 255, 0.80);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .auth-input, #chat-input { font-size: 16px; }
+    .auth-input, #chat-input, #placement-chat-input { font-size: 16px; }
     @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
     .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
@@ -36,19 +36,6 @@
     .map-location { cursor: pointer; transition: transform 0.2s; }
     .map-location:hover { transform: scale(1.1); }
 
-    /* Debug ribbon */
-    #debug-ribbon {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      background: #b91c1c;
-      color: #fff;
-      text-align: center;
-      padding: 4px;
-      font-size: 14px;
-      z-index: 99999;
-      -webkit-user-select: none; user-select: none;
-    }
-
     /* App container sizing */
     #app-container {
       width: 100%;
@@ -59,34 +46,20 @@
     @media (min-width: 768px) {
       #app-container {
         height: 90vh;
-        max-height: 700px;
+        max-height: 800px;
       }
     }
-
-    /* --- Nuclear CSS flip when signed in --- */
-    body.signed-in #auth-container { display: none !important; }
-    body.signed-in #main-app-view { display: flex !important; }
-    body.signed-in #main-app-view.hidden { display: flex !important; }
-    body.signed-in #quest-view { display: flex !important; }
-    body.signed-in #chat-view { display: none !important; }
+    .main-view { display: none; }
+    .main-view.active { display: flex; }
   </style>
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
-  <!-- Debug ribbon -->
-  <div id="debug-ribbon">Loadingâ¦</div>
 
-  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10">
-    <!-- AUTH VIEWS -->
-    <div id="auth-container" class="flex flex-col h-full p-6 justify-center">
-      <!-- LOGIN VIEW -->
+  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
+    <!-- AUTH VIEW -->
+    <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
       <div id="login-view">
-        <div class="flex justify-center mb-4">
-          <svg class="h-16 w-16 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            <line x1="10" y1="12" x2="14" y2="8"></line><line x1="14" y1="12" x2="10" y2="16"></line><line x1="12" y1="10" x2="12" y2="10"></line>
-          </svg>
-        </div>
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to ConvoQuest</h1>
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
         <div class="space-y-4">
           <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -97,15 +70,12 @@
           <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
         </div>
       </div>
-
-      <!-- SIGNUP VIEW -->
       <div id="signup-view" class="hidden">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
         <div class="space-y-4">
           <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="signup-confirm-password-input" placeholder="Confirm Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
@@ -115,15 +85,13 @@
       </div>
     </div>
 
-    <!-- PLACEMENT VIEW (minimal shell) -->
-    <div id="placement-view" class="hidden flex-col h-full">
+    <!-- PLACEMENT VIEW -->
+    <div id="placement-view" class="main-view flex-col h-full">
       <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
         <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
         <p class="text-gray-600 mt-2 mb-6">Let's find the right starting point for you.</p>
         <div id="quiz-question-container">
-          <p class="text-lg mb-4">Read the sentence and answer the question:</p>
-          <p class="bg-gray-100 p-4 rounded-lg text-left mb-4 italic">"MarÃ­a va a la tienda a comprar pan."</p>
-          <p class="text-left font-semibold mb-2">Where is MarÃ­a going?</p>
+          <p class="text-left font-semibold mb-2">Where is María going?</p>
           <div id="quiz-options" class="space-y-2 text-left">
             <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="a" class="mr-2"> The park</label>
             <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="b" class="mr-2"> The store</label>
@@ -132,16 +100,26 @@
         </div>
         <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
       </div>
+       <div id="placement-chat-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b"><h1 class="text-xl font-bold text-gray-800">A Quick Chat</h1></header>
+        <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+        <div class="p-2 border-t bg-white/50">
+          <div class="flex items-center space-x-2">
+            <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
+            <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- MAIN APP VIEW -->
-    <div id="main-app-view" class="hidden flex-col h-full">
+    <div id="main-app-view" class="main-view flex-col h-full">
       <div id="quest-view" class="flex flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
           <div>
-            <button id="settings-btn" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">âï¸</button>
-            <button id="logout-btn" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">â</button>
+            <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
+            <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
         </header>
         <div class="p-4 space-y-3 overflow-y-auto"></div>
@@ -153,13 +131,441 @@
           <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
         </header>
         <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+        <div class="p-2 border-t bg-white/50 flex-shrink-0">
+          <div class="flex items-center space-x-2">
+            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
+            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="mic-btn" title="Use microphone" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
+            <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
+          </div>
+        </div>
       </div>
+    </div>
+    
+    <!-- MODALS & POPOVERS -->
+    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
+            <div class="space-y-4">
+                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
+                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
+                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
+            </div>
+        </div>
+    </div>
+    <div id="vignette-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
+            <p id="vignette-text" class="text-gray-600 mb-6"></p>
+            <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
+        </div>
+    </div>
+    <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <h2 id="map-title" class="text-2xl font-bold mb-1"></h2>
+            <p id="map-objective" class="text-gray-600 mb-4"></p>
+            <div id="map-container" class="relative rounded-lg overflow-hidden">
+                <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
+            </div>
+        </div>
+    </div>
+    <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete! 🎉</h2>
+            <p class="text-gray-700">New clue unlocked:</p>
+            <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
+            <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
+            <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Continue Quest</button>
+        </div>
+    </div>
+     <div id="correction-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Correction</h2><button id="close-correction-btn" class="font-bold text-2xl">&times;</button></div>
+            <div id="correction-loading" class="hidden text-center p-8">Loading...</div>
+            <div id="correction-content">
+                <p class="text-sm text-gray-500">Original:</p>
+                <p id="original-sentence-el" class="italic text-red-600 bg-red-50 p-2 rounded-md mb-3"></p>
+                <p class="text-sm text-gray-500">Suggested:</p>
+                <p id="corrected-sentence-el" class="italic text-green-600 bg-green-50 p-2 rounded-md mb-4"></p>
+                <button id="explain-rule-btn" class="w-full bg-gray-200 text-gray-800 p-2 rounded-md text-sm font-semibold hover:bg-gray-300">Explain this rule 💡</button>
+                <div id="explanation-container" class="hidden mt-4 p-3 bg-blue-50 rounded-md border-l-4 border-blue-400">
+                    <p id="explanation-text" class="text-sm text-gray-700"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
+    <div id="hint-popover" class="hidden hint-popover absolute bg-white border rounded-md p-3 z-50 shadow-lg w-48 cursor-pointer bottom-16 left-4">
+        <p class="text-sm text-gray-700">Click to use this hint</p>
     </div>
   </div>
 
+  <!-- Load Config Files -->
+  <script src="./firebase-config.js"></script>
+  <script src="./api-keys.js"></script>
+
   <!-- Firebase init -->
-  <script type="module" src="/firebase-init.js?v=debug-css"></script>
-  <!-- Main app -->
-  <script src="/app.js?v=debug-css" defer></script>
+  <script type="module" id="firebase-init-script">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const app = initializeApp(window.firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.firebaseInstances = { app, auth, db };
+    window.firebaseFunctions = {
+        onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+        signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, signInWithCustomToken
+    };
+  </script>
+  
+  <!-- Main app logic -->
+  <script defer id="app-logic-script">
+    function main() {
+        if (!window.firebaseInstances || !window.firebaseFunctions) {
+            console.error('[ConvoQuest] Firebase modules did not load.');
+            return;
+        }
+
+        const { auth, db } = window.firebaseInstances;
+        const {
+            createUserWithEmailAndPassword, signInWithEmailAndPassword,
+            onAuthStateChanged, signOut, updateProfile,
+            doc, setDoc, getDoc, serverTimestamp
+        } = window.firebaseFunctions;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let currentUser = null;
+        let userSettings = {};
+        let currentQuest = null;
+        let currentStage = null;
+        let messages = [];
+        let placementMessages = [];
+
+        const dom = {
+            authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
+            placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
+            signupView: document.getElementById('signup-view'), loginEmailInput: document.getElementById('login-email-input'),
+            loginPasswordInput: document.getElementById('login-password-input'), loginBtn: document.getElementById('login-btn'),
+            showSignupBtn: document.getElementById('show-signup-btn'), loginError: document.getElementById('login-error'),
+            signupNameInput: document.getElementById('signup-name-input'), signupEmailInput: document.getElementById('signup-email-input'),
+            signupPasswordInput: document.getElementById('signup-password-input'), signupBtn: document.getElementById('signup-btn'),
+            showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
+            logoutBtn: document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
+            questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
+            chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
+            sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
+            settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
+            closeSettingsBtn: document.getElementById('close-settings-btn'), dialectSelect: document.getElementById('dialect-select'),
+            formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
+            micBtn: document.getElementById('mic-btn'), endSessionBtn: document.getElementById('end-session-btn'),
+            translationPopover: document.getElementById('translation-popover'), vignetteModal: document.getElementById('vignette-modal'),
+            vignetteTitle: document.getElementById('vignette-title'), vignetteText: document.getElementById('vignette-text'),
+            startStageBtn: document.getElementById('start-stage-btn'), mapModal: document.getElementById('map-modal'),
+            mapTitle: document.getElementById('map-title'), mapObjective: document.getElementById('map-objective'),
+            mapContainer: document.getElementById('map-container'), mapImage: document.getElementById('map-image'),
+            stageCompleteModal: document.getElementById('stage-complete-modal'), clueText: document.getElementById('clue-text'),
+            xpGainText: document.getElementById('xp-gain-text'), continueQuestBtn: document.getElementById('continue-quest-btn'),
+            hintBtn: document.getElementById('hint-btn'), hintPopover: document.getElementById('hint-popover'),
+            correctionModal: document.getElementById('correction-modal'), closeCorrectionBtn: document.getElementById('close-correction-btn'),
+            originalSentenceEl: document.getElementById('original-sentence-el'), correctedSentenceEl: document.getElementById('corrected-sentence-el'),
+            explanationContainer: document.getElementById('explanation-container'), explanationText: document.getElementById('explanation-text'),
+            explainRuleBtn: document.getElementById('explain-rule-btn'), correctionLoading: document.getElementById('correction-loading'),
+            placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
+            placementChatView: document.getElementById('placement-chat-view'), placementChatContainer: document.getElementById('placement-chat-container'),
+            placementChatInput: document.getElementById('placement-chat-input'), placementSendBtn: document.getElementById('placement-send-btn'),
+            retakePlacementBtn: document.getElementById('retake-placement-btn'),
+        };
+
+        /* ---------------- Real AIManager (Gemini API) ------------------- */
+        const AIManager = {
+            async callAPI(systemPrompt, userPrompt) {
+                const apiKey = window.GEMINI_API_KEY;
+                if (!apiKey || apiKey === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+                    return "ERROR: Gemini API Key not configured.";
+                }
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+                    systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
+                };
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        const errorBody = await response.json();
+                        console.error("API Error:", errorBody);
+                        return `Error: ${errorBody.error.message}`;
+                    }
+                    const result = await response.json();
+                    return result.candidates[0].content.parts[0].text;
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    return "Sorry, I couldn't connect to the AI service.";
+                }
+            },
+            async getResponse(history, stage, settings) {
+                const systemPrompt = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.`;
+                const userHistory = history.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
+                const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
+                return this.callAPI(systemPrompt, userPrompt);
+            },
+            async getCorrection(text) {
+                const systemPrompt = "You are a helpful language correction tool. Analyze the user's Spanish text and provide a correction if needed. If it's correct, say so. Format your response as 'Corrected: [corrected text]' or 'This is correct.'";
+                return this.callAPI(systemPrompt, text);
+            },
+            // ... other AI manager functions will be updated similarly
+        };
+
+        const quests = {
+            "missing-guitar": {
+                title: "The Missing Guitar", objective: "A famous musician's guitar is missing. Find it before his show!",
+                mapImage: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop",
+                stages: {
+                    "1": { characterName: "Mateo, the Concierge", vignette_en: "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen.", systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.", reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 }, nextStages: ["2a", "2b"], initialMessage: "Good morning. How can I help you today?" },
+                    "2a": { characterName: "Elena, the Vendor", vignette_en: "You arrive at the bustling plaza. Your goal: Ask her if she saw Carlos.", systemPrompt: "You are Elena, a chatty and knowledgeable street vendor.", reward: { clue: "Carlos was seen with a rival musician, Javier.", xp: 75 }, nextStages: ["3"], initialMessage: "¡Hola! ¿Buscas algo bonito?" },
+                }
+            }
+        };
+
+        function showView(viewId) {
+            document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
+            const view = document.getElementById(viewId);
+            if (view) view.classList.add('active');
+        }
+
+        function renderQuests() {
+            const list = dom.questView.querySelector('.space-y-3');
+            list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+        }
+
+        function showMapView(questId) {
+            currentQuest = { ...quests[questId], id: questId };
+            dom.mapTitle.textContent = currentQuest.title;
+            dom.mapObjective.textContent = currentQuest.objective;
+            dom.mapImage.src = currentQuest.mapImage;
+            dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
+            const nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
+            nextStageIds.forEach((stageId, index) => {
+                const location = document.createElement('div');
+                location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
+                location.style.left = `${20 + index * 40}%`;
+                location.style.top = `${40 + (index % 2 * 15)}%`;
+                location.innerHTML = '<span>📍</span>';
+                location.dataset.questId = questId;
+                location.dataset.stageId = stageId;
+                dom.mapContainer.appendChild(location);
+            });
+            dom.mapModal.classList.remove('hidden');
+        }
+        
+        function showVignette(questId, stageId) {
+            currentQuest = { ...quests[questId], id: questId };
+            currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
+            dom.vignetteTitle.textContent = currentStage.characterName;
+            dom.vignetteText.textContent = currentStage.vignette_en; 
+            dom.vignetteModal.classList.remove('hidden');
+        }
+
+        function startStage() {
+            if (!currentStage) return;
+            messages = [];
+            dom.chatTitle.textContent = currentStage.characterName;
+            dom.chatContainer.innerHTML = '';
+            addMessage(currentStage.initialMessage, 'ai');
+            dom.vignetteModal.classList.add('hidden');
+            dom.questView.style.display = 'none';
+            dom.chatView.classList.remove('hidden');
+            dom.chatView.classList.add('flex');
+        }
+        
+        function addMessage(text, role, container = dom.chatContainer) {
+            const history = (container === dom.placementChatContainer) ? placementMessages : messages;
+            history.push({ role: role, parts: [{ text: text }] });
+            const isUser = role === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full flex flex-col ' + (isUser ? 'items-end' : 'items-start');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble p-3 rounded-lg w-fit ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai');
+            bubble.textContent = text;
+            wrapper.appendChild(bubble);
+            if (isUser) {
+                const btn = document.createElement('button');
+                btn.className = 'correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1';
+                btn.textContent = 'Correct me ✨';
+                wrapper.appendChild(btn);
+            }
+            container.insertBefore(wrapper, container.firstChild);
+        }
+
+        async function handleSendMessage() {
+            const userInput = dom.chatInput.value.trim();
+            if (!userInput) return;
+            addMessage(userInput, 'user');
+            dom.chatInput.value = '';
+            const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
+            addMessage(response, 'ai');
+        }
+        
+        async function endStage() {
+             dom.clueText.textContent = "A clue appears!";
+             dom.xpGainText.textContent = `+50 XP`;
+             dom.stageCompleteModal.classList.remove('hidden');
+        }
+
+        async function handlePlacementSend() {
+            const userInput = dom.placementChatInput.value.trim();
+            if (!userInput) return;
+            addMessage(userInput, 'user', dom.placementChatContainer);
+            dom.placementChatInput.value = '';
+             addMessage('¡Gracias! Analizando tu nivel...', 'ai', dom.placementChatContainer);
+             await saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
+             userSettings.proficiencyLevel = 'A1';
+             alert(`Great, we've placed you at level: A1. Let's get started!`);
+             showView('main-app-view');
+        }
+        
+        function getUserDocRef(userId) {
+            if (!userId) return null;
+            return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
+        }
+
+        async function saveUserSettings(userId, settings) {
+            const userDocRef = getUserDocRef(userId);
+            if (!userDocRef) return;
+            await setDoc(userDocRef, settings, { merge: true });
+        }
+
+        async function setupNewUser(user, name) {
+            await updateProfile(user, { displayName: name });
+            const userDocRef = getUserDocRef(user.uid);
+            const initialSettings = { name, email: user.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null };
+            await setDoc(userDocRef, initialSettings);
+        }
+
+        async function loadUserSettings(userId) {
+            const userDocRef = getUserDocRef(userId);
+            if (!userDocRef) return;
+            const snap = await getDoc(userDocRef);
+            if (snap.exists() && snap.data()) {
+                userSettings = { ...userSettings, ...snap.data() };
+            } else {
+                console.log('No user settings document found, creating one for existing user.');
+                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
+                try {
+                    await setDoc(userDocRef, initialSettings);
+                    userSettings = { ...userSettings, ...initialSettings };
+                } catch (e) { console.error("Failed to create user settings document:", e); }
+            }
+            dom.dialectSelect.value = userSettings.dialect || 'Mexico';
+            dom.formalitySelect.value = userSettings.formality || 'Casual';
+            dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
+        }
+
+        async function handleUserSignIn(user) {
+            if (!user) return;
+            currentUser = user;
+            await loadUserSettings(user.uid);
+            dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
+            if (!userSettings.proficiencyLevel) {
+                showView('placement-view');
+            } else {
+                showView('main-app-view');
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleUserSignIn(user);
+            } else {
+                currentUser = null;
+                showView('auth-container');
+            }
+        });
+
+        // Event Listeners
+        dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
+        dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
+        dom.signupBtn.addEventListener('click', async () => {
+            dom.signupError.textContent = '';
+            const name = dom.signupNameInput.value.trim();
+            const email = dom.signupEmailInput.value.trim();
+            const password = dom.signupPasswordInput.value.trim();
+            if (!name || !email || !password) { dom.signupError.textContent = 'Please fill all fields.'; return; }
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await setupNewUser(cred.user, name);
+            } catch (error) { dom.signupError.textContent = error.message; }
+        });
+        dom.loginBtn.addEventListener('click', async () => {
+            dom.loginError.textContent = '';
+            const email = dom.loginEmailInput.value.trim();
+            const password = dom.loginPasswordInput.value.trim();
+            if (!email || !password) { dom.loginError.textContent = 'Please enter email and password.'; return; }
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) { dom.loginError.textContent = error.message; }
+        });
+        dom.logoutBtn.addEventListener('click', () => signOut(auth));
+        dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
+        dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
+        dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); showView('placement-view'); });
+        dom.questView.addEventListener('click', e => {
+            const card = e.target.closest('.quest-card');
+            if (card) showMapView(card.dataset.questId);
+        });
+        dom.mapContainer.addEventListener('click', e => {
+            const location = e.target.closest('.map-location');
+            if (location) {
+                dom.mapModal.classList.add('hidden');
+                showVignette(location.dataset.questId, location.dataset.stageId);
+            }
+        });
+        dom.startStageBtn.addEventListener('click', startStage);
+        dom.continueQuestBtn.addEventListener('click', () => {
+            dom.stageCompleteModal.classList.add('hidden');
+            dom.chatView.classList.add('hidden');
+            dom.chatView.classList.remove('flex');
+            dom.questView.style.display = 'flex';
+            if (currentStage && currentStage.nextStages && currentStage.nextStages.length > 0) {
+                showMapView(currentStage.questId);
+            } else {
+                alert('Quest Complete! 🎉');
+            }
+        });
+        dom.sendBtn.addEventListener('click', handleSendMessage);
+        dom.chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') handleSendMessage(); });
+        dom.endSessionBtn.addEventListener('click', endStage);
+        dom.submitQuizBtn.addEventListener('click', () => {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            if (!selected) { alert('Please select an answer.'); return; }
+            if (selected.value === 'b') {
+                dom.placementQuizView.classList.add('hidden');
+                dom.placementChatView.classList.remove('hidden');
+                dom.placementChatView.classList.add('flex');
+                addMessage('¡Hola! Mucho gusto. ¿Cómo te llamas?', 'ai', dom.placementChatContainer);
+            } else {
+                alert('Not quite! Let\'s start with the basics.');
+                saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }).then(() => {
+                    userSettings.proficiencyLevel = 'A1';
+                    showView('main-app-view');
+                });
+            }
+        });
+        dom.placementSendBtn.addEventListener('click', handlePlacementSend);
+        dom.placementChatInput.addEventListener('keypress', e => { if (e.key === 'Enter') handlePlacementSend(); });
+        renderQuests();
+    }
+    document.addEventListener('DOMContentLoaded', main);
+  </script>
 </body>
 </html>
+
