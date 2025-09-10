@@ -226,21 +226,6 @@
         doc, setDoc, getDoc, serverTimestamp,
         signInWithCustomToken
     };
-
-    window.firebaseAuthPromise = new Promise(async (resolve) => {
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            }
-        } catch (error) {
-            console.error("Firebase custom token sign-in failed:", error);
-        }
-        
-        const unsub = onAuthStateChanged(auth, (user) => {
-            unsub(); 
-            resolve(user);
-        });
-    });
   </script>
   
   <!-- Main app logic -->
@@ -563,25 +548,15 @@
             }
         }
 
+        // This is the single source of truth for auth state.
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Do not automatically handle sign in here to avoid race conditions on first load.
-                // handleUserSignIn will be called explicitly after login/signup.
+                handleUserSignIn(user);
             } else {
                 currentUser = null;
                 showView('auth-container');
             }
         });
-        
-        // Handle the very first user state on load
-        window.firebaseAuthPromise.then(user => {
-            if (user) {
-                handleUserSignIn(user)
-            } else {
-                showView('auth-container');
-            }
-        });
-
 
         /* ------------------------- Event Listeners -------------------------- */
         // Auth
@@ -596,8 +571,9 @@
             if (!name || !email || !password) { dom.signupError.textContent = 'Please fill all fields.'; return; }
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
+                // setupNewUser must be called before onAuthStateChanged fires for a new user
                 await setupNewUser(cred.user, name);
-                await handleUserSignIn(cred.user);
+                // onAuthStateChanged will now handle the UI flip correctly.
             } catch (error) { dom.signupError.textContent = error.message; }
         });
         
@@ -607,8 +583,9 @@
             const password = dom.loginPasswordInput.value.trim();
             if (!email || !password) { dom.loginError.textContent = 'Please enter email and password.'; return; }
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                await handleUserSignIn(userCredential.user);
+                // We just need to call the sign-in function.
+                // onAuthStateChanged will do the rest.
+                await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 dom.loginError.textContent = error.message;
             }
@@ -676,12 +653,9 @@
         renderQuests();
     }
 
-    // Wait for the Firebase script to be ready, then run the app logic.
-    if (window.firebaseAuthPromise) {
-        window.firebaseAuthPromise.then(user => main(user));
-    } else {
-        document.addEventListener('DOMContentLoaded', () => main(null));
-    }
+    // Since firebase-config.js is now a separate script, we need to ensure it's loaded
+    // before we try to initialize Firebase. A simple DOMContentLoaded listener is sufficient.
+    document.addEventListener('DOMContentLoaded', main);
   </script>
 </body>
 </html>
