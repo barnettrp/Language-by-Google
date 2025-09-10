@@ -225,16 +225,15 @@
 
     // This configuration will be provided by the environment.
     // DO NOT EDIT. It will be replaced with your project's values.
-    const firebaseConfig = typeof __firebase_config !== 'undefined' 
-        ? JSON.parse(__firebase_config)
-        : {
-              apiKey: "YOUR_API_KEY",
-              authDomain: "YOUR_AUTH_DOMAIN",
-              projectId: "YOUR_PROJECT_ID",
-              storageBucket: "YOUR_STORAGE_BUCKET",
-              messagingSenderId: "YOUR_SENDER_ID",
-              appId: "YOUR_APP_ID"
-          };
+    const firebaseConfig = {
+  apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+  authDomain: "spanish-ai-project.firebaseapp.com",
+  projectId: "spanish-ai-project",
+  storageBucket: "spanish-ai-project.firebasestorage.app",
+  messagingSenderId: "788393465858",
+  appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
+};
+
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
