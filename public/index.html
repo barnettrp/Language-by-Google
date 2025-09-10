@@ -204,14 +204,11 @@
   <!-- Firebase init -->
   <script type="module" id="firebase-init-script">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // =================================================================================
-    // == PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE                             ==
-    // == Replace the entire object below with the one from your Firebase project.  ==
-    // =================================================================================
-   const firebaseConfig = {
+    // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
+    const firebaseConfig = {
   apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
   authDomain: "spanish-ai-project.firebaseapp.com",
   projectId: "spanish-ai-project",
@@ -219,10 +216,6 @@
   messagingSenderId: "788393465858",
   appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
 };
-    // =================================================================================
-    // == END OF CONFIGURATION SECTION                                            ==
-    // =================================================================================
-
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -237,9 +230,18 @@
         signOut,
         updateProfile,
         doc, setDoc, getDoc, serverTimestamp,
+        signInWithCustomToken
     };
 
-    window.firebaseAuthPromise = new Promise((resolve) => {
+    window.firebaseAuthPromise = new Promise(async (resolve) => {
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            }
+        } catch (error) {
+            console.error("Firebase custom token sign-in failed:", error);
+        }
+        
         const unsub = onAuthStateChanged(auth, (user) => {
             unsub(); 
             resolve(user);
@@ -263,7 +265,7 @@
         } = window.firebaseFunctions;
 
         /* ----------------------------- State -------------------------------- */
-        const appId = 'convoquest-app'; // Simplified for deployment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         let currentUser = null;
         let userSettings = {};
         let currentQuest = null;
@@ -353,7 +355,7 @@
                     default: resolve({ error: 'Unknown API call' });
                 }
             }, 800)),
-            getResponse: (h, s, st) => AIManager.callAPI({ type: 'chat' }),
+            getResponse: (h, s, st) => AIManager.callAPI({ type: 'chat' }).then(r => r.text),
             validateObjective: (t, p) => AIManager.callAPI({ type: 'validation' }).then(r => r.text),
             getCorrection: (text) => AIManager.callAPI({ type: 'correction' }).then(r => r.text),
             getTranslation: (word, context) => AIManager.callAPI({ type: 'translation', word, context }).then(r => r.text),
@@ -488,7 +490,7 @@
             addMessage(userInput, 'user', dom.placementChatContainer);
             dom.placementChatInput.value = '';
 
-            if (placementMessages.length >= 2) { 
+            if (placementMessages.length >= 2) { // Shortened for testing
                  addMessage('¡Gracias! Analizando tu nivel...', 'ai', dom.placementChatContainer);
                  const level = await AIManager.analyzePlacement('');
                  await saveUserSettings(currentUser.uid, { proficiencyLevel: level });
@@ -504,14 +506,12 @@
         /* -------------------------- User Settings ------------------------- */
         function getUserDocRef(userId) {
             if (!userId) return null;
-            // Using a simplified path for broader compatibility.
-            return doc(db, 'users', userId);
+            return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
         }
 
         async function saveUserSettings(userId, settings) {
             const userDocRef = getUserDocRef(userId);
             if (!userDocRef) return;
-            // Use merge:true to avoid overwriting entire document
             await setDoc(userDocRef, settings, { merge: true });
         }
 
@@ -527,36 +527,33 @@
             const userDocRef = getUserDocRef(userId);
             if (!userDocRef) return;
 
-            try {
-                const snap = await getDoc(userDocRef);
-                if (snap.exists() && snap.data()) {
-                    userSettings = { ...userSettings, ...snap.data() };
-                } else {
-                    console.log('No user settings document found, creating one for existing user.');
-                    const initialSettings = {
-                        name: currentUser.displayName || 'User',
-                        email: currentUser.email,
-                        createdAt: serverTimestamp(),
-                        xp: 0,
-                        completedStages: {},
-                        proficiencyLevel: null,
-                        dialect: 'Mexico',
-                        formality: 'Casual',
-                        vignetteLanguage: 'English'
-                    };
+            const snap = await getDoc(userDocRef);
+            if (snap.exists() && snap.data()) {
+                userSettings = { ...userSettings, ...snap.data() };
+            } else {
+                console.log('No user settings document found, creating one for existing user.');
+                const initialSettings = {
+                    name: currentUser.displayName || 'User',
+                    email: currentUser.email,
+                    createdAt: serverTimestamp(),
+                    xp: 0,
+                    completedStages: {},
+                    proficiencyLevel: null,
+                    dialect: 'Mexico',
+                    formality: 'Casual',
+                    vignetteLanguage: 'English'
+                };
+                try {
                     await setDoc(userDocRef, initialSettings);
                     userSettings = { ...userSettings, ...initialSettings };
+                } catch (e) {
+                    console.error("Failed to create user settings document:", e);
                 }
-                
-                dom.dialectSelect.value = userSettings.dialect || 'Mexico';
-                dom.formalitySelect.value = userSettings.formality || 'Casual';
-                dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
-
-            } catch(e) {
-                console.error("Error loading or creating user settings:", e);
-                // Handle permission errors gracefully if they occur here
-                dom.loginError.textContent = "Could not load user profile. Check Firestore rules.";
             }
+            
+            dom.dialectSelect.value = userSettings.dialect || 'Mexico';
+            dom.formalitySelect.value = userSettings.formality || 'Casual';
+            dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
         }
 
         /* -------------------------- Auth Handling --------------------------- */
@@ -606,7 +603,7 @@
             if (!email || !password) { dom.loginError.textContent = 'Please enter email and password.'; return; }
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle the successful login and UI flip.
+                // onAuthStateChanged will handle the UI flip.
             } catch (error) {
                 dom.loginError.textContent = error.message;
             }
