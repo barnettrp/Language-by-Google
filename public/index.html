@@ -220,11 +220,10 @@
   <!-- Firebase init -->
   <script type="module" id="firebase-init-script">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // This configuration will be provided by the environment.
-    // DO NOT EDIT. It will be replaced with your project's values.
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
         ? JSON.parse(__firebase_config)
         : {
@@ -240,7 +239,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Expose Firebase instances and functions to the global scope for app.js
+    // Expose Firebase instances and functions to the global scope
     window.firebaseInstances = { app, auth, db };
     window.firebaseFunctions = {
         onAuthStateChanged,
@@ -249,27 +248,23 @@
         signOut,
         updateProfile,
         doc, setDoc, getDoc, serverTimestamp,
-        signInWithCustomToken, 
-        signInAnonymously
+        signInWithCustomToken
     };
 
-    // Auto-sign-in logic
+    // This promise simply waits for the initial auth state to be known.
     window.firebaseAuthPromise = new Promise(async (resolve) => {
-        const unsub = onAuthStateChanged(auth, (user) => {
-            unsub(); // We only need the initial state
-            resolve(user);
-        });
-
-        // Use the custom token if available, otherwise sign in anonymously
         try {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
-            } else if (!auth.currentUser) {
-                await signInAnonymously(auth);
             }
         } catch (error) {
-            console.error("Firebase auto sign-in failed:", error);
+            console.error("Firebase custom token sign-in failed:", error);
         }
+        
+        const unsub = onAuthStateChanged(auth, (user) => {
+            unsub(); // We only want the very first state
+            resolve(user);
+        });
     });
   </script>
   
@@ -285,11 +280,10 @@
       set('JS: starting');
     })();
 
-    // This function will run once the Firebase script has loaded.
     function main() {
         if (!window.firebaseInstances || !window.firebaseFunctions) {
             console.error('[ConvoQuest] Firebase modules did not load.');
-            window.__setRibbon && window.__setRibbon('JS: Firebase failed to load');
+            window.__setRibbon('JS: Firebase failed to load');
             return;
         }
 
@@ -610,10 +604,9 @@
         }
 
         onAuthStateChanged(auth, (user) => {
-            window.__setRibbon('Auth state changed...');
-            if (user && !currentUser) { // Only run if it's a new login state
+            if (user) {
                 handleUserSignIn(user);
-            } else if (!user) {
+            } else {
                 currentUser = null;
                 showView('auth-container');
             }
@@ -645,9 +638,8 @@
                 console.log("[DEBUG] 2. Calling Firebase to sign in...");
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 console.log("[DEBUG] 3. Firebase login successful! User:", userCredential.user.uid);
-                if (userCredential.user) {
-                    await handleUserSignIn(userCredential.user);
-                }
+                // The onAuthStateChanged listener will automatically call handleUserSignIn.
+                // No need to call it directly here.
             } catch (error) {
                 console.error("[DEBUG] Firebase login error:", error);
                 dom.loginError.textContent = error.message;
@@ -718,10 +710,9 @@
 
     // Wait for the Firebase script to be ready, then run the app logic.
     if (window.firebaseAuthPromise) {
-        window.firebaseAuthPromise.then(main);
+        window.firebaseAuthPromise.then(user => main(user));
     } else {
-        // Fallback if the module script loads unexpectedly fast
-        document.addEventListener('DOMContentLoaded', main);
+        document.addEventListener('DOMContentLoaded', () => main(null));
     }
   </script>
 </body>
