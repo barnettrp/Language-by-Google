@@ -418,10 +418,15 @@
 
         /* --------------------------- View Management ------------------------ */
         function showView(viewId) {
+            console.log(`[DEBUG] 6. Attempting to show view: ${viewId}`);
             document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
             const view = document.getElementById(viewId);
-            if (view) view.classList.add('active');
-            else console.error("View not found:", viewId);
+            if (view) {
+                view.classList.add('active');
+                console.log(`[DEBUG] 7. Successfully showed view: ${viewId}`);
+            } else {
+                console.error(`[DEBUG] ERROR: View not found: ${viewId}`);
+            }
         }
 
         function renderQuests() {
@@ -592,8 +597,10 @@
         /* -------------------------- Auth Handling --------------------------- */
         async function handleUserSignIn(user) {
             if (!user) return;
+            console.log("[DEBUG] 4. Inside handleUserSignIn for user:", user.uid);
             currentUser = user;
             await loadUserSettings(user.uid);
+            console.log("[DEBUG] 5. User settings loaded:", userSettings);
             dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
             if (!userSettings.proficiencyLevel) {
                 showView('placement-view');
@@ -604,11 +611,9 @@
 
         onAuthStateChanged(auth, (user) => {
             window.__setRibbon('Auth state changed...');
-            if (user) {
-                // This will handle the initial load if the user is already signed in
-                // but we won't rely on it for the click action.
+            if (user && !currentUser) { // Only run if it's a new login state
                 handleUserSignIn(user);
-            } else {
+            } else if (!user) {
                 currentUser = null;
                 showView('auth-container');
             }
@@ -627,22 +632,26 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await setupNewUser(cred.user, name);
-                // After successful sign-up, directly handle the sign-in process
                 await handleUserSignIn(cred.user);
             } catch (error) { dom.signupError.textContent = error.message; }
         });
         dom.loginBtn.addEventListener('click', async () => {
+            console.log("[DEBUG] 1. Login button clicked.");
             dom.loginError.textContent = '';
             const email = dom.loginEmailInput.value.trim();
             const password = dom.loginPasswordInput.value.trim();
             if (!email || !password) { dom.loginError.textContent = 'Please enter email and password.'; return; }
             try {
+                console.log("[DEBUG] 2. Calling Firebase to sign in...");
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // **FIX:** Explicitly call the sign-in handler after a successful login.
+                console.log("[DEBUG] 3. Firebase login successful! User:", userCredential.user.uid);
                 if (userCredential.user) {
                     await handleUserSignIn(userCredential.user);
                 }
-            } catch (error) { dom.loginError.textContent = error.message; }
+            } catch (error) {
+                console.error("[DEBUG] Firebase login error:", error);
+                dom.loginError.textContent = error.message;
+            }
         });
         dom.logoutBtn.addEventListener('click', () => signOut(auth));
 
