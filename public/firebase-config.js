@@ -1,12 +1,12 @@
 // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT ONCE AND FOR ALL ---
 // This file will hold your secret keys. The main index.html file will load this automatically.
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "PASTE_YOUR_AUTH_DOMAIN_HERE",
-  projectId: "PASTE_YOUR_PROJECT_ID_HERE",
-  storageBucket: "PASTE_YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",
-  appId: "PASTE_YOUR_APP_ID_HERE"
+  apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+  authDomain: "spanish-ai-project.firebaseapp.com",
+  projectId: "spanish-ai-project",
+  storageBucket: "spanish-ai-project.firebasestorage.app",
+  messagingSenderId: "788393465858",
+  appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
 };
 
 // Make the config available to other scripts
