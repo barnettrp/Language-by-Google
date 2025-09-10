@@ -225,15 +225,16 @@
 
     // This configuration will be provided by the environment.
     // DO NOT EDIT. It will be replaced with your project's values.
-    const firebaseConfig = {
-  apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
-  authDomain: "spanish-ai-project.firebaseapp.com",
-  projectId: "spanish-ai-project",
-  storageBucket: "spanish-ai-project.firebasestorage.app",
-  messagingSenderId: "788393465858",
-  appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
-};
-
+    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+        ? JSON.parse(__firebase_config)
+        : {
+              apiKey: "YOUR_API_KEY",
+              authDomain: "YOUR_AUTH_DOMAIN",
+              projectId: "YOUR_PROJECT_ID",
+              storageBucket: "YOUR_STORAGE_BUCKET",
+              messagingSenderId: "YOUR_SENDER_ID",
+              appId: "YOUR_APP_ID"
+          };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -538,14 +539,12 @@
         /* -------------------------- User Settings ------------------------- */
         function getUserDocRef(userId) {
             if (!userId) return null;
-            // Path for user-specific settings document, following Canvas environment rules.
             return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
         }
 
         async function saveUserSettings(userId, settings) {
             const userDocRef = getUserDocRef(userId);
             if (!userDocRef) return;
-            // Using setDoc with merge is safer, as it creates the doc if it's missing.
             await setDoc(userDocRef, settings, { merge: true });
         }
 
@@ -565,7 +564,6 @@
             if (snap.exists() && snap.data()) {
                 userSettings = { ...userSettings, ...snap.data() };
             } else {
-                // If no settings doc exists, create a default one.
                 console.log('No user settings document found, creating one.');
                 const initialSettings = {
                     name: currentUser.displayName || 'User',
@@ -586,24 +584,30 @@
                 }
             }
             
-            // Update UI with loaded settings
             dom.dialectSelect.value = userSettings.dialect || 'Mexico';
             dom.formalitySelect.value = userSettings.formality || 'Casual';
             dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
         }
 
         /* -------------------------- Auth Handling --------------------------- */
-        onAuthStateChanged(auth, async (user) => {
+        async function handleUserSignIn(user) {
+            if (!user) return;
+            currentUser = user;
+            await loadUserSettings(user.uid);
+            dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
+            if (!userSettings.proficiencyLevel) {
+                showView('placement-view');
+            } else {
+                showView('main-app-view');
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
             window.__setRibbon('Auth state changed...');
             if (user) {
-                currentUser = user;
-                await loadUserSettings(user.uid);
-                dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-                if (!userSettings.proficiencyLevel) {
-                    showView('placement-view');
-                } else {
-                    showView('main-app-view');
-                }
+                // This will handle the initial load if the user is already signed in
+                // but we won't rely on it for the click action.
+                handleUserSignIn(user);
             } else {
                 currentUser = null;
                 showView('auth-container');
@@ -623,6 +627,8 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await setupNewUser(cred.user, name);
+                // After successful sign-up, directly handle the sign-in process
+                await handleUserSignIn(cred.user);
             } catch (error) { dom.signupError.textContent = error.message; }
         });
         dom.loginBtn.addEventListener('click', async () => {
@@ -631,7 +637,11 @@
             const password = dom.loginPasswordInput.value.trim();
             if (!email || !password) { dom.loginError.textContent = 'Please enter email and password.'; return; }
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // **FIX:** Explicitly call the sign-in handler after a successful login.
+                if (userCredential.user) {
+                    await handleUserSignIn(userCredential.user);
+                }
             } catch (error) { dom.loginError.textContent = error.message; }
         });
         dom.logoutBtn.addEventListener('click', () => signOut(auth));
