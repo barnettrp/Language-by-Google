@@ -539,6 +539,8 @@
         async function handleUserSignIn(user) {
             if (!user) return;
             currentUser = user;
+            // Add a strategic delay to solve the race condition
+            await new Promise(resolve => setTimeout(resolve, 250));
             await loadUserSettings(user.uid);
             dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
             if (!userSettings.proficiencyLevel) {
