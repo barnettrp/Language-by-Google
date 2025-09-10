@@ -1,14 +1,14 @@
-// public/firebase-init.js
+// public/firebase-init.js  (module)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged, GoogleAuthProvider,
-  signInWithPopup, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ⬇️ Paste your real config here (from Firebase Console → Project settings → Your apps → Config)
+// TODO: replace with YOUR project's values (from Firebase console)
 const firebaseConfig = {
   apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
   authDomain: "spanish-ai-project.firebaseapp.com",
@@ -19,28 +19,19 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
 
-window.firebaseInstances = { app, auth, db, storage };
-window.firebaseAuthHelpers = {
-  GoogleAuthProvider,
-  signInWithPopup,
+// EXPOSE to window for app.js (non-module) to consume.
+window.firebaseInstances = {
+  app,
+  auth: getAuth(app),
+  db: getFirestore(app)
+};
+
+window.firebaseFunctions = {
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  updateProfile,
+  doc, setDoc, getDoc, updateDoc, serverTimestamp, increment
 };
-
-function setSignedInUI(user) {
-  document.body.classList.remove("signed-out");
-  document.body.classList.add("signed-in");
-  window.currentUser = user;
-}
-function setSignedOutUI() {
-  document.body.classList.remove("signed-in");
-  document.body.classList.add("signed-out");
-  window.currentUser = null;
-}
-
-onAuthStateChanged(auth, (user) => (user ? setSignedInUI(user) : setSignedOutUI()));
