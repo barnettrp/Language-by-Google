@@ -1,4 +1,4 @@
-<!-- CONVOQUEST APP V7.7 - COMPLETE FILE START -->
+<!-- CONVOQUEST APP V7.8 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,7 +118,7 @@
             <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
         </header>
-        <div class="p-4 space-y-3 overflow-y-auto"></div>
+        <div class="p-4 space-y-3 overflow-y-auto flex-1"></div>
       </div>
 
       <div id="chat-view" class="hidden flex-col h-full">
@@ -597,28 +597,6 @@
             currentLevelQuestionIndex++;
             renderPlacementQuestion();
         });
-        if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
-        if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
-        dom.chatContainer.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('clickable-word')) {
-                const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
-                if (!word) return;
-                const translation = await AIManager.getTranslation(word);
-                const popover = dom.translationPopover;
-                popover.textContent = translation;
-                const rect = e.target.getBoundingClientRect();
-                const containerRect = dom.appContainer.getBoundingClientRect();
-                popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
-                popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
-                popover.classList.remove('hidden');
-            }
-        });
-        document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
+        if(dom.placementSendBtn) dom.placementSendBtn.addEventListener
 
-        renderQuests();
-    }
-    document.addEventListener('DOMContentLoaded', main);
-  </script>
-</body>
-</html>
-
+8
