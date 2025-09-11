@@ -1,4 +1,4 @@
-<!-- CONVOQUEST APP V4 - COMPLETE FILE START -->
+<!-- CONVOQUEST APP V5 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -302,7 +302,9 @@
 
         function renderQuests() {
             const list = dom.questView.querySelector('.space-y-3');
-            list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+            if (list) {
+                list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+            }
         }
         
         function showMapView(questId) {
@@ -405,8 +407,19 @@
             }
         }
         
+        function getUserDocRef(userId) {
+            if (!userId) return null;
+            return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
+        }
+
+        async function saveUserSettings(userId, settings) {
+            const userDocRef = getUserDocRef(userId);
+            if (!userDocRef) return;
+            await setDoc(userDocRef, settings, { merge: true });
+        }
+
         async function loadUserSettings(userId) {
-            const userDocRef = doc(db, 'artifacts', appId, 'users', userId);
+            const userDocRef = getUserDocRef(userId);
             const snap = await getDoc(userDocRef);
             if (snap.exists() && snap.data()) {
                 userSettings = { ...userSettings, ...snap.data() };
@@ -426,6 +439,7 @@
         async function handleUserSignIn(user) {
             if (!user) return;
             currentUser = user;
+            await new Promise(resolve => setTimeout(resolve, 250)); // Strategic delay
             await loadUserSettings(user.uid);
             dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
             if (!userSettings.proficiencyLevel) {
@@ -457,7 +471,8 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(cred.user, { displayName: name });
-                await loadUserSettings(cred.user.uid); // Create settings doc immediately
+                const userDocRef = getUserDocRef(cred.user.uid);
+                await setDoc(userDocRef, { name: name, email: email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' });
             } catch (error) { dom.signupError.textContent = error.message; }
         });
         
@@ -473,6 +488,7 @@
         dom.continueQuestBtn.addEventListener('click', () => {
             dom.stageCompleteModal.classList.add('hidden');
             dom.chatView.classList.add('hidden');
+            dom.chatView.classList.remove('flex');
             dom.questView.style.display = 'flex';
             if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
             else { alert('Quest Complete! 🎉'); }
@@ -520,5 +536,5 @@
   </script>
 </body>
 </html>
-<!-- CONVOQUEST APP V4 - COMPLETE FILE END -->
+<!-- CONVOQUEST APP V5 - COMPLETE FILE END -->
 
