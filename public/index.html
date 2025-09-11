@@ -1,3 +1,4 @@
+<!-- CONVOQUEST APP V8.0 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
       background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop');
       background-size: cover;
       background-position: center;
-      overflow: auto;
+      overflow: auto; 
       min-height: 100vh;
     }
     .contained-area {
@@ -54,19 +55,18 @@
 <body class="flex items-start justify-center p-2 md:p-4">
 
   <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
+    <!-- AUTH VIEW -->
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
       <div id="login-view">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
         <div class="space-y-4">
           <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-         
           <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
           <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Log In</button>
-          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account?
-            Sign Up</button>
+          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
         </div>
       </div>
       <div id="signup-view" class="hidden">
@@ -74,26 +74,24 @@
         <div class="space-y-4">
           <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input 
-            type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
           <button id="signup-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Create Account</button>
-          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account?
-            Log In</button>
+          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Log In</button>
         </div>
       </div>
     </div>
 
+    <!-- PLACEMENT VIEW -->
     <div id="placement-view" class="main-view flex-col h-full">
       <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
         <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
         <p id="placement-progress" class="text-gray-600 mt-2 mb-6">Loading question...</p>
         <div id="quiz-question-container">
           <p id="quiz-question-text" class="text-left font-semibold mb-2"></p>
-     
-           <div id="quiz-options" class="space-y-2 text-left"></div>
+          <div id="quiz-options" class="space-y-2 text-left"></div>
         </div>
         <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
       </div>
@@ -101,8 +99,7 @@
         <header class="p-4 border-b"><h1 class="text-xl font-bold text-gray-800">A Quick Chat</h1></header>
         <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
         <div class="p-2 border-t bg-white/50">
-       
-           <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-2">
             <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
             <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
           </div>
@@ -110,6 +107,7 @@
       </div>
     </div>
 
+    <!-- MAIN APP VIEW -->
     <div id="main-app-view" class="main-view flex-col flex-1">
       <div id="quest-view" class="flex flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
@@ -118,7 +116,6 @@
             <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
             <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
-     
         </header>
         <div class="p-4 space-y-3 overflow-y-auto"></div>
       </div>
@@ -134,18 +131,17 @@
             <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
             <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
-       
-           </div>
+          </div>
         </div>
       </div>
     </div>
     
+    <!-- MODALS & POPOVERS -->
     <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
             <div class="space-y-4">
-     
-                         <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
+                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
                 <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
                 <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
                 <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
@@ -156,8 +152,7 @@
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
             <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
             <p id="vignette-text" class="text-gray-600 mb-6"></p>
-           
-          <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
+            <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
         </div>
     </div>
     <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
@@ -165,15 +160,13 @@
             <h2 id="map-title" class="text-2xl font-bold mb-1"></h2>
             <p id="map-objective" class="text-gray-600 mb-4"></p>
             <div id="map-container" class="relative rounded-lg overflow-hidden">
-    
-                          <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
+                <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
             </div>
         </div>
     </div>
     <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
-            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete!
-            🎉</h2>
+            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete! 🎉</h2>
             <p class="text-gray-700">New clue unlocked:</p>
             <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
             <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
@@ -183,28 +176,32 @@
     <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
   </div>
 
- 
-   <script type="module" id="app-script">
+  <!-- Consolidated App Script -->
+  <script type="module" id="app-script">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
     // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
     const firebaseConfig = {
-  apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
-  authDomain: "spanish-ai-project.firebaseapp.com",
-  projectId: "spanish-ai-project",
-  storageBucket: "spanish-ai-project.firebasestorage.app",
-  messagingSenderId: "788393465858",
-  appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
-};
+      apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+      authDomain: "spanish-ai-project.firebaseapp.com",
+      projectId: "spanish-ai-project",
+      storageBucket: "spanish-ai-project.appspot.com",
+      messagingSenderId: "788393465858",
+      appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
+    };
+
     // --- PASTE YOUR API KEYS HERE ---
-    const GEMINI_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
-    const TRANSLATE_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
+    const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
+    const TRANSLATE_API_KEY = "PASTE_YOUR_TRANSLATE_API_KEY_HERE";
+
     // --- APP INITIALIZATION (GUARANTEED TO RUN FIRST) ---
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
     // --- MAIN APP LOGIC (GUARANTEED TO RUN AFTER INIT) ---
     
     let currentUser = null;
@@ -213,10 +210,12 @@
     let currentStage = null;
     let messages = [];
     let placementMessages = [];
+    
     let currentQuizLevel = 'A1';
     let currentLevelQuestionIndex = 0;
     let incorrectAnswersInLevel = 0;
     let preliminaryLevel = 'A1';
+
     const dom = {
         authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
         placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
@@ -226,8 +225,7 @@
         signupNameInput: document.getElementById('signup-name-input'), signupEmailInput: document.getElementById('signup-email-input'),
         signupPasswordInput: document.getElementById('signup-password-input'), signupBtn: document.getElementById('signup-btn'),
         showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
-        logoutBtn: 
-        document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
+        logoutBtn: document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
         questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
         chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
         sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
@@ -236,8 +234,7 @@
         formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
         endSessionBtn: document.getElementById('end-session-btn'), translationPopover: document.getElementById('translation-popover'),
         vignetteModal: document.getElementById('vignette-modal'), vignetteTitle: document.getElementById('vignette-title'),
-        vignetteText: document.getElementById('vignette-text'), 
-        startStageBtn: document.getElementById('start-stage-btn'),
+        vignetteText: document.getElementById('vignette-text'), startStageBtn: document.getElementById('start-stage-btn'),
         mapModal: document.getElementById('map-modal'), mapTitle: document.getElementById('map-title'),
         mapObjective: document.getElementById('map-objective'), mapContainer: document.getElementById('map-container'),
         mapImage: document.getElementById('map-image'), stageCompleteModal: document.getElementById('stage-complete-modal'),
@@ -246,11 +243,11 @@
         placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
         placementChatView: document.getElementById('placement-chat-view'), placementChatContainer: document.getElementById('placement-chat-container'),
         placementChatInput: document.getElementById('placement-chat-input'), placementSendBtn: document.getElementById('placement-send-btn'),
-        retakePlacementBtn: document.getElementById('retake-placement-btn'), appContainer: 
-        document.getElementById('app-container'),
+        retakePlacementBtn: document.getElementById('retake-placement-btn'), appContainer: document.getElementById('app-container'),
         quizQuestionText: document.getElementById('quiz-question-text'), quizOptions: document.getElementById('quiz-options'),
         placementProgress: document.getElementById('placement-progress'),
     };
+
     const AIManager = {
         async callGemini(systemPrompt, userPrompt) {
             if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
@@ -259,8 +256,7 @@
                 const response = await fetch(url, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ role: 
-                        "user", parts: [{ text: userPrompt }] }],
+                        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
                         systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
                     })
                 });
@@ -283,20 +279,13 @@
             } catch (error) { return "Translation unavailable."; }
         },
         async getResponse(history, stage, settings) {
-            const systemPrompt = `You are a helpful language tutor in a role-playing game.
-            The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}".
-            Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}.
-            Keep your response concise (1-2 sentences) and in character.`;
+            const systemPrompt = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.`;
             const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
             const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
             return this.callGemini(systemPrompt, userPrompt);
         },
         async analyzePlacement(transcript, preliminaryLevel) {
-            const systemPrompt = `You are an expert language proficiency evaluator.
-            The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}.
-            Your job is to confirm or adjust this level based on a short, free-form conversation.
-            Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2).
-            Respond with only the final level (e.g., "B1").`;
+            const systemPrompt = `You are an expert language proficiency evaluator. The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. Your job is to confirm or adjust this level based on a short, free-form conversation. Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). Respond with only the final level (e.g., "B1").`;
             const userPrompt = `Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?`;
             return this.callGemini(systemPrompt, userPrompt);
         }
@@ -308,65 +297,34 @@
             { question: "How do you say 'thank you'?", options: ["Por favor", "Lo siento", "Gracias"], answer: "Gracias" },
         ],
         'A2': [
-          
             { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré"], answer: "Hablé" },
             { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches"], answer: "Los coches rojos" },
         ],
         'B1': [
-            { question: "Choose the correct subjunctive form: 'I hope you ___ well.'
-            (estar)", options: ["estás", "estés", "estar"], answer: "estés" },
+            { question: "Choose the correct subjunctive form: 'I hope you ___ well.' (estar)", options: ["estás", "estés", "estar"], answer: "estés" },
             { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something"], answer: "To have just done something" },
         ]
     };
+
     const quests = {
-      "missing-guitar": {
-        title: "The Missing Guitar",
-        objective: "A famous musician's guitar is missing. Find it before his show!",
-        mapImage: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop",
-        stages: {
-          "1": {
-            characterName: "Mateo, the Concierge",
-            vignette_en: "You're in a hotel lobby. The concierge, Mateo, looks worried. Your goal: Find out who the musician is and where he was last seen.",
-            vignette_es: "Estás en el vestíbulo de un hotel. El conserje, Mateo, parece preocupado. Tu objetivo: Averiguar quién es el músico y dónde fue visto por última vez.",
-            systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
-            validationPrompt: "Did the user find out the musician's name is 'Carlos' and he was last seen at the 'plaza'?",
-            reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
-            nextStages: ["2a", "2b"],
-            initialMessage: "Good morning. How can I help you today?"
-          },
-          "2a": {
-            characterName: "Elena, the Vendor",
-            vignette_en: "You arrive at the bustling plaza. A street vendor, Elena, seems to know everyone. Your goal: Ask her if she saw Carlos.",
-            vignette_es: "Llegas a la bulliciosa plaza. Una vendedora ambulante, Elena, parece conocer a todo el mundo. Tu objetivo: Pregúntale si vio a Carlos.",
-            systemPrompt: "You are Elena, a chatty and knowledgeable street vendor in a plaza.",
-            validationPrompt: "Did the user learn that Carlos was talking to another musician named Javier?",
-            reward: { clue: "Carlos was seen with a rival musician, Javier.", xp: 75 },
-            nextStages: ["3"],
-            initialMessage: "¡Hola! ¿Buscas algo bonito?"
-          },
-          "2b": {
-            characterName: "A Lost Tourist",
-            vignette_en: "You see a tourist taking photos. They look lost. Your goal: Ask them if they saw anything unusual.",
-            vignette_es: "Ves a un turista tomando fotos. Parece perdido. Tu objetivo: Pregúntale si vio algo inusual.",
-            systemPrompt: "You are a lost tourist who speaks very little Spanish and saw nothing useful.",
-            validationPrompt: "Did the user learn that you saw nothing useful?",
-            reward: { clue: "The tourist saw nothing. This is a dead end.", xp: 10 },
-            nextStages: ["2a"],
-            initialMessage: "Uh... hello? Do you speak English?"
-          },
-          "3": {
-            characterName: "Javier, the Rival",
-            vignette_en: "You find Javier in an alley. He looks nervous. Your goal: Convince him to return the guitar.",
-            vignette_es: "Encuentras a Javier en un callejón. Parece nervioso. Tu objetivo: Convencerlo de que devuelva la guitarra.",
-            systemPrompt: "You are Javier, a jealous rival musician. You 'borrowed' the guitar but won't admit it easily.",
-            validationPrompt: "Did the user successfully convince you to return the guitar?",
-            reward: { clue: "You convinced Javier! The guitar is safe.", xp: 100 },
-            nextStages: [],
-            initialMessage: "¿Qué quieres? Estoy ocupado."
-          }
-        }
+  "hola-mercado": {
+    title: "El Mercado de la Mañana",
+    objective: "Find fresh fruit and ask prices politely.",
+    mapImage: "https://placehold.co/600x400/90caf9/0d47a1?text=Mercado",
+    stages: {
+      "1": {
+        id: "1",
+        characterName: "Vendedor del Mercado",
+        systemPrompt: "You are a friendly market vendor in CDMX. Keep responses to 1–2 sentences in clear A1/A2 Spanish with Mexican flavor.",
+        vignette_en: "You approach a fruit stand. The vendor smiles and asks how he can help.",
+        initialMessage: "¡Buenos días! ¿Qué buscas hoy?",
+        reward: { xp: 25, clue: "Aprendiste a pedir precios y cantidades." },
+        nextStages: []
       }
-    };
+    }
+  }
+};
+
     // Main view switcher
     function showView(viewId) {
         document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
@@ -385,10 +343,16 @@
     }
 
     function renderQuests() {
-        if (dom.questView) {
-            const list = dom.questView.querySelector('.space-y-3');
-            if(list) list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+        if (!dom.questView) return;
+        const list = dom.questView.querySelector('.space-y-3');
+        if (!list) return;
+        const ids = Object.keys(quests || {});
+        if (ids.length === 0) {
+            list.innerHTML = `<div class="text-sm text-gray-500">No quests yet. Add some in code.</div>`;
+            return;
         }
+        list.innerHTML = ids.map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+    }
     }
     
     function showMapView(questId) {
@@ -397,16 +361,14 @@
         dom.mapObjective.textContent = currentQuest.objective;
         dom.mapImage.src = currentQuest.mapImage;
         dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
-        const nextStageIds = currentStage ?
-        (currentStage.nextStages || []) : ['1'];
+        const nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
         nextStageIds.forEach((stageId, index) => {
             const location = document.createElement('div');
             location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
             location.style.left = `${20 + index * 40}%`;
             location.style.top = `${40 + (index % 2 * 15)}%`;
             location.innerHTML = '<span>📍</span>';
-      
-                  location.dataset.questId = questId;
+            location.dataset.questId = questId;
             location.dataset.stageId = stageId;
             dom.mapContainer.appendChild(location);
         });
@@ -414,8 +376,12 @@
     }
     
     function showVignette(questId, stageId) {
-        currentQuest = { ...quests[questId], id: questId };
-        currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
+        const q = quests[questId];
+        if (!q) { console.warn('Quest not found:', questId); return; }
+        const s = q.stages?.[stageId];
+        if (!s) { console.warn('Stage not found:', questId, stageId); return; }
+        currentQuest = { ...q, id: questId };
+        currentStage = { ...s, id: stageId, questId };
         dom.vignetteTitle.textContent = currentStage.characterName;
         dom.vignetteText.textContent = currentStage.vignette_en; 
         dom.vignetteModal.classList.remove('hidden');
@@ -432,20 +398,19 @@
     }
     
     function addMessage(text, role, container = dom.chatContainer) {
-        const history = (container === dom.placementChatContainer) ?
-        placementMessages : messages;
+        const history = (container === dom.placementChatContainer) ? placementMessages : messages;
         history.push({ role: role, parts: [{ text: text }] });
         const isUser = role === 'user';
         const wrapper = document.createElement('div');
         wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
         const bubble = document.createElement('div');
         bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+        
         if (!isUser) {
             text.split(/(\s+)/).forEach(part => {
                 if (part.trim().length > 0) {
                     const wordSpan = document.createElement('span');
                     wordSpan.className = 'clickable-word';
-                   
                     wordSpan.textContent = part;
                     bubble.appendChild(wordSpan);
                 } else {
@@ -462,6 +427,10 @@
         if (!userInput) return;
         addMessage(userInput, 'user');
         dom.chatInput.value = '';
+        if (!GEMINI_API_KEY || GEMINI_API_KEY.includes('PASTE')) {
+            addMessage('(Tutor) ¡Bien! Cuéntame, ¿qué fruta te gusta comprar en el mercado?', 'ai');
+            return;
+        }
         const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
         addMessage(response, 'ai');
     }
@@ -514,8 +483,7 @@
                 await setDoc(userDocRef, initialSettings);
                 userSettings = { ...userSettings, ...initialSettings };
             }
-            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect ||
-            'Mexico';
+            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
             if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
             if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
         } catch (error) {
@@ -536,12 +504,11 @@
         const levelQuestions = placementQuizData[currentQuizLevel];
         if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
             if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { 
-                preliminaryLevel = currentQuizLevel === 'A1' ?
-                'A2' : 'B1';
+                preliminaryLevel = currentQuizLevel === 'A1' ? 'A2' : 'B1';
                 currentQuizLevel = preliminaryLevel;
                 currentLevelQuestionIndex = 0;
                 incorrectAnswersInLevel = 0;
-                renderPlacementQuestion();
+                renderPlacementQuestion(); 
             } else {
                 finishQuiz();
             }
@@ -579,7 +546,6 @@
             if (!userSettings.proficiencyLevel) {
                 startPlacementTest();
             } else {
-                renderQuests();
                 showView('main-app-view');
                 showAppView('quests');
             }
@@ -596,10 +562,10 @@
             }
         } else {
             currentUser = null;
-         
-               showView('auth-container');
+            showView('auth-container');
         }
     });
+    
     dom.loginBtn.addEventListener('click', async () => {
         dom.loginError.textContent = '';
         const email = dom.loginEmailInput.value.trim();
@@ -608,8 +574,7 @@
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             await handleUserSignIn(userCredential.user);
         } 
-        catch (error) { dom.loginError.textContent = error.message; 
-        }
+        catch (error) { dom.loginError.textContent = error.message; }
     });
 
     dom.signupBtn.addEventListener('click', async () => {
@@ -619,12 +584,12 @@
         const password = dom.signupPasswordInput.value.trim();
         if (!name || !email || !password) { dom.signupError.textContent = 'All fields are required.'; return; }
         try {
-            const cred = await createUserWithEmailAndPassword(auth, 
-            email, password);
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(cred.user, { displayName: name });
             await handleUserSignIn(cred.user);
         } catch (error) { dom.signupError.textContent = error.message; }
     });
+    
     dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
     dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
     if(dom.logoutBtn) dom.logoutBtn.addEventListener('click', () => signOut(auth));
@@ -659,10 +624,23 @@
         if (e.target.classList.contains('clickable-word')) {
             const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
             if (!word) return;
+            let translation = '(translation unavailable)';
+            if (TRANSLATE_API_KEY && !TRANSLATE_API_KEY.includes('PASTE')) {
+                translation = await AIManager.getTranslation(word);
+            }
+            const popover = dom.translationPopover;
+            popover.textContent = translation;
+            const rect = e.target.getBoundingClientRect();
+            const containerRect = dom.appContainer.getBoundingClientRect();
+            popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
+            popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
+            popover.classList.remove('hidden');
+        }
+    });
+            if (!word) return;
             const translation = await AIManager.getTranslation(word);
             const popover = dom.translationPopover;
             popover.textContent = translation;
-           
             const rect = e.target.getBoundingClientRect();
             const containerRect = dom.appContainer.getBoundingClientRect();
             popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
@@ -671,6 +649,8 @@
         }
     });
     document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
+
+    renderQuests();
 
   </script>
 </body>
