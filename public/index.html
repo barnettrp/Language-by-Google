@@ -1,3 +1,4 @@
+<!-- CONVOQUEST APP V3 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,33 +93,34 @@
     <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
   </div>
 
-  <!-- Firebase and App Logic -->
-  <script type="module">
+  <!-- Load Config Files -->
+  <script src="./firebase-config.js"></script>
+  <script src="./api-keys.js"></script>
+
+  <!-- Firebase init -->
+  <script type="module" id="firebase-init-script">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
-    const firebaseConfig = {
-      apiKey: "PASTE_YOUR_API_KEY_HERE",
-      authDomain: "PASTE_YOUR_AUTH_DOMAIN_HERE",
-      projectId: "PASTE_YOUR_PROJECT_ID_HERE",
-      storageBucket: "PASTE_YOUR_STORAGE_BUCKET_HERE",
-      messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",
-      appId: "PASTE_YOUR_APP_ID_HERE"
-    };
-
-    // --- PASTE YOUR API KEYS HERE ---
-    const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
-    const TRANSLATE_API_KEY = "PASTE_YOUR_TRANSLATE_API_KEY_HERE";
-
-    // --- APP INITIALIZATION ---
-    const app = initializeApp(firebaseConfig);
+    const app = initializeApp(window.firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- MAIN APP LOGIC ---
+    window.firebaseInstances = { app, auth, db };
+    window.firebaseFunctions = { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
+  </script>
+  
+  <!-- Main app logic -->
+  <script defer id="app-logic-script">
     function main() {
+        if (!window.firebaseInstances || !window.firebaseFunctions) {
+            console.error('[ConvoQuest] Firebase modules did not load.');
+            return;
+        }
+
+        const { auth, db } = window.firebaseInstances;
+        const { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp } = window.firebaseFunctions;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         const dom = {
@@ -147,8 +149,9 @@
 
         const AIManager = {
             async callGemini(systemPrompt, userPrompt) {
-                if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+                const apiKey = window.GEMINI_API_KEY;
+                if (!apiKey || apiKey.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
                 
                 try {
                     const response = await fetch(url, {
@@ -165,8 +168,9 @@
                 } catch (error) { return "Sorry, could not connect to AI service."; }
             },
             async getTranslation(word) {
-                if (!TRANSLATE_API_KEY || TRANSLATE_API_KEY.includes("PASTE")) return "ERROR: Translate API Key not configured.";
-                const url = `https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY}`;
+                const apiKey = window.TRANSLATE_API_KEY;
+                if (!apiKey || apiKey.includes("PASTE")) return "ERROR: Translate API Key not configured.";
+                const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
                 
                 try {
                     const response = await fetch(url, {
@@ -269,10 +273,14 @@
 
         dom.signupBtn.addEventListener('click', async () => {
             dom.signupError.textContent = '';
+            const name = dom.signupNameInput.value.trim();
             const email = dom.signupEmailInput.value.trim();
             const password = dom.signupPasswordInput.value.trim();
+            if (!name || !email || !password) { dom.signupError.textContent = 'All fields are required.'; return; }
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(cred.user, { displayName: name });
+                // We don't need to do anything else, onAuthStateChanged will handle the UI flip.
             } catch (error) { dom.signupError.textContent = error.message; }
         });
 
@@ -282,10 +290,11 @@
         dom.sendBtn.addEventListener('click', handleSendMessage);
         dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
     }
-
-    // Run the main app logic once the DOM is ready.
-    main();
+    document.addEventListener('DOMContentLoaded', main);
   </script>
 </body>
 </html>
+<!-- CONVOQUEST APP V3 - COMPLETE FILE END -->
+
+
 
