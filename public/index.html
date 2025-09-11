@@ -7,46 +7,46 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    [cite_start]:root { color-scheme: light; [cite: 1] }
+    :root { color-scheme: light; }
     body {
       font-family: 'Inter', sans-serif;
       background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop');
       background-size: cover;
-      [cite_start]background-position: center; [cite: 2]
-      [cite_start]overflow: auto; [cite: 3]
+      background-position: center;
+      overflow: auto;
       min-height: 100vh;
     }
     .contained-area {
       background: rgba(255, 255, 255, 0.85);
-      [cite_start]backdrop-filter: blur(12px); [cite: 4]
+      backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      [cite_start]border: 1px solid rgba(255, 255, 255, 0.2); [cite: 5]
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    [cite_start].auth-input, #chat-input, #placement-chat-input { font-size: 16px; [cite: 5] }
-    @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; [cite_start]} 100% { transform: scale(1); opacity: 1; [cite: 6] } }
-    [cite_start].modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; [cite: 7] }
-    [cite_start].chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; [cite: 8] }
+    .auth-input, #chat-input, #placement-chat-input { font-size: 16px; }
+    @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
+    .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
     .chat-bubble-user { background-color: #3b82f6; color: white; }
-    [cite_start].chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; [cite: 9] }
+    .chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; }
     #chat-container::-webkit-scrollbar, #placement-chat-container::-webkit-scrollbar { display: none; }
-    [cite_start]#chat-container, #placement-chat-container { -ms-overflow-style: none; scrollbar-width: none; [cite: 10] }
-    .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); [cite_start]-webkit-backdrop-filter: blur(4px); [cite: 11] }
+    #chat-container, #placement-chat-container { -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
     .map-location { cursor: pointer; transition: transform 0.2s; }
-    [cite_start].map-location:hover { transform: scale(1.1); [cite: 12] }
+    .map-location:hover { transform: scale(1.1); }
     .clickable-word { cursor: pointer; }
-    [cite_start].clickable-word:hover { background-color: rgba(59, 130, 246, 0.2); [cite: 13] border-radius: 3px; }
+    .clickable-word:hover { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
     .main-view { display: none; }
-    [cite_start].main-view.active { display: flex; [cite: 14] }
+    .main-view.active { display: flex; }
 
     #app-container {
       width: 100%;
       max-width: 640px;
       height: 85vh;
-      [cite_start]max-height: 800px; [cite: 15]
+      max-height: 800px;
     }
     @media (min-width: 768px) {
       #app-container {
-        [cite_start]height: 90vh; [cite: 16]
+        height: 90vh;
       }
     }
   </style>
@@ -60,13 +60,13 @@
         <div class="space-y-4">
           <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
          
-          [cite_start]<input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"> [cite: 18]
+          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
           <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Log In</button>
           <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account?
-            [cite_start]Sign Up</button> [cite: 19]
+            Sign Up</button>
         </div>
       </div>
       <div id="signup-view" class="hidden">
@@ -75,13 +75,13 @@
           <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <input 
-            [cite_start]type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"> [cite: 20]
+            type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
           <button id="signup-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Create Account</button>
           <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account?
-            [cite_start]Log In</button> [cite: 21]
+            Log In</button>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
         <div id="quiz-question-container">
           <p id="quiz-question-text" class="text-left font-semibold mb-2"></p>
      
-           [cite_start]<div id="quiz-options" class="space-y-2 text-left"></div> [cite: 22]
+           <div id="quiz-options" class="space-y-2 text-left"></div>
         </div>
         <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
       </div>
@@ -102,7 +102,7 @@
         <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
         <div class="p-2 border-t bg-white/50">
        
-           [cite_start]<div class="flex items-center space-x-2"> [cite: 23]
+           <div class="flex items-center space-x-2">
             <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
             <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
           </div>
@@ -111,7 +111,7 @@
     </div>
 
     <div id="main-app-view" class="main-view flex-col flex-1">
-      [cite_start]<div id="quest-view" class="flex flex-col h-full"> [cite: 24]
+      <div id="quest-view" class="flex flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
           <div>
@@ -119,7 +119,7 @@
             <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
      
-        [cite_start]</header> [cite: 25]
+        </header>
         <div class="p-4 space-y-3 overflow-y-auto"></div>
       </div>
 
@@ -128,14 +128,14 @@
           <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
           <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
         </header>
-        [cite_start]<div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div> [cite: 26]
+        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
         <div class="p-2 border-t bg-white/50 flex-shrink-0">
           <div class="flex items-center space-x-2">
             <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
             <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
        
-           [cite_start]</div> [cite: 27]
+           </div>
         </div>
       </div>
     </div>
@@ -145,10 +145,10 @@
             <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
             <div class="space-y-4">
      
-                         [cite_start]<div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div> [cite: 28]
+                         <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
                 <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
                 <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
-                [cite_start]<button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button> [cite: 29]
+                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
             </div>
         </div>
     </div>
@@ -157,7 +157,7 @@
             <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
             <p id="vignette-text" class="text-gray-600 mb-6"></p>
            
-          [cite_start]<button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button> [cite: 30]
+          <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
         </div>
     </div>
     <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
@@ -166,14 +166,14 @@
             <p id="map-objective" class="text-gray-600 mb-4"></p>
             <div id="map-container" class="relative rounded-lg overflow-hidden">
     
-                          [cite_start]<img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto"> [cite: 31]
+                          <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
             </div>
         </div>
     </div>
     <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
             <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete!
-            [cite_start]🎉</h2> [cite: 32]
+            🎉</h2>
             <p class="text-gray-700">New clue unlocked:</p>
             <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
             <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
@@ -184,11 +184,10 @@
   </div>
 
  
-   [cite_start][cite: 33]
-  <script type="module" id="app-script">
-    [cite_start]import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"; [cite: 33]
-    [cite_start]import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; [cite: 34]
-    [cite_start]import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; [cite: 35]
+   <script type="module" id="app-script">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
     const firebaseConfig = {
   apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
@@ -197,27 +196,27 @@
   storageBucket: "spanish-ai-project.firebasestorage.app",
   messagingSenderId: "788393465858",
   appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
-[cite_start]}; [cite: 36]
+};
     // --- PASTE YOUR API KEYS HERE ---
     const GEMINI_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
-    [cite_start]const TRANSLATE_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY"; [cite: 37]
+    const TRANSLATE_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
     // --- APP INITIALIZATION (GUARANTEED TO RUN FIRST) ---
     const app = initializeApp(firebaseConfig);
-    [cite_start]const auth = getAuth(app); [cite: 38]
-    [cite_start]const db = getFirestore(app); [cite: 39]
-    const appId = typeof __app_id !== 'undefined' ? [cite_start]__app_id : 'default-app-id'; [cite: 39]
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     // --- MAIN APP LOGIC (GUARANTEED TO RUN AFTER INIT) ---
     
-    [cite_start]let currentUser = null; [cite: 40]
-    [cite_start]let userSettings = {}; [cite: 41]
+    let currentUser = null;
+    let userSettings = {};
     let currentQuest = null;
     let currentStage = null;
     let messages = [];
-    [cite_start]let placementMessages = []; [cite: 41]
-    [cite_start]let currentQuizLevel = 'A1'; [cite: 42]
+    let placementMessages = [];
+    let currentQuizLevel = 'A1';
     let currentLevelQuestionIndex = 0;
     let incorrectAnswersInLevel = 0;
-    [cite_start]let preliminaryLevel = 'A1'; [cite: 42]
+    let preliminaryLevel = 'A1';
     const dom = {
         authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
         placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
@@ -228,7 +227,7 @@
         signupPasswordInput: document.getElementById('signup-password-input'), signupBtn: document.getElementById('signup-btn'),
         showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
         logoutBtn: 
-        [cite_start]document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'), [cite: 44]
+        document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
         questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
         chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
         sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
@@ -238,7 +237,7 @@
         endSessionBtn: document.getElementById('end-session-btn'), translationPopover: document.getElementById('translation-popover'),
         vignetteModal: document.getElementById('vignette-modal'), vignetteTitle: document.getElementById('vignette-title'),
         vignetteText: document.getElementById('vignette-text'), 
-        [cite_start]startStageBtn: document.getElementById('start-stage-btn'), [cite: 45]
+        startStageBtn: document.getElementById('start-stage-btn'),
         mapModal: document.getElementById('map-modal'), mapTitle: document.getElementById('map-title'),
         mapObjective: document.getElementById('map-objective'), mapContainer: document.getElementById('map-container'),
         mapImage: document.getElementById('map-image'), stageCompleteModal: document.getElementById('stage-complete-modal'),
@@ -248,57 +247,57 @@
         placementChatView: document.getElementById('placement-chat-view'), placementChatContainer: document.getElementById('placement-chat-container'),
         placementChatInput: document.getElementById('placement-chat-input'), placementSendBtn: document.getElementById('placement-send-btn'),
         retakePlacementBtn: document.getElementById('retake-placement-btn'), appContainer: 
-        [cite_start]document.getElementById('app-container'), [cite: 46]
+        document.getElementById('app-container'),
         quizQuestionText: document.getElementById('quiz-question-text'), quizOptions: document.getElementById('quiz-options'),
         placementProgress: document.getElementById('placement-progress'),
     };
     const AIManager = {
         async callGemini(systemPrompt, userPrompt) {
-            [cite_start]if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured."; [cite: 47]
-            [cite_start]const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`; [cite: 48]
+            if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
             try {
                 const response = await fetch(url, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ role: 
-                        [cite_start]"user", parts: [{ text: userPrompt }] }], [cite: 49]
+                        "user", parts: [{ text: userPrompt }] }],
                         systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
                     })
                 });
-                [cite_start]if (!response.ok) { const err = await response.json(); return `Error: ${err.error.message}`; [cite: 50] }
-                [cite_start]const result = await response.json(); [cite: 51]
-                [cite_start]return result.candidates[0].content.parts[0].text; [cite: 52]
-            [cite_start]} catch (error) { return "Sorry, could not connect to AI service."; [cite: 52] }
+                if (!response.ok) { const err = await response.json(); return `Error: ${err.error.message}`; }
+                const result = await response.json();
+                return result.candidates[0].content.parts[0].text;
+            } catch (error) { return "Sorry, could not connect to AI service."; }
         },
         async getTranslation(word) {
-            [cite_start]if (!TRANSLATE_API_KEY || TRANSLATE_API_KEY.includes("PASTE")) return "ERROR: Translate API Key not configured."; [cite: 53]
-            [cite_start]const url = `https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY}`; [cite: 54]
+            if (!TRANSLATE_API_KEY || TRANSLATE_API_KEY.includes("PASTE")) return "ERROR: Translate API Key not configured.";
+            const url = `https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY}`;
             try {
                 const response = await fetch(url, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ q: word, target: 'en', source: 'es' })
                 });
-                [cite_start]if (!response.ok) return "Translation failed."; [cite: 55]
+                if (!response.ok) return "Translation failed.";
                 const result = await response.json();
                 return result.data.translations[0].translatedText;
-            [cite_start]} catch (error) { return "Translation unavailable."; [cite: 55] }
+            } catch (error) { return "Translation unavailable."; }
         },
         async getResponse(history, stage, settings) {
-            [cite_start]const systemPrompt = `You are a helpful language tutor in a role-playing game. [cite: 56]
-            The user is in a scenario called "${stage.characterName}". [cite_start]Your persona is: "${stage.systemPrompt}". [cite: 57]
-            Your response must be at a CEFR ${userSettings.proficiencyLevel} level. [cite_start]The user's target language dialect is ${settings.dialect}. [cite: 58]
-            [cite_start]Keep your response concise (1-2 sentences) and in character.`; [cite: 59]
-            [cite_start]const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n'); [cite: 59]
-            [cite_start]const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`; [cite: 60]
-            [cite_start]return this.callGemini(systemPrompt, userPrompt); [cite: 60]
+            const systemPrompt = `You are a helpful language tutor in a role-playing game.
+            The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}".
+            Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}.
+            Keep your response concise (1-2 sentences) and in character.`;
+            const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
+            const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
+            return this.callGemini(systemPrompt, userPrompt);
         },
         async analyzePlacement(transcript, preliminaryLevel) {
-            [cite_start]const systemPrompt = `You are an expert language proficiency evaluator. [cite: 61]
-            [cite_start]The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. [cite: 62]
-            [cite_start]Your job is to confirm or adjust this level based on a short, free-form conversation. [cite: 63]
-            [cite_start]Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). [cite: 64]
-            [cite_start]Respond with only the final level (e.g., "B1").`; [cite: 65]
-            [cite_start]const userPrompt = `Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?`; [cite: 65]
+            const systemPrompt = `You are an expert language proficiency evaluator.
+            The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}.
+            Your job is to confirm or adjust this level based on a short, free-form conversation.
+            Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2).
+            Respond with only the final level (e.g., "B1").`;
+            const userPrompt = `Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?`;
             return this.callGemini(systemPrompt, userPrompt);
         }
     };
@@ -310,12 +309,12 @@
         ],
         'A2': [
           
-            [cite_start]{ question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré"], answer: "Hablé" }, [cite: 67]
+            { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré"], answer: "Hablé" },
             { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches"], answer: "Los coches rojos" },
         ],
         'B1': [
-            [cite_start]{ question: "Choose the correct subjunctive form: 'I hope you ___ well.' [cite: 67]
-            (estar)[cite_start]", options: ["estás", "estés", "estar"], answer: "estés" }, [cite: 68]
+            { question: "Choose the correct subjunctive form: 'I hope you ___ well.'
+            (estar)", options: ["estás", "estés", "estar"], answer: "estés" },
             { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something"], answer: "To have just done something" },
         ]
     };
@@ -370,36 +369,36 @@
     };
     // Main view switcher
     function showView(viewId) {
-        [cite_start]document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active')); [cite: 70]
-        [cite_start]document.getElementById(viewId)?.classList.add('active'); [cite: 71]
+        document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId)?.classList.add('active');
     }
 
     // View switcher for inside the main app
     function showAppView(view) { // 'quests' or 'chat'
         if (view === 'quests') {
-            [cite_start]dom.questView.classList.remove('hidden'); [cite: 71]
-            [cite_start]dom.chatView.classList.add('hidden'); [cite: 72]
+            dom.questView.classList.remove('hidden');
+            dom.chatView.classList.add('hidden');
         } else if (view === 'chat') {
-            [cite_start]dom.questView.classList.add('hidden'); [cite: 72]
-            [cite_start]dom.chatView.classList.remove('hidden'); [cite: 73]
+            dom.questView.classList.add('hidden');
+            dom.chatView.classList.remove('hidden');
         }
     }
 
     function renderQuests() {
         if (dom.questView) {
-            [cite_start]const list = dom.questView.querySelector('.space-y-3'); [cite: 73]
-            [cite_start]if(list) list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join(''); [cite: 74]
+            const list = dom.questView.querySelector('.space-y-3');
+            if(list) list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
         }
     }
     
     function showMapView(questId) {
-        [cite_start]currentQuest = { ...quests[questId], id: questId }; [cite: 75]
-        [cite_start]dom.mapTitle.textContent = currentQuest.title; [cite: 76]
+        currentQuest = { ...quests[questId], id: questId };
+        dom.mapTitle.textContent = currentQuest.title;
         dom.mapObjective.textContent = currentQuest.objective;
         dom.mapImage.src = currentQuest.mapImage;
         dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
         const nextStageIds = currentStage ?
-        (currentStage.nextStages || []) [cite_start]: ['1']; [cite: 77]
+        (currentStage.nextStages || []) : ['1'];
         nextStageIds.forEach((stageId, index) => {
             const location = document.createElement('div');
             location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
@@ -407,185 +406,186 @@
             location.style.top = `${40 + (index % 2 * 15)}%`;
             location.innerHTML = '<span>📍</span>';
       
-                  [cite_start]location.dataset.questId = questId; [cite: 78]
+                  location.dataset.questId = questId;
             location.dataset.stageId = stageId;
             dom.mapContainer.appendChild(location);
         });
-        [cite_start]dom.mapModal.classList.remove('hidden'); [cite: 79]
+        dom.mapModal.classList.remove('hidden');
     }
     
     function showVignette(questId, stageId) {
-        [cite_start]currentQuest = { ...quests[questId], id: questId }; [cite: 79]
-        [cite_start]currentStage = { ...currentQuest.stages[stageId], id: stageId, questId }; [cite: 80]
+        currentQuest = { ...quests[questId], id: questId };
+        currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
         dom.vignetteTitle.textContent = currentStage.characterName;
         dom.vignetteText.textContent = currentStage.vignette_en; 
-        [cite_start]dom.vignetteModal.classList.remove('hidden'); [cite: 81]
+        dom.vignetteModal.classList.remove('hidden');
     }
 
     function startStage() {
         if (!currentStage) return;
-        [cite_start]messages = []; [cite: 81]
-        [cite_start]dom.chatTitle.textContent = currentStage.characterName; [cite: 82]
+        messages = [];
+        dom.chatTitle.textContent = currentStage.characterName;
         dom.chatContainer.innerHTML = '';
         addMessage(currentStage.initialMessage, 'ai');
         dom.vignetteModal.classList.add('hidden');
-        [cite_start]showAppView('chat'); [cite: 82]
+        showAppView('chat');
     }
     
     function addMessage(text, role, container = dom.chatContainer) {
-        [cite_start]const history = (container === dom.placementChatContainer) ? [cite: 83]
-        [cite_start]placementMessages : messages; [cite: 84]
+        const history = (container === dom.placementChatContainer) ?
+        placementMessages : messages;
         history.push({ role: role, parts: [{ text: text }] });
-        [cite_start]const isUser = role === 'user'; [cite: 84]
-        [cite_start]const wrapper = document.createElement('div'); [cite: 85]
+        const isUser = role === 'user';
+        const wrapper = document.createElement('div');
         wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
-        [cite_start]const bubble = document.createElement('div'); [cite: 85]
-        bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? [cite_start]'chat-bubble-user' : 'chat-bubble-ai'}`; [cite: 86]
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
         if (!isUser) {
             text.split(/(\s+)/).forEach(part => {
                 if (part.trim().length > 0) {
                     const wordSpan = document.createElement('span');
                     wordSpan.className = 'clickable-word';
                    
-                    [cite_start]wordSpan.textContent = part; [cite: 88]
+                    wordSpan.textContent = part;
                     bubble.appendChild(wordSpan);
                 } else {
                     bubble.appendChild(document.createTextNode(part));
                 }
             });
-        } else { bubble.textContent = text; [cite_start]} [cite: 89]
+        } else { bubble.textContent = text; }
         wrapper.appendChild(bubble);
-        [cite_start]container.insertBefore(wrapper, container.firstChild); [cite: 89]
+        container.insertBefore(wrapper, container.firstChild);
     }
 
     async function handleSendMessage() {
-        [cite_start]const userInput = dom.chatInput.value.trim(); [cite: 90]
-        [cite_start]if (!userInput) return; [cite: 91]
+        const userInput = dom.chatInput.value.trim();
+        if (!userInput) return;
         addMessage(userInput, 'user');
         dom.chatInput.value = '';
         const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
-        [cite_start]addMessage(response, 'ai'); [cite: 91]
+        addMessage(response, 'ai');
     }
     
     async function endStage() {
-         [cite_start]dom.clueText.textContent = currentStage.reward.clue; [cite: 92]
-         [cite_start]dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`; [cite: 93]
+         dom.clueText.textContent = currentStage.reward.clue;
+         dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
          dom.stageCompleteModal.classList.remove('hidden');
     }
 
     async function handlePlacementSend() {
-        [cite_start]const userInput = dom.placementChatInput.value.trim(); [cite: 93]
-        [cite_start]if (!userInput) return; [cite: 94]
+        const userInput = dom.placementChatInput.value.trim();
+        if (!userInput) return;
         addMessage(userInput, 'user', dom.placementChatContainer);
         dom.placementChatInput.value = '';
 
         if (placementMessages.length >= 4) { // End chat after 2 user responses
-             [cite_start]addMessage('Analyzing your level...', 'ai', dom.placementChatContainer); [cite: 94]
-             [cite_start]const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n'); [cite: 95]
+             addMessage('Analyzing your level...', 'ai', dom.placementChatContainer);
+             const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
              const finalLevel = await AIManager.analyzePlacement(transcript, preliminaryLevel);
-             [cite_start]await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel.trim() }); [cite: 95]
-             [cite_start]userSettings.proficiencyLevel = finalLevel.trim(); [cite: 96]
+             await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel.trim() });
+             userSettings.proficiencyLevel = finalLevel.trim();
              alert(`Excellent! We've placed you at level: ${finalLevel.trim()}. Let's get started!`);
-             [cite_start]showView('main-app-view'); [cite: 96]
+             showView('main-app-view');
         } else {
-            [cite_start]const prompt = "Ask another open-ended question to gauge their fluency."; [cite: 97]
-            [cite_start]const response = await AIManager.callGemini(`You are a language evaluator confirming a ${preliminaryLevel} student.`, prompt); [cite: 98]
-            [cite_start]addMessage(response, 'ai', dom.placementChatContainer); [cite: 98]
+            const prompt = "Ask another open-ended question to gauge their fluency.";
+            const response = await AIManager.callGemini(`You are a language evaluator confirming a ${preliminaryLevel} student.`, prompt);
+            addMessage(response, 'ai', dom.placementChatContainer);
         }
     }
     
     function getUserDocRef(userId) {
-        [cite_start]if (!userId) return null; [cite: 99]
-        [cite_start]return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data'); [cite: 100]
+        if (!userId) return null;
+        return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
     }
     async function saveUserSettings(userId, settings) {
-        [cite_start]const userDocRef = getUserDocRef(userId); [cite: 100]
-        [cite_start]if (!userDocRef) return; [cite: 101]
-        [cite_start]await setDoc(userDocRef, settings, { merge: true }); [cite: 101]
+        const userDocRef = getUserDocRef(userId);
+        if (!userDocRef) return;
+        await setDoc(userDocRef, settings, { merge: true });
     }
     async function loadUserSettings(userId) {
-        [cite_start]const userDocRef = getUserDocRef(userId); [cite: 102]
+        const userDocRef = getUserDocRef(userId);
         try {
-            [cite_start]const snap = await getDoc(userDocRef); [cite: 103]
+            const snap = await getDoc(userDocRef);
             if (snap.exists() && snap.data()) {
-                [cite_start]userSettings = { ...userSettings, ...snap.data() }; [cite: 104]
+                userSettings = { ...userSettings, ...snap.data() };
             } else {
-                [cite_start]console.log('No user settings document found, creating one.'); [cite: 105]
-                const initialSettings = { name: currentUser.displayName || [cite_start]'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' }; [cite: 106]
-                [cite_start]await setDoc(userDocRef, initialSettings); [cite: 107]
+                console.log('No user settings document found, creating one.');
+                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
+                await setDoc(userDocRef, initialSettings);
                 userSettings = { ...userSettings, ...initialSettings };
             }
-            [cite_start]if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || [cite: 107]
-            [cite_start]'Mexico'; [cite: 108]
+            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect ||
+            'Mexico';
             if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
-            if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || [cite_start]'English'; [cite: 108]
+            if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
         } catch (error) {
-            [cite_start]console.error("Error loading or creating user settings:", error); [cite: 109]
+            console.error("Error loading or creating user settings:", error);
         }
     }
 
     function startPlacementTest() {
-        [cite_start]currentQuizLevel = 'A1'; [cite: 110]
-        [cite_start]currentLevelQuestionIndex = 0; [cite: 111]
+        currentQuizLevel = 'A1';
+        currentLevelQuestionIndex = 0;
         incorrectAnswersInLevel = 0;
         preliminaryLevel = 'A1';
         renderPlacementQuestion();
-        [cite_start]showView('placement-view'); [cite: 111]
+        showView('placement-view');
     }
 
     function renderPlacementQuestion() {
-        [cite_start]const levelQuestions = placementQuizData[currentQuizLevel]; [cite: 112]
+        const levelQuestions = placementQuizData[currentQuizLevel];
         if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
             if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { 
-                [cite_start]preliminaryLevel = currentQuizLevel === 'A1' ? [cite: 113]
-                [cite_start]'A2' : 'B1'; [cite: 114]
+                preliminaryLevel = currentQuizLevel === 'A1' ?
+                'A2' : 'B1';
                 currentQuizLevel = preliminaryLevel;
                 currentLevelQuestionIndex = 0;
                 incorrectAnswersInLevel = 0;
-                [cite_start]renderPlacementQuestion(); [cite: 114]
+                renderPlacementQuestion();
             } else {
-                [cite_start]finishQuiz(); [cite: 115]
+                finishQuiz();
             }
-            [cite_start]return; [cite: 116]
+            return;
         }
 
         const questionData = levelQuestions[currentLevelQuestionIndex];
-        [cite_start]dom.quizQuestionText.textContent = questionData.question; [cite: 117]
+        dom.quizQuestionText.textContent = questionData.question;
         dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1}`;
         dom.quizOptions.innerHTML = questionData.options.map(option => 
             `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
-        [cite_start]).join(''); [cite: 118]
+        ).join('');
     }
 
     function finishQuiz() {
         if (preliminaryLevel === 'A1' && incorrectAnswersInLevel > 0) {
-            [cite_start]alert(`Thanks! Based on your results, we'll start with the basics.`); [cite: 119]
-            [cite_start]saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' }); [cite: 120]
+            alert(`Thanks! Based on your results, we'll start with the basics.`);
+            saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
             userSettings.proficiencyLevel = 'A1';
             showView('main-app-view');
         } else {
-            [cite_start]alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.`); [cite: 120]
-            [cite_start]dom.placementQuizView.classList.add('hidden'); [cite: 121]
+            alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.`);
+            dom.placementQuizView.classList.add('hidden');
             dom.placementChatView.classList.remove('hidden');
-            [cite_start]addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer); [cite: 121]
+            addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
         }
     }
 
     async function handleUserSignIn(user) {
-        [cite_start]if (!user) return; [cite: 122]
-        [cite_start]currentUser = user; [cite: 123]
+        if (!user) return;
+        currentUser = user;
         try {
-            [cite_start]await loadUserSettings(user.uid); [cite: 123]
+            await loadUserSettings(user.uid);
             dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
             if (!userSettings.proficiencyLevel) {
-                [cite_start]startPlacementTest(); [cite: 124]
+                startPlacementTest();
             } else {
+                renderQuests();
                 showView('main-app-view');
-                [cite_start]showAppView('quests'); [cite: 125]
+                showAppView('quests');
             }
         } catch (error) {
-            [cite_start]console.error("Critical error during sign-in process:", error); [cite: 126]
-            [cite_start]dom.loginError.textContent = "Could not load your profile. Please try again."; [cite: 127]
+            console.error("Critical error during sign-in process:", error);
+            dom.loginError.textContent = "Could not load your profile. Please try again.";
         }
     }
     
@@ -597,7 +597,7 @@
         } else {
             currentUser = null;
          
-               [cite_start]showView('auth-container'); [cite: 129]
+               showView('auth-container');
         }
     });
     dom.loginBtn.addEventListener('click', async () => {
@@ -609,7 +609,7 @@
             await handleUserSignIn(userCredential.user);
         } 
         catch (error) { dom.loginError.textContent = error.message; 
-        [cite_start]} [cite: 131]
+        }
     });
 
     dom.signupBtn.addEventListener('click', async () => {
@@ -620,29 +620,29 @@
         if (!name || !email || !password) { dom.signupError.textContent = 'All fields are required.'; return; }
         try {
             const cred = await createUserWithEmailAndPassword(auth, 
-            [cite_start]email, password); [cite: 132]
+            email, password);
             await updateProfile(cred.user, { displayName: name });
             await handleUserSignIn(cred.user);
         } catch (error) { dom.signupError.textContent = error.message; }
     });
-    [cite_start]dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); }); [cite: 133]
+    dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
     dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
-    [cite_start]if(dom.logoutBtn) dom.logoutBtn.addEventListener('click', () => signOut(auth)); [cite: 133]
-    [cite_start]if(dom.settingsBtn) dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden')); [cite: 134]
+    if(dom.logoutBtn) dom.logoutBtn.addEventListener('click', () => signOut(auth));
+    if(dom.settingsBtn) dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
     if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
-    [cite_start]if(dom.retakePlacementBtn) dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); }); [cite: 134]
-    [cite_start]if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); }); [cite: 135]
-    [cite_start]if(dom.mapContainer) dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } }); [cite: 135]
-    [cite_start]if(dom.startStageBtn) dom.startStageBtn.addEventListener('click', startStage); [cite: 136]
+    if(dom.retakePlacementBtn) dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
+    if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
+    if(dom.mapContainer) dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
+    if(dom.startStageBtn) dom.startStageBtn.addEventListener('click', startStage);
     if(dom.continueQuestBtn) dom.continueQuestBtn.addEventListener('click', () => {
         dom.stageCompleteModal.classList.add('hidden');
         showAppView('quests');
         if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
         else { alert('Quest Complete! 🎉'); }
-    [cite_start]}); [cite: 137]
+    });
     if (dom.sendBtn) dom.sendBtn.addEventListener('click', handleSendMessage);
     if (dom.chatInput) dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
-    [cite_start]if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage); [cite: 138]
+    if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage);
     dom.submitQuizBtn.addEventListener('click', () => {
         const selected = document.querySelector('input[name="quiz"]:checked');
         if (!selected) { alert('Please select an answer.'); return; }
@@ -652,9 +652,9 @@
         }
         currentLevelQuestionIndex++;
         renderPlacementQuestion();
-    [cite_start]}); [cite: 139]
-    [cite_start]if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend); [cite: 140]
-    [cite_start]if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); }); [cite: 140]
+    });
+    if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
+    if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
     dom.chatContainer.addEventListener('click', async (e) => {
         if (e.target.classList.contains('clickable-word')) {
             const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
@@ -663,16 +663,14 @@
             const popover = dom.translationPopover;
             popover.textContent = translation;
            
-            [cite_start]const rect = e.target.getBoundingClientRect(); [cite: 142]
+            const rect = e.target.getBoundingClientRect();
             const containerRect = dom.appContainer.getBoundingClientRect();
             popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
             popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
             popover.classList.remove('hidden');
         }
     });
-    [cite_start]document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true); [cite: 143]
-
-    renderQuests();
+    document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
 
   </script>
 </body>
