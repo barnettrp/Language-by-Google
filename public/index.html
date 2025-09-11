@@ -1,4 +1,4 @@
-<!-- CONVOQUEST APP V7 - COMPLETE FILE START -->
+<!-- CONVOQUEST APP V7.1 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -427,19 +427,23 @@
         }
         async function loadUserSettings(userId) {
             const userDocRef = getUserDocRef(userId);
-            const snap = await getDoc(userDocRef);
-            if (snap.exists() && snap.data()) {
-                userSettings = { ...userSettings, ...snap.data() };
-            } else {
-                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
-                try {
+            try {
+                const snap = await getDoc(userDocRef);
+                if (snap.exists() && snap.data()) {
+                    userSettings = { ...userSettings, ...snap.data() };
+                } else {
+                    console.log('No user settings document found, creating one.');
+                    const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
                     await setDoc(userDocRef, initialSettings);
                     userSettings = { ...userSettings, ...initialSettings };
-                } catch (e) { console.error("Failed to create user settings document:", e); }
+                }
+                if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
+                if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
+                if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
+            } catch (error) {
+                console.error("Error loading or creating user settings:", error);
+                // Handle the error gracefully, maybe show a message to the user
             }
-            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
-            if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
-            if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
         }
 
         function startPlacementTest() {
@@ -491,13 +495,18 @@
         async function handleUserSignIn(user) {
             if (!user) return;
             currentUser = user;
-            await new Promise(resolve => setTimeout(resolve, 250));
-            await loadUserSettings(user.uid);
-            dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-            if (!userSettings.proficiencyLevel) {
-                startPlacementTest();
-            } else {
-                showView('main-app-view');
+            try {
+                await loadUserSettings(user.uid);
+                dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
+                if (!userSettings.proficiencyLevel) {
+                    startPlacementTest();
+                } else {
+                    showView('main-app-view');
+                }
+            } catch (error) {
+                console.error("Critical error during sign-in process:", error);
+                // Optionally show an error message to the user on the UI
+                dom.loginError.textContent = "Could not load your profile. Please try again.";
             }
         }
 
@@ -506,25 +515,46 @@
             else { currentUser = null; showView('auth-container'); }
         });
         
-        dom.loginBtn.addEventListener('click', async () => { /* ... */ });
-        dom.signupBtn.addEventListener('click', async () => { /* ... */ });
-        dom.logoutBtn.addEventListener('click', () => signOut(auth));
-        dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
-        dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
-        dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
-        dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
-        dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
-        dom.startStageBtn.addEventListener('click', startStage);
-        dom.continueQuestBtn.addEventListener('click', () => {
+        dom.loginBtn.addEventListener('click', async () => {
+            dom.loginError.textContent = '';
+            const email = dom.loginEmailInput.value.trim();
+            const password = dom.loginPasswordInput.value.trim();
+            try { await signInWithEmailAndPassword(auth, email, password); } 
+            catch (error) { dom.loginError.textContent = error.message; }
+        });
+
+        dom.signupBtn.addEventListener('click', async () => {
+            dom.signupError.textContent = '';
+            const name = dom.signupNameInput.value.trim();
+            const email = dom.signupEmailInput.value.trim();
+            const password = dom.signupPasswordInput.value.trim();
+            if (!name || !email || !password) { dom.signupError.textContent = 'All fields are required.'; return; }
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(cred.user, { displayName: name });
+                // onAuthStateChanged will handle the rest of the setup.
+            } catch (error) { dom.signupError.textContent = error.message; }
+        });
+        
+        dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
+        dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
+        if(dom.logoutBtn) dom.logoutBtn.addEventListener('click', () => signOut(auth));
+        if(dom.settingsBtn) dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
+        if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
+        if(dom.retakePlacementBtn) dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
+        if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
+        if(dom.mapContainer) dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
+        if(dom.startStageBtn) dom.startStageBtn.addEventListener('click', startStage);
+        if(dom.continueQuestBtn) dom.continueQuestBtn.addEventListener('click', () => {
             dom.stageCompleteModal.classList.add('hidden');
             dom.chatView.classList.add('hidden');
             dom.questView.classList.remove('hidden'); // Use hidden class
             if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
             else { alert('Quest Complete! 🎉'); }
         });
-        dom.sendBtn.addEventListener('click', handleSendMessage);
-        dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
-        dom.endSessionBtn.addEventListener('click', endStage);
+        if (dom.sendBtn) dom.sendBtn.addEventListener('click', handleSendMessage);
+        if (dom.chatInput) dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+        if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage);
         dom.submitQuizBtn.addEventListener('click', () => {
             const selected = document.querySelector('input[name="quiz"]:checked');
             if (!selected) { alert('Please select an answer.'); return; }
@@ -535,8 +565,8 @@
             currentLevelQuestionIndex++;
             renderPlacementQuestion();
         });
-        dom.placementSendBtn.addEventListener('click', handlePlacementSend);
-        dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
+        if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
+        if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
         dom.chatContainer.addEventListener('click', async (e) => {
             if (e.target.classList.contains('clickable-word')) {
                 const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
@@ -559,5 +589,5 @@
   </script>
 </body>
 </html>
-<!-- CONVOQUEST APP V6 - COMPLETE FILE END -->
+<!-- CONVOQUEST APP V7.1 - COMPLETE FILE END -->
 
