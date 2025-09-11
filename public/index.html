@@ -1,4 +1,4 @@
-<!-- CONVOQUEST APP V6 - COMPLETE FILE START -->
+<!-- CONVOQUEST APP V7 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -309,83 +309,91 @@
             document.getElementById(viewId)?.classList.add('active');
         }
 
-        function renderQuests() { /* ... render quests ... */ }
-        function addMessage(text, role, container = dom.chatContainer) { /* ... add message ... */ }
-        async function handleSendMessage() { /* ... handle send message ... */ }
-
-        function getUserDocRef(userId) {
-            if (!userId) return null;
-            return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
-        }
-        async function saveUserSettings(userId, settings) {
-            const userDocRef = getUserDocRef(userId);
-            if (!userDocRef) return;
-            await setDoc(userDocRef, settings, { merge: true });
-        }
-        async function loadUserSettings(userId) { /* ... load user settings ... */ }
-
-        function startPlacementTest() {
-            currentQuizLevel = 'A1';
-            currentLevelQuestionIndex = 0;
-            incorrectAnswersInLevel = 0;
-            preliminaryLevel = 'A1';
-            renderPlacementQuestion();
-            showView('placement-view');
-        }
-
-        function renderPlacementQuestion() {
-            const levelQuestions = placementQuizData[currentQuizLevel];
-            if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
-                // This level is done, try to advance
-                if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { // Advance if perfect score
-                    preliminaryLevel = currentQuizLevel; // They passed this level
-                    currentQuizLevel = currentQuizLevel === 'A1' ? 'A2' : 'B1';
-                    currentLevelQuestionIndex = 0;
-                    incorrectAnswersInLevel = 0;
-                    renderPlacementQuestion(); // Render next level's first question
-                } else {
-                    finishQuiz(); // End the quiz
-                }
-                return;
-            }
-
-            const questionData = levelQuestions[currentLevelQuestionIndex];
-            dom.quizQuestionText.textContent = questionData.question;
-            dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1}`;
-            dom.quizOptions.innerHTML = questionData.options.map(option => 
-                `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}
-                </label>`
-            ).join('');
-        }
-
-        function finishQuiz() {
-            if (preliminaryLevel === 'A1') {
-                alert(`Thanks! Based on your results, we'll start with the basics.`);
-                saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
-                userSettings.proficiencyLevel = 'A1';
-                showView('main-app-view');
-            } else {
-                alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level.`);
-                dom.placementQuizView.classList.add('hidden');
-                dom.placementChatView.classList.remove('hidden');
-                dom.placementChatView.classList.add('flex');
-                addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
+        function renderQuests() {
+            if (dom.questView) {
+                const list = dom.questView.querySelector('.space-y-3');
+                if(list) list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
             }
         }
+        
+        function showMapView(questId) {
+            currentQuest = { ...quests[questId], id: questId };
+            dom.mapTitle.textContent = currentQuest.title;
+            dom.mapObjective.textContent = currentQuest.objective;
+            dom.mapImage.src = currentQuest.mapImage;
+            dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
+            const nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
+            nextStageIds.forEach((stageId, index) => {
+                const location = document.createElement('div');
+                location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
+                location.style.left = `${20 + index * 40}%`;
+                location.style.top = `${40 + (index % 2 * 15)}%`;
+                location.innerHTML = '<span>📍</span>';
+                location.dataset.questId = questId;
+                location.dataset.stageId = stageId;
+                dom.mapContainer.appendChild(location);
+            });
+            dom.mapModal.classList.remove('hidden');
+        }
+        
+        function showVignette(questId, stageId) {
+            currentQuest = { ...quests[questId], id: questId };
+            currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
+            dom.vignetteTitle.textContent = currentStage.characterName;
+            dom.vignetteText.textContent = currentStage.vignette_en; 
+            dom.vignetteModal.classList.remove('hidden');
+        }
 
-        dom.submitQuizBtn.addEventListener('click', () => {
-            const selected = document.querySelector('input[name="quiz"]:checked');
-            if (!selected) { alert('Please select an answer.'); return; }
-
-            const levelQuestions = placementQuizData[currentQuizLevel];
-            if (selected.value !== levelQuestions[currentLevelQuestionIndex].answer) {
-                incorrectAnswersInLevel++;
-            }
+        function startStage() {
+            if (!currentStage) return;
+            messages = [];
+            dom.chatTitle.textContent = currentStage.characterName;
+            dom.chatContainer.innerHTML = '';
+            addMessage(currentStage.initialMessage, 'ai');
+            dom.vignetteModal.classList.add('hidden');
+            dom.questView.classList.add('hidden'); // Use hidden class
+            dom.chatView.classList.remove('hidden');
+        }
+        
+        function addMessage(text, role, container = dom.chatContainer) {
+            const history = (container === dom.placementChatContainer) ? placementMessages : messages;
+            history.push({ role: role, parts: [{ text: text }] });
+            const isUser = role === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
             
-            currentLevelQuestionIndex++;
-            renderPlacementQuestion();
-        });
+            if (!isUser) {
+                text.split(/(\s+)/).forEach(part => {
+                    if (part.trim().length > 0) {
+                        const wordSpan = document.createElement('span');
+                        wordSpan.className = 'clickable-word';
+                        wordSpan.textContent = part;
+                        bubble.appendChild(wordSpan);
+                    } else {
+                        bubble.appendChild(document.createTextNode(part));
+                    }
+                });
+            } else { bubble.textContent = text; }
+            wrapper.appendChild(bubble);
+            container.insertBefore(wrapper, container.firstChild);
+        }
+
+        async function handleSendMessage() {
+            const userInput = dom.chatInput.value.trim();
+            if (!userInput) return;
+            addMessage(userInput, 'user');
+            dom.chatInput.value = '';
+            const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
+            addMessage(response, 'ai');
+        }
+        
+        async function endStage() {
+             dom.clueText.textContent = currentStage.reward.clue;
+             dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
+             dom.stageCompleteModal.classList.remove('hidden');
+        }
 
         async function handlePlacementSend() {
             const userInput = dom.placementChatInput.value.trim();
@@ -408,6 +416,78 @@
             }
         }
         
+        function getUserDocRef(userId) {
+            if (!userId) return null;
+            return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
+        }
+        async function saveUserSettings(userId, settings) {
+            const userDocRef = getUserDocRef(userId);
+            if (!userDocRef) return;
+            await setDoc(userDocRef, settings, { merge: true });
+        }
+        async function loadUserSettings(userId) {
+            const userDocRef = getUserDocRef(userId);
+            const snap = await getDoc(userDocRef);
+            if (snap.exists() && snap.data()) {
+                userSettings = { ...userSettings, ...snap.data() };
+            } else {
+                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
+                try {
+                    await setDoc(userDocRef, initialSettings);
+                    userSettings = { ...userSettings, ...initialSettings };
+                } catch (e) { console.error("Failed to create user settings document:", e); }
+            }
+            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
+            if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
+            if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
+        }
+
+        function startPlacementTest() {
+            currentQuizLevel = 'A1';
+            currentLevelQuestionIndex = 0;
+            incorrectAnswersInLevel = 0;
+            preliminaryLevel = 'A1';
+            renderPlacementQuestion();
+            showView('placement-view');
+        }
+
+        function renderPlacementQuestion() {
+            const levelQuestions = placementQuizData[currentQuizLevel];
+            if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
+                if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { 
+                    preliminaryLevel = currentQuizLevel === 'A1' ? 'A2' : 'B1';
+                    currentQuizLevel = preliminaryLevel;
+                    currentLevelQuestionIndex = 0;
+                    incorrectAnswersInLevel = 0;
+                    renderPlacementQuestion(); 
+                } else {
+                    finishQuiz();
+                }
+                return;
+            }
+
+            const questionData = levelQuestions[currentLevelQuestionIndex];
+            dom.quizQuestionText.textContent = questionData.question;
+            dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1}`;
+            dom.quizOptions.innerHTML = questionData.options.map(option => 
+                `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
+            ).join('');
+        }
+
+        function finishQuiz() {
+            if (preliminaryLevel === 'A1' && incorrectAnswersInLevel > 0) {
+                alert(`Thanks! Based on your results, we'll start with the basics.`);
+                saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
+                userSettings.proficiencyLevel = 'A1';
+                showView('main-app-view');
+            } else {
+                alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.`);
+                dom.placementQuizView.classList.add('hidden');
+                dom.placementChatView.classList.remove('hidden');
+                addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
+            }
+        }
+
         async function handleUserSignIn(user) {
             if (!user) return;
             currentUser = user;
@@ -426,12 +506,53 @@
             else { currentUser = null; showView('auth-container'); }
         });
         
-        // --- All other event listeners remain the same ---
         dom.loginBtn.addEventListener('click', async () => { /* ... */ });
         dom.signupBtn.addEventListener('click', async () => { /* ... */ });
+        dom.logoutBtn.addEventListener('click', () => signOut(auth));
+        dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
+        dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
+        dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
+        dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
+        dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
+        dom.startStageBtn.addEventListener('click', startStage);
+        dom.continueQuestBtn.addEventListener('click', () => {
+            dom.stageCompleteModal.classList.add('hidden');
+            dom.chatView.classList.add('hidden');
+            dom.questView.classList.remove('hidden'); // Use hidden class
+            if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
+            else { alert('Quest Complete! 🎉'); }
+        });
+        dom.sendBtn.addEventListener('click', handleSendMessage);
+        dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+        dom.endSessionBtn.addEventListener('click', endStage);
+        dom.submitQuizBtn.addEventListener('click', () => {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            if (!selected) { alert('Please select an answer.'); return; }
+            const levelQuestions = placementQuizData[currentQuizLevel];
+            if (selected.value !== levelQuestions[currentLevelQuestionIndex].answer) {
+                incorrectAnswersInLevel++;
+            }
+            currentLevelQuestionIndex++;
+            renderPlacementQuestion();
+        });
         dom.placementSendBtn.addEventListener('click', handlePlacementSend);
-        // etc.
-        
+        dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
+        dom.chatContainer.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('clickable-word')) {
+                const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
+                if (!word) return;
+                const translation = await AIManager.getTranslation(word);
+                const popover = dom.translationPopover;
+                popover.textContent = translation;
+                const rect = e.target.getBoundingClientRect();
+                const containerRect = dom.appContainer.getBoundingClientRect();
+                popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
+                popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
+                popover.classList.remove('hidden');
+            }
+        });
+        document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
+
         renderQuests();
     }
     document.addEventListener('DOMContentLoaded', main);
