@@ -284,10 +284,11 @@
         const AIManager = {
             async callAPI(systemPrompt, userPrompt) {
                 const apiKey = window.GEMINI_API_KEY;
-                if (!apiKey || apiKey === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
-                    return "ERROR: Gemini API Key not configured.";
+                if (!apiKey || apiKey.includes("PASTE")) {
+                    return "ERROR: Gemini API Key not configured in api-keys.js.";
                 }
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+                // CORRECTED MODEL NAME
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
                 
                 const payload = {
                     contents: [{ role: "user", parts: [{ text: userPrompt }] }],
@@ -314,7 +315,7 @@
             },
             async getResponse(history, stage, settings) {
                 const systemPrompt = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.`;
-                const userHistory = history.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
+                const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
                 const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
                 return this.callAPI(systemPrompt, userPrompt);
             },
