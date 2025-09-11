@@ -1,4 +1,4 @@
-<!-- CONVOQUEST APP V7.4 - COMPLETE FILE START -->
+<!-- CONVOQUEST APP V7.5 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,8 +96,8 @@
     </div>
 
     <!-- MAIN APP VIEW -->
-    <div id="main-app-view" class="main-view flex-col h-full">
-      <div id="quest-view" class="flex flex-col h-full">
+    <div id="main-app-view" class="main-view flex-col flex-1">
+      <div id="quest-view" class="flex flex-col flex-1">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
           <div>
@@ -108,7 +108,7 @@
         <div class="p-4 space-y-3 overflow-y-auto"></div>
       </div>
 
-      <div id="chat-view" class="hidden flex-col h-full">
+      <div id="chat-view" class="hidden flex-col flex-1">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
           <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
@@ -506,8 +506,6 @@
             if (!user) return;
             currentUser = user;
             try {
-                // The strategic delay has been removed as it's no longer the best approach.
-                // The new logic relies on a single, clear path.
                 await loadUserSettings(user.uid);
                 dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
                 if (!userSettings.proficiencyLevel) {
@@ -525,7 +523,6 @@
         // This listener only handles initial load and logout.
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // If the user is already signed in when the app loads
                 if (!currentUser) { // Prevent re-running if already handled by login/signup
                     handleUserSignIn(user);
                 }
@@ -541,7 +538,6 @@
             const password = dom.loginPasswordInput.value.trim();
             try { 
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // Explicitly call handleUserSignIn after login is confirmed.
                 await handleUserSignIn(userCredential.user);
             } 
             catch (error) { dom.loginError.textContent = error.message; }
@@ -556,7 +552,6 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(cred.user, { displayName: name });
-                // Explicitly call handleUserSignIn after signup is confirmed.
                 await handleUserSignIn(cred.user);
             } catch (error) { dom.signupError.textContent = error.message; }
         });
