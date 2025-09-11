@@ -208,7 +208,8 @@
         const db = fsMod.getFirestore(app);
 
         window.firebaseInstances = { app, auth, db };
-        window.firebaseFunctions = {
+        window.__cq_flags = window.__cq_flags || { domReady:false, fbReady:false };
+window.firebaseFunctions = {
           onAuthStateChanged: authMod.onAuthStateChanged,
           signInWithEmailAndPassword: authMod.signInWithEmailAndPassword,
           createUserWithEmailAndPassword: authMod.createUserWithEmailAndPassword,
@@ -216,6 +217,8 @@
           signOut: authMod.signOut,
           doc: fsMod.doc, setDoc: fsMod.setDoc, getDoc: fsMod.getDoc, serverTimestamp: fsMod.serverTimestamp
         };
+        window.__cq_flags.fbReady = true;
+        if (window.__cq_bootIfReady) window.__cq_bootIfReady();
       } catch (e) {
         console.error('Firebase boot failed:', e);
       }
@@ -224,7 +227,51 @@
   
   <!-- Main app logic -->
   <script defer id="app-logic-script">
+  // === Resilient Boot ===
+  (function(){
+    window.__cq_booted = false;
+    function boot() {
+      if (window.__cq_booted) return;
+      window.__cq_booted = true;
+      try { main(); } catch (e) { console.error(e); }
+    }
+    // Run as soon as DOM is parsed
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+  })();
+  // === End Resilient Boot ===
+
+  // Boot coordination: run main() once when BOTH DOM and Firebase are ready
+  window.__cq_booted = false;
+  window.__cq_flags = window.__cq_flags || { domReady:false, fbReady:false };
+  window.__cq_bootIfReady = function(){
+    if (!window.__cq_booted && window.__cq_flags.domReady && window.__cq_flags.fbReady){
+      window.__cq_booted = true; try { main(); } catch(e){ console.error(e); }
+    }
+  };
+  document.addEventListener("DOMContentLoaded", function(){ window.__cq_flags.domReady = true; window.__cq_bootIfReady(); }));
+
     function main() {
+        // Wait for Firebase to be available; wire UI immediately
+        const MAX_WAIT_MS = 12000;
+        const WAIT_STEP = 120;
+        let waited = 0;
+
+        function firebaseReady() {
+            return !!(window.firebaseInstances && window.firebaseFunctions && window.firebaseInstances.auth);
+        }
+        function waitForFirebaseThen(run) {
+            if (firebaseReady()) return run();
+            const timer = setInterval(() => {
+                waited += WAIT_STEP;
+                if (firebaseReady()) { clearInterval(timer); run(); }
+                else if (waited >= MAX_WAIT_MS) { clearInterval(timer); console.error('Firebase failed to initialize.'); }
+            }, WAIT_STEP);
+        }
+
         if (!window.firebaseInstances || !window.firebaseFunctions) {
             console.error('[ConvoQuest] Firebase modules did not load.');
             return;
@@ -323,13 +370,13 @@
             },
             async getResponse(history, stage, settings) {
                 const systemPrompt = `You are a helpful language tutor for Spanish learners. Keep replies short (1–2 sentences). Dialect: ${'${settings?.dialect || "Mexico"}'}. Formality: ${'${settings?.formality || "Casual"}'}.`;
-                const userHistory = history.map(m => `${'${m.role === "ai" ? "Tutor" : "User"}'}: ${'${m.parts[0].text}'} `).join('\\n');
-                const userPrompt = `Here is the recent conversation:\\n${'${userHistory}'}\\n\\nProvide your next response. Keep it concise (1-2 sentences).`;
+                const userHistory = history.map(m => `${'${m.role === "ai" ? "Tutor" : "User"}'}: ${'${m.parts[0].text}'} `).join('\n');
+                const userPrompt = `Here is the recent conversation:\n${'${userHistory}'}\n\nProvide your next response. Keep it concise (1-2 sentences).`;
                 return this.callGemini(systemPrompt, userPrompt);
             },
             async analyzePlacement(transcript, preliminaryLevel) {
                 const systemPrompt = `You are an expert language assessor. Given a short chat transcript, return only the CEFR level (A1, A2, B1, B2, C1, C2).`;
-                const userPrompt = `Here is the conversation transcript:\\n${'${transcript}'}\\nInitial estimate: ${'${preliminaryLevel}'} . Respond with only the final level (e.g., "B1").`;
+                const userPrompt = `Here is the conversation transcript:\n${'${transcript}'}\nInitial estimate: ${'${preliminaryLevel}'} . Respond with only the final level (e.g., "B1").`;
                 return this.callGemini(systemPrompt, userPrompt);
             }
         };
@@ -443,7 +490,7 @@
             addMessage(`¡Hola! Veo que tienes un buen nivel. Para afinar tu colocación, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
         }
         async function handlePlacementReply() {
-            const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\\n');
+            const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
             const final = await AIManager.analyzePlacement(transcript, preliminaryLevel);
             userSettings.proficiencyLevel = (final || '').trim().toUpperCase() || 'A1';
             await saveUserSettings(currentUser.uid, { proficiencyLevel: userSettings.proficiencyLevel, updatedAt: serverTimestamp() });
@@ -531,7 +578,7 @@
             }
         }
         
-        onAuthStateChanged(auth, (user) => {
+        waitForFirebaseThen(() => onAuthStateChanged(window.firebaseInstances.auth, (user) => {
             if (user) {
                 if (!currentUser) {
                     handleUserSignIn(user);
@@ -543,12 +590,25 @@
 
         dom.loginBtn.addEventListener('click', async () => {
           dom.loginError.textContent = '';
-          try {
-            const { user } = await signInWithEmailAndPassword(auth, dom.loginEmail.value, dom.loginPassword.value);
-            handleUserSignIn(user);
-          } catch (e) {
-            dom.loginError.textContent = e.message || 'Login failed.';
-          }
+          const email = (dom.loginEmail.value || '').trim();
+          const pass = dom.loginPassword.value || '';
+          if (!email || !pass) { dom.loginError.textContent = 'Enter email and password.'; return; }
+          dom.loginBtn.disabled = true;
+          dom.loginBtn.textContent = 'Signing in…';
+          waitForFirebaseThen(async () => {
+            try {
+              const { auth } = window.firebaseInstances;
+              const { signInWithEmailAndPassword } = window.firebaseFunctions;
+              const { user } = await signInWithEmailAndPassword(auth, email, pass);
+              await handleUserSignIn(user);
+            } catch (e) {
+              console.error(e);
+              dom.loginError.textContent = (e && e.message) ? e.message : 'Login failed.';
+            } finally {
+              dom.loginBtn.disabled = false;
+              dom.loginBtn.textContent = 'Log In';
+            }
+          });
         });
         dom.showSignupBtn.addEventListener('click', () => dom.signupView.classList.remove('hidden'));
         dom.showLoginBtn.addEventListener('click', () => dom.signupView.classList.add('hidden'));
@@ -574,11 +634,6 @@
         if (dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', () => handlePlacementReply());
         if (dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementReply(); });
     }
-  </script>
-
-  <!-- Boot app (FIX: this must be OUTSIDE of main() to actually fire) -->
-  <script>
-    window.addEventListener('load', main);
   </script>
 </body>
 </html>
