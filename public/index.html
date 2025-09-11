@@ -1,4 +1,4 @@
-<!-- CONVOQUEST APP V7.5 - COMPLETE FILE START -->
+<!-- CONVOQUEST APP V7.6 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,6 +38,19 @@
     .clickable-word:hover { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
     .main-view { display: none; }
     .main-view.active { display: flex; }
+
+    /* App container sizing fix */
+    #app-container {
+      width: 100%;
+      max-width: 640px;
+      height: 85vh; /* Stable height on mobile/tablet */
+      max-height: 800px; /* Cap the max height */
+    }
+    @media (min-width: 768px) {
+      #app-container {
+        height: 90vh; /* Slightly taller on larger screens */
+      }
+    }
   </style>
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
@@ -608,5 +621,5 @@
   </script>
 </body>
 </html>
-<!-- CONVOQUEST APP V7.4 - COMPLETE FILE END -->
+<!-- CONVOQUEST APP V7.5 - COMPLETE FILE END -->
 
