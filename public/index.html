@@ -1,652 +1,729 @@
-<!-- CONVOQUEST APP V8.0 - COMPLETE FILE START -->
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>ConvoQuest</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root { color-scheme: light; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop');
-      background-size: cover;
-      background-position: center;
-      overflow: auto; 
-      min-height: 100vh;
-    }
-    .contained-area {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .auth-input, #chat-input, #placement-chat-input { font-size: 16px; }
-    @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
-    .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
-    .chat-bubble-user { background-color: #3b82f6; color: white; }
-    .chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; }
-    #chat-container::-webkit-scrollbar, #placement-chat-container::-webkit-scrollbar { display: none; }
-    #chat-container, #placement-chat-container { -ms-overflow-style: none; scrollbar-width: none; }
-    .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-    .map-location { cursor: pointer; transition: transform 0.2s; }
-    .map-location:hover { transform: scale(1.1); }
-    .clickable-word { cursor: pointer; }
-    .clickable-word:hover { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
-    .main-view { display: none; }
-    .main-view.active { display: flex; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>ConvoQuest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: light; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: url('https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=2070&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      overflow: auto; 
+      min-height: 100vh;
+    }
+    .contained-area {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .auth-input, #chat-input, #placement-chat-input { font-size: 16px; }
+    @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
+    .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
+    .chat-bubble-user { background-color: #3b82f6; color: white; }
+    .chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; }
+    #chat-container::-webkit-scrollbar, #placement-chat-container::-webkit-scrollbar, #vocabulary-container::-webkit-scrollbar { display: none; }
+    #chat-container, #placement-chat-container, #vocabulary-container { -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+    .map-location { cursor: pointer; transition: transform 0.2s; }
+    .map-location:hover { transform: scale(1.1); }
+    .clickable-word { cursor: pointer; }
+    .clickable-word:hover { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
+    .main-view { display: none; }
+    .main-view.active { display: flex; }
 
-    #app-container {
-      width: 100%;
-      max-width: 640px;
-      height: 85vh;
-      max-height: 800px;
-    }
-    @media (min-width: 768px) {
-      #app-container {
-        height: 90vh;
-      }
-    }
-  </style>
+    #app-container {
+      width: 100%;
+      max-width: 640px;
+      height: 85vh;
+      max-height: 800px;
+    }
+    @media (min-width: 768px) {
+      #app-container {
+        height: 90vh;
+      }
+    }
+  </style>
+
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
 
-  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
-    <!-- AUTH VIEW -->
-    <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
-      <div id="login-view">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
-        <div class="space-y-4">
-          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
-        <div class="mt-4 space-y-2">
-          <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Log In</button>
-          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
-        </div>
-      </div>
-      <div id="signup-view" class="hidden">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
-        <div class="space-y-4">
-          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
-        <div class="mt-4 space-y-2">
-          <button id="signup-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Create Account</button>
-          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Log In</button>
-        </div>
-      </div>
-    </div>
+  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
+        <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
+      <div id="login-view">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
+        <div class="space-y-4">
+          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Log In</button>
+          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+        </div>
+      </div>
+      <div id="signup-view" class="hidden">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
+        <div class="space-y-4">
+          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="signup-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Create Account</button>
+          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Log In</button>
+        </div>
+      </div>
+    </div>
 
-    <!-- PLACEMENT VIEW -->
-    <div id="placement-view" class="main-view flex-col h-full">
-      <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
-        <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
-        <p id="placement-progress" class="text-gray-600 mt-2 mb-6">Loading question...</p>
-        <div id="quiz-question-container">
-          <p id="quiz-question-text" class="text-left font-semibold mb-2"></p>
-          <div id="quiz-options" class="space-y-2 text-left"></div>
-        </div>
-        <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
-      </div>
-       <div id="placement-chat-view" class="hidden flex-col h-full">
-        <header class="p-4 border-b"><h1 class="text-xl font-bold text-gray-800">A Quick Chat</h1></header>
-        <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
-        <div class="p-2 border-t bg-white/50">
-          <div class="flex items-center space-x-2">
-            <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
-            <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
-          </div>
-        </div>
-      </div>
-    </div>
+        <div id="placement-view" class="main-view flex-col h-full">
+      <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
+        <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
+        <p id="placement-progress" class="text-gray-600 mt-2 mb-6">Loading question...</p>
+        <div id="quiz-question-container">
+          <p id="quiz-question-text" class="text-left font-semibold mb-2"></p>
+          <div id="quiz-options" class="space-y-2 text-left"></div>
+        </div>
+        <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
+      </div>
+       <div id="placement-chat-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b"><h1 class="text-xl font-bold text-gray-800">A Quick Chat</h1></header>
+        <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+        <div class="p-2 border-t bg-white/50">
+          <div class="flex items-center space-x-2">
+            <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
+            <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- MAIN APP VIEW -->
-    <div id="main-app-view" class="main-view flex-col flex-1">
-      <div id="quest-view" class="flex flex-col h-full">
-        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-          <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
-          <div>
-            <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
-            <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
-          </div>
-        </header>
-        <div class="p-4 space-y-3 overflow-y-auto"></div>
-      </div>
+        <div id="main-app-view" class="main-view flex-col flex-1">
+      <div id="quest-view" class="flex flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
+          <div>
+            <button id="vocab-btn" title="Vocabulary" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">📖</button>
+            <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
+            <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
+          </div>
+        </header>
+        <div class="p-4 space-y-3 overflow-y-auto"></div>
+      </div>
 
-      <div id="chat-view" class="hidden flex-col h-full">
-        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-          <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
-          <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
-        </header>
-        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
-        <div class="p-2 border-t bg-white/50 flex-shrink-0">
-          <div class="flex items-center space-x-2">
-            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
-            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- MODALS & POPOVERS -->
-    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
-            <div class="space-y-4">
-                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
-                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
-                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
-                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
-            </div>
-        </div>
-    </div>
-    <div id="vignette-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
-            <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
-            <p id="vignette-text" class="text-gray-600 mb-6"></p>
-            <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
-        </div>
-    </div>
-    <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-            <h2 id="map-title" class="text-2xl font-bold mb-1"></h2>
-            <p id="map-objective" class="text-gray-600 mb-4"></p>
-            <div id="map-container" class="relative rounded-lg overflow-hidden">
-                <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
-            </div>
-        </div>
-    </div>
-    <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
-            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete! 🎉</h2>
-            <p class="text-gray-700">New clue unlocked:</p>
-            <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
-            <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
-            <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Continue Quest</button>
-        </div>
-    </div>
-    <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
-  </div>
+      <div id="chat-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+          <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
+        </header>
+        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
+        <div class="p-2 border-t bg-white/50 flex-shrink-0">
+          <div class="flex items-center space-x-2">
+            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
+            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
+          </div>
+        </div>
+      </div>
 
-  <!-- Consolidated App Script -->
-  <script type="module" id="app-script">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+            <div id="vocabulary-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <h1 class="text-xl font-bold text-gray-800">My Vocabulary</h1>
+          <button id="back-to-quests-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
+        </header>
+        <div id="vocabulary-container" class="p-4 space-y-3 overflow-y-auto">
+                  </div>
+      </div>
+          </div>
+    
+        <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">×</button></div>
+            <div class="space-y-4">
+                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
+                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
+                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
+            </div>
+        </div>
+    </div>
+    <div id="vignette-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
+            <p id="vignette-text" class="text-gray-600 mb-6"></p>
+            <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
+        </div>
+    </div>
+    <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <h2 id="map-title" class="text-2xl font-bold mb-1"></h2>
+            <p id="map-objective" class="text-gray-600 mb-4"></p>
+            <div id="map-container" class="relative rounded-lg overflow-hidden">
+                <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
+            </div>
+        </div>
+    </div>
+    <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete! 🎉</h2>
+            <p class="text-gray-700">New clue unlocked:</p>
+            <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
+            <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
+            <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Continue Quest</button>
+        </div>
+    </div>
+    <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
+  </div>
 
-    // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
-      authDomain: "spanish-ai-project.firebaseapp.com",
-      projectId: "spanish-ai-project",
-      storageBucket: "spanish-ai-project.appspot.com",
-      messagingSenderId: "788393465858",
-      appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
-    };
+    <script type="module" id="app-script">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- PASTE YOUR API KEYS HERE ---
-    const GEMINI_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
-    const TRANSLATE_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
+    // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+      authDomain: "spanish-ai-project.firebaseapp.com",
+      projectId: "spanish-ai-project",
+      storageBucket: "spanish-ai-project.appspot.com",
+      messagingSenderId: "788393465858",
+      appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
+    };
 
-    // --- APP INITIALIZATION (GUARANTEED TO RUN FIRST) ---
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    // --- PASTE YOUR API KEYS HERE ---
+    const GEMINI_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
+    const TRANSLATE_API_KEY = "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY";
 
-    // --- MAIN APP LOGIC (GUARANTEED TO RUN AFTER INIT) ---
-    
-    let currentUser = null;
-    let userSettings = {};
-    let currentQuest = null;
-    let currentStage = null;
-    let messages = [];
-    let placementMessages = [];
-    
-    let currentQuizLevel = 'A1';
-    let currentLevelQuestionIndex = 0;
-    let incorrectAnswersInLevel = 0;
-    let preliminaryLevel = 'A1';
+    // --- APP INITIALIZATION (GUARANTEED TO RUN FIRST) ---
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-    const dom = {
-        authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
-        placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
-        signupView: document.getElementById('signup-view'), loginEmailInput: document.getElementById('login-email-input'),
-        loginPasswordInput: document.getElementById('login-password-input'), loginBtn: document.getElementById('login-btn'),
-        showSignupBtn: document.getElementById('show-signup-btn'), loginError: document.getElementById('login-error'),
-        signupNameInput: document.getElementById('signup-name-input'), signupEmailInput: document.getElementById('signup-email-input'),
-        signupPasswordInput: document.getElementById('signup-password-input'), signupBtn: document.getElementById('signup-btn'),
-        showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
-        logoutBtn: document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
-        questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
-        chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
-        sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
-        settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
-        closeSettingsBtn: document.getElementById('close-settings-btn'), dialectSelect: document.getElementById('dialect-select'),
-        formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
-        endSessionBtn: document.getElementById('end-session-btn'), translationPopover: document.getElementById('translation-popover'),
-        vignetteModal: document.getElementById('vignette-modal'), vignetteTitle: document.getElementById('vignette-title'),
-        vignetteText: document.getElementById('vignette-text'), startStageBtn: document.getElementById('start-stage-btn'),
-        mapModal: document.getElementById('map-modal'), mapTitle: document.getElementById('map-title'),
-        mapObjective: document.getElementById('map-objective'), mapContainer: document.getElementById('map-container'),
-        mapImage: document.getElementById('map-image'), stageCompleteModal: document.getElementById('stage-complete-modal'),
-        clueText: document.getElementById('clue-text'), xpGainText: document.getElementById('xp-gain-text'),
-        continueQuestBtn: document.getElementById('continue-quest-btn'), hintBtn: document.getElementById('hint-btn'),
-        placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
-        placementChatView: document.getElementById('placement-chat-view'), placementChatContainer: document.getElementById('placement-chat-container'),
-        placementChatInput: document.getElementById('placement-chat-input'), placementSendBtn: document.getElementById('placement-send-btn'),
-        retakePlacementBtn: document.getElementById('retake-placement-btn'), appContainer: document.getElementById('app-container'),
-        quizQuestionText: document.getElementById('quiz-question-text'), quizOptions: document.getElementById('quiz-options'),
-        placementProgress: document.getElementById('placement-progress'),
-    };
+    // --- MAIN APP LOGIC (GUARANTEED TO RUN AFTER INIT) ---
+    
+    let currentUser = null;
+    let userSettings = {};
+    let currentQuest = null;
+    let currentStage = null;
+    let messages = [];
+    let placementMessages = [];
+    
+    let currentQuizLevel = 'A1';
+    let currentLevelQuestionIndex = 0;
+    let incorrectAnswersInLevel = 0;
+    let preliminaryLevel = 'A1';
 
-    const AIManager = {
-        async callGemini(systemPrompt, userPrompt) {
-            if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
-            try {
-                const response = await fetch(url, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-                        systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
-                    })
-                });
-                if (!response.ok) { const err = await response.json(); return `Error: ${err.error.message}`; }
-                const result = await response.json();
-                return result.candidates[0].content.parts[0].text;
-            } catch (error) { return "Sorry, could not connect to AI service."; }
-        },
-        async getTranslation(word) {
-            if (!TRANSLATE_API_KEY || TRANSLATE_API_KEY.includes("PASTE")) return "ERROR: Translate API Key not configured.";
-            const url = `https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY}`;
-            try {
-                const response = await fetch(url, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ q: word, target: 'en', source: 'es' })
-                });
-                if (!response.ok) return "Translation failed.";
-                const result = await response.json();
-                return result.data.translations[0].translatedText;
-            } catch (error) { return "Translation unavailable."; }
-        },
-        async getResponse(history, stage, settings) {
-            const systemPrompt = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.`;
-            const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
-            const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
-            return this.callGemini(systemPrompt, userPrompt);
-        },
-        async analyzePlacement(transcript, preliminaryLevel) {
-            const systemPrompt = `You are an expert language proficiency evaluator. The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. Your job is to confirm or adjust this level based on a short, free-form conversation. Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). Respond with only the final level (e.g., "B1").`;
-            const userPrompt = `Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?`;
-            return this.callGemini(systemPrompt, userPrompt);
-        }
-    };
+    const dom = {
+        authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
+        placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
+        signupView: document.getElementById('signup-view'), loginEmailInput: document.getElementById('login-email-input'),
+        loginPasswordInput: document.getElementById('login-password-input'), loginBtn: document.getElementById('login-btn'),
+        showSignupBtn: document.getElementById('show-signup-btn'), loginError: document.getElementById('login-error'),
+        signupNameInput: document.getElementById('signup-name-input'), signupEmailInput: document.getElementById('signup-email-input'),
+        signupPasswordInput: document.getElementById('signup-password-input'), signupBtn: document.getElementById('signup-btn'),
+        showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
+        logoutBtn: document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
+        questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
+        chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
+        sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
+        settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
+        closeSettingsBtn: document.getElementById('close-settings-btn'), dialectSelect: document.getElementById('dialect-select'),
+        formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
+        endSessionBtn: document.getElementById('end-session-btn'), translationPopover: document.getElementById('translation-popover'),
+        vignetteModal: document.getElementById('vignette-modal'), vignetteTitle: document.getElementById('vignette-title'),
+        vignetteText: document.getElementById('vignette-text'), startStageBtn: document.getElementById('start-stage-btn'),
+        mapModal: document.getElementById('map-modal'), mapTitle: document.getElementById('map-title'),
+        mapObjective: document.getElementById('map-objective'), mapContainer: document.getElementById('map-container'),
+        mapImage: document.getElementById('map-image'), stageCompleteModal: document.getElementById('stage-complete-modal'),
+        clueText: document.getElementById('clue-text'), xpGainText: document.getElementById('xp-gain-text'),
+        continueQuestBtn: document.getElementById('continue-quest-btn'), hintBtn: document.getElementById('hint-btn'),
+        placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
+        placementChatView: document.getElementById('placement-chat-view'), placementChatContainer: document.getElementById('placement-chat-container'),
+        placementChatInput: document.getElementById('placement-chat-input'), placementSendBtn: document.getElementById('placement-send-btn'),
+        retakePlacementBtn: document.getElementById('retake-placement-btn'), appContainer: document.getElementById('app-container'),
+        quizQuestionText: document.getElementById('quiz-question-text'), quizOptions: document.getElementById('quiz-options'),
+        placementProgress: document.getElementById('placement-progress'),
+        vocabBtn: document.getElementById('vocab-btn'),
+        vocabularyView: document.getElementById('vocabulary-view'),
+        vocabularyContainer: document.getElementById('vocabulary-container'),
+        backToQuestsBtn: document.getElementById('back-to-quests-btn'),
+    };
 
-    const placementQuizData = {
-        'A1': [
-            { question: "Which of these means 'hello'?", options: ["Adiós", "Hola", "Gracias"], answer: "Hola" },
-            { question: "How do you say 'thank you'?", options: ["Por favor", "Lo siento", "Gracias"], answer: "Gracias" },
-        ],
-        'A2': [
-            { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré"], answer: "Hablé" },
-            { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches"], answer: "Los coches rojos" },
-        ],
-        'B1': [
-            { question: "Choose the correct subjunctive form: 'I hope you ___ well.' (estar)", options: ["estás", "estés", "estar"], answer: "estés" },
-            { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something"], answer: "To have just done something" },
-        ]
-    };
+    const AIManager = {
+        async callGemini(systemPrompt, userPrompt) {
+            if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
+            const url = https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY};
+            try {
+                const response = await fetch(url, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+                        systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
+                    })
+                });
+                if (!response.ok) { const err = await response.json(); return Error: ${err.error.message}; }
+                const result = await response.json();
+                return result.candidates[0].content.parts[0].text;
+            } catch (error) { return "Sorry, could not connect to AI service."; }
+        },
+        async getTranslation(word) {
+            if (!TRANSLATE_API_KEY || TRANSLATE_API_KEY.includes("PASTE")) return "ERROR: Translate API Key not configured.";
+            const url = https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY};
+            try {
+                const response = await fetch(url, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q: word, target: 'en', source: 'es' })
+                });
+                if (!response.ok) return "Translation failed.";
+                const result = await response.json();
+                return result.data.translations[0].translatedText;
+            } catch (error) { return "Translation unavailable."; }
+        },
+        async getResponse(history, stage, settings) {
+            const systemPrompt = You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.;
+            const userHistory = history.map(m => ${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}).join('\n');
+            const userPrompt = Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.;
+            return this.callGemini(systemPrompt, userPrompt);
+        },
+        async analyzePlacement(transcript, preliminaryLevel) {
+            const systemPrompt = You are an expert language proficiency evaluator. The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. Your job is to confirm or adjust this level based on a short, free-form conversation. Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). Respond with only the final level (e.g., "B1").;
+            const userPrompt = Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?;
+            return this.callGemini(systemPrompt, userPrompt);
+        }
+    };
 
-    const quests = {
-      "hola-mercado": {
-        title: "El Mercado de la Mañana",
-        objective: "Find fresh fruit and ask prices politely.",
-        mapImage: "https://placehold.co/600x400/90caf9/0d47a1?text=Mercado",
-        stages: {
-          "1": {
-            id: "1",
-            characterName: "Vendedor del Mercado",
-            systemPrompt: "You are a friendly market vendor in CDMX. Keep responses to 1–2 sentences in clear A1/A2 Spanish with Mexican flavor.",
-            vignette_en: "You approach a fruit stand. The vendor smiles and asks how he can help.",
-            initialMessage: "¡Buenos días! ¿Qué buscas hoy?",
-            reward: { xp: 25, clue: "Aprendiste a pedir precios y cantidades." },
-            nextStages: []
-          }
-        }
-      }
-    };
+    const placementQuizData = {
+        'A1': [
+            { question: "Which of these means 'hello'?", options: ["Adiós", "Hola", "Gracias"], answer: "Hola" },
+            { question: "How do you say 'thank you'?", options: ["Por favor", "Lo siento", "Gracias"], answer: "Gracias" },
+        ],
+        'A2': [
+            { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré"], answer: "Hablé" },
+            { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches"], answer: "Los coches rojos" },
+        ],
+        'B1': [
+            { question: "Choose the correct subjunctive form: 'I hope you ___ well.' (estar)", options: ["estás", "estés", "estar"], answer: "estés" },
+            { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something"], answer: "To have just done something" },
+        ]
+    };
 
-    // Main view switcher
-    function showView(viewId) {
-        document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
-        document.getElementById(viewId)?.classList.add('active');
-    }
+    const quests = {
+      "hola-mercado": {
+        title: "El Mercado de la Mañana",
+        objective: "Find fresh fruit and ask prices politely.",
+        mapImage: "https://placehold.co/600x400/90caf9/0d47a1?text=Mercado",
+        stages: {
+          "1": {
+            id: "1",
+            characterName: "Vendedor del Mercado",
+            systemPrompt: "You are a friendly market vendor in CDMX. Keep responses to 1–2 sentences in clear A1/A2 Spanish with Mexican flavor.",
+            vignette_en: "You approach a fruit stand. The vendor smiles and asks how he can help.",
+            initialMessage: "¡Buenos días! ¿Qué buscas hoy?",
+            reward: { xp: 25, clue: "Aprendiste a pedir precios y cantidades." },
+            nextStages: []
+          }
+        }
+      }
+    };
 
-    // View switcher for inside the main app
-    function showAppView(view) { // 'quests' or 'chat'
-        if (view === 'quests') {
-            dom.questView.classList.remove('hidden');
-            dom.chatView.classList.add('hidden');
-        } else if (view === 'chat') {
-            dom.questView.classList.add('hidden');
-            dom.chatView.classList.remove('hidden');
-        }
-    }
+    // Main view switcher
+    function showView(viewId) {
+        document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId)?.classList.add('active');
+    }
 
-    function renderQuests() {
-        if (!dom.questView) return;
-        const list = dom.questView.querySelector('.space-y-3');
-        if (!list) return;
-        const ids = Object.keys(quests || {});
-        if (ids.length === 0) {
-            list.innerHTML = `<div class="text-sm text-gray-500">No quests yet. Add some in code.</div>`;
-            return;
-        }
-        list.innerHTML = ids.map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
-    }
-    
-    function showMapView(questId) {
-        currentQuest = { ...quests[questId], id: questId };
-        dom.mapTitle.textContent = currentQuest.title;
-        dom.mapObjective.textContent = currentQuest.objective;
-        dom.mapImage.src = currentQuest.mapImage;
-        dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
-        const nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
-        nextStageIds.forEach((stageId, index) => {
-            const location = document.createElement('div');
-            location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
-            location.style.left = `${20 + index * 40}%`;
-            location.style.top = `${40 + (index % 2 * 15)}%`;
-            location.innerHTML = '<span>📍</span>';
-            location.dataset.questId = questId;
-            location.dataset.stageId = stageId;
-            dom.mapContainer.appendChild(location);
-        });
-        dom.mapModal.classList.remove('hidden');
-    }
-    
-    function showVignette(questId, stageId) {
-        const q = quests[questId];
-        if (!q) { console.warn('Quest not found:', questId); return; }
-        const s = q.stages?.[stageId];
-        if (!s) { console.warn('Stage not found:', questId, stageId); return; }
-        currentQuest = { ...q, id: questId };
-        currentStage = { ...s, id: stageId, questId };
-        dom.vignetteTitle.textContent = currentStage.characterName;
-        dom.vignetteText.textContent = currentStage.vignette_en; 
-        dom.vignetteModal.classList.remove('hidden');
-    }
+    // View switcher for inside the main app
+    function showAppView(view) { // 'quests', 'chat', or 'vocabulary'
+        dom.questView.classList.add('hidden');
+        dom.chatView.classList.add('hidden');
+        dom.vocabularyView.classList.add('hidden');
 
-    function startStage() {
-        if (!currentStage) return;
-        messages = [];
-        dom.chatTitle.textContent = currentStage.characterName;
-        dom.chatContainer.innerHTML = '';
-        addMessage(currentStage.initialMessage, 'ai');
-        dom.vignetteModal.classList.add('hidden');
-        showAppView('chat');
-    }
-    
-    function addMessage(text, role, container = dom.chatContainer) {
-        const history = (container === dom.placementChatContainer) ? placementMessages : messages;
-        history.push({ role: role, parts: [{ text: text }] });
-        const isUser = role === 'user';
-        const wrapper = document.createElement('div');
-        wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
-        
-        if (!isUser) {
-            text.split(/(\s+)/).forEach(part => {
-                if (part.trim().length > 0) {
-                    const wordSpan = document.createElement('span');
-                    wordSpan.className = 'clickable-word';
-                    wordSpan.textContent = part;
-                    bubble.appendChild(wordSpan);
-                } else {
-                    bubble.appendChild(document.createTextNode(part));
-                }
-            });
-        } else { bubble.textContent = text; }
-        wrapper.appendChild(bubble);
-        container.insertBefore(wrapper, container.firstChild);
-    }
+        if (view === 'quests') {
+            dom.questView.classList.remove('hidden');
+        } else if (view === 'chat') {
+            dom.chatView.classList.remove('hidden');
+        } else if (view === 'vocabulary') {
+            dom.vocabularyView.classList.remove('hidden');
+        }
+    }
 
-    async function handleSendMessage() {
-        const userInput = dom.chatInput.value.trim();
-        if (!userInput) return;
-        addMessage(userInput, 'user');
-        dom.chatInput.value = '';
-        if (!GEMINI_API_KEY || GEMINI_API_KEY.includes('PASTE')) {
-            addMessage('(Tutor) ¡Bien! Cuéntame, ¿qué fruta te gusta comprar en el mercado?', 'ai');
-            return;
-        }
-        const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
-        addMessage(response, 'ai');
-    }
-    
-    async function endStage() {
-         dom.clueText.textContent = currentStage.reward.clue;
-         dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
-         dom.stageCompleteModal.classList.remove('hidden');
-    }
+    function renderQuests() {
+        if (!dom.questView) return;
+        const list = dom.questView.querySelector('.space-y-3');
+        if (!list) return;
+        const ids = Object.keys(quests || {});
+        if (ids.length === 0) {
+            list.innerHTML = <div class="text-sm text-gray-500">No quests yet. Add some in code.</div>;
+            return;
+        }
+        list.innerHTML = ids.map(id => <div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>).join('');
+    }
+    
+    function showMapView(questId) {
+        currentQuest = { ...quests[questId], id: questId };
+        dom.mapTitle.textContent = currentQuest.title;
+        dom.mapObjective.textContent = currentQuest.objective;
+        dom.mapImage.src = currentQuest.mapImage;
+        dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
+        const nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
+        nextStageIds.forEach((stageId, index) => {
+            const location = document.createElement('div');
+            location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
+            location.style.left = ${20 + index * 40}%;
+            location.style.top = ${40 + (index % 2 * 15)}%;
+            location.innerHTML = '<span>📍</span>';
+            location.dataset.questId = questId;
+            location.dataset.stageId = stageId;
+            dom.mapContainer.appendChild(location);
+        });
+        dom.mapModal.classList.remove('hidden');
+    }
+    
+    function showVignette(questId, stageId) {
+        const q = quests[questId];
+        if (!q) { console.warn('Quest not found:', questId); return; }
+        const s = q.stages?.[stageId];
+        if (!s) { console.warn('Stage not found:', questId, stageId); return; }
+        currentQuest = { ...q, id: questId };
+        currentStage = { ...s, id: stageId, questId };
+        dom.vignetteTitle.textContent = currentStage.characterName;
+        dom.vignetteText.textContent = currentStage.vignette_en; 
+        dom.vignetteModal.classList.remove('hidden');
+    }
 
-    async function handlePlacementSend() {
-        const userInput = dom.placementChatInput.value.trim();
-        if (!userInput) return;
-        addMessage(userInput, 'user', dom.placementChatContainer);
-        dom.placementChatInput.value = '';
+    function startStage() {
+        if (!currentStage) return;
+        messages = [];
+        dom.chatTitle.textContent = currentStage.characterName;
+        dom.chatContainer.innerHTML = '';
+        addMessage(currentStage.initialMessage, 'ai');
+        dom.vignetteModal.classList.add('hidden');
+        showAppView('chat');
+    }
+    
+    function addMessage(text, role, container = dom.chatContainer) {
+        const history = (container === dom.placementChatContainer) ? placementMessages : messages;
+        history.push({ role: role, parts: [{ text: text }] });
+        const isUser = role === 'user';
+        const wrapper = document.createElement('div');
+        wrapper.className = w-full flex flex-col ${isUser ? 'items-end' : 'items-start'};
+        const bubble = document.createElement('div');
+        bubble.className = chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'};
+        
+        if (!isUser) {
+            text.split(/(\s+)/).forEach(part => {
+                if (part.trim().length > 0) {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = 'clickable-word';
+                    wordSpan.textContent = part;
+                    bubble.appendChild(wordSpan);
+                } else {
+                    bubble.appendChild(document.createTextNode(part));
+                }
+            });
+        } else { bubble.textContent = text; }
+        wrapper.appendChild(bubble);
+        container.insertBefore(wrapper, container.firstChild);
+    }
 
-        if (placementMessages.length >= 4) { // End chat after 2 user responses
-             addMessage('Analyzing your level...', 'ai', dom.placementChatContainer);
-             const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
-             const finalLevel = await AIManager.analyzePlacement(transcript, preliminaryLevel);
-             await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel.trim() });
-             userSettings.proficiencyLevel = finalLevel.trim();
-             alert(`Excellent! We've placed you at level: ${finalLevel.trim()}. Let's get started!`);
-             showView('main-app-view');
-        } else {
-            const prompt = "Ask another open-ended question to gauge their fluency.";
-            const response = await AIManager.callGemini(`You are a language evaluator confirming a ${preliminaryLevel} student.`, prompt);
-            addMessage(response, 'ai', dom.placementChatContainer);
-        }
-    }
-    
-    function getUserDocRef(userId) {
-        if (!userId) return null;
-        return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
-    }
-    async function saveUserSettings(userId, settings) {
-        const userDocRef = getUserDocRef(userId);
-        if (!userDocRef) return;
-        await setDoc(userDocRef, settings, { merge: true });
-    }
-    async function loadUserSettings(userId) {
-        const userDocRef = getUserDocRef(userId);
-        try {
-            const snap = await getDoc(userDocRef);
-            if (snap.exists() && snap.data()) {
-                userSettings = { ...userSettings, ...snap.data() };
-            } else {
-                console.log('No user settings document found, creating one.');
-                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
-                await setDoc(userDocRef, initialSettings);
-                userSettings = { ...userSettings, ...initialSettings };
-            }
-            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
-            if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
-            if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
-        } catch (error) {
-            console.error("Error loading or creating user settings:", error);
-        }
-    }
+    async function handleSendMessage() {
+        const userInput = dom.chatInput.value.trim();
+        if (!userInput) return;
+        addMessage(userInput, 'user');
+        dom.chatInput.value = '';
+        if (!GEMINI_API_KEY || GEMINI_API_KEY.includes('PASTE')) {
+            addMessage('(Tutor) ¡Bien! Cuéntame, ¿qué fruta te gusta comprar en el mercado?', 'ai');
+            return;
+        }
+        const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
+        addMessage(response, 'ai');
+    }
+    
+    async function endStage() {
+         dom.clueText.textContent = currentStage.reward.clue;
+         dom.xpGainText.textContent = +${currentStage.reward.xp} XP;
+         dom.stageCompleteModal.classList.remove('hidden');
+    }
 
-    function startPlacementTest() {
-        currentQuizLevel = 'A1';
-        currentLevelQuestionIndex = 0;
-        incorrectAnswersInLevel = 0;
-        preliminaryLevel = 'A1';
-        renderPlacementQuestion();
-        showView('placement-view');
-    }
+    async function handlePlacementSend() {
+        const userInput = dom.placementChatInput.value.trim();
+        if (!userInput) return;
+        addMessage(userInput, 'user', dom.placementChatContainer);
+        dom.placementChatInput.value = '';
 
-    function renderPlacementQuestion() {
-        const levelQuestions = placementQuizData[currentQuizLevel];
-        if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
-            if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { 
-                preliminaryLevel = currentQuizLevel === 'A1' ? 'A2' : 'B1';
-                currentQuizLevel = preliminaryLevel;
-                currentLevelQuestionIndex = 0;
-                incorrectAnswersInLevel = 0;
-                renderPlacementQuestion(); 
-            } else {
-                finishQuiz();
-            }
-            return;
-        }
+        if (placementMessages.length >= 4) { // End chat after 2 user responses
+             addMessage('Analyzing your level...', 'ai', dom.placementChatContainer);
+             const transcript = placementMessages.map(m => ${m.role}: ${m.parts[0].text}).join('\n');
+             const finalLevel = await AIManager.analyzePlacement(transcript, preliminaryLevel);
+             await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel.trim() });
+             userSettings.proficiencyLevel = finalLevel.trim();
+             alert(Excellent! We've placed you at level: ${finalLevel.trim()}. Let's get started!);
+             showView('main-app-view');
+        } else {
+            const prompt = "Ask another open-ended question to gauge their fluency.";
+            const response = await AIManager.callGemini(You are a language evaluator confirming a ${preliminaryLevel} student., prompt);
+            addMessage(response, 'ai', dom.placementChatContainer);
+        }
+    }
+    
+    function getUserDocRef(userId) {
+        if (!userId) return null;
+        return doc(db, 'artifacts', appId, 'users', userId, 'settings', 'data');
+    }
+    async function saveUserSettings(userId, settings) {
+        const userDocRef = getUserDocRef(userId);
+        if (!userDocRef) return;
+        await setDoc(userDocRef, settings, { merge: true });
+    }
+    async function loadUserSettings(userId) {
+        const userDocRef = getUserDocRef(userId);
+        try {
+            const snap = await getDoc(userDocRef);
+            if (snap.exists() && snap.data()) {
+                userSettings = { ...userSettings, ...snap.data() };
+            } else {
+                console.log('No user settings document found, creating one.');
+                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
+                await setDoc(userDocRef, initialSettings);
+                userSettings = { ...userSettings, ...initialSettings };
+            }
+            if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
+            if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
+            if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
+        } catch (error) {
+            console.error("Error loading or creating user settings:", error);
+        }
+    }
 
-        const questionData = levelQuestions[currentLevelQuestionIndex];
-        dom.quizQuestionText.textContent = questionData.question;
-        dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1}`;
-        dom.quizOptions.innerHTML = questionData.options.map(option => 
-            `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
-        ).join('');
-    }
+    async function saveVocabularyWord(spanishWord, englishTranslation) {
+        if (!currentUser) return;
+        const cleanSpanishWord = spanishWord.toLowerCase();
+        const vocabRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'vocabulary', cleanSpanishWord);
+        try {
+            await setDoc(vocabRef, {
+                spanish: spanishWord,
+                english: englishTranslation,
+                createdAt: serverTimestamp()
+            }, { merge: true }); // Use merge to not overwrite if it already exists
+            console.log(Saved '${spanishWord}' to vocabulary.);
+        } catch (error) {
+            console.error("Error saving vocabulary word:", error);
+        }
+    }
 
-    function finishQuiz() {
-        if (preliminaryLevel === 'A1' && incorrectAnswersInLevel > 0) {
-            alert(`Thanks! Based on your results, we'll start with the basics.`);
-            saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
-            userSettings.proficiencyLevel = 'A1';
-            showView('main-app-view');
-        } else {
-            alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.`);
-            dom.placementQuizView.classList.add('hidden');
-            dom.placementChatView.classList.remove('hidden');
-            addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
-        }
-    }
+    async function renderVocabulary() {
+        if (!currentUser) return;
+        const vocabCollectionRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'vocabulary');
+        const q = query(vocabCollectionRef); // You could add ordering here later, e.g., orderBy('createdAt', 'desc')
 
-    /* === PATCHED: Robust UI flip after sign-in === */
-    async function handleUserSignIn(user) {
-        if (!user) return;
-        currentUser = user;
-        let settingsLoaded = false;
-        try {
-            await loadUserSettings(user.uid);
-            settingsLoaded = true;
-        } catch (error) {
-            console.error("Critical error during sign-in process:", error);
-            dom.loginError.textContent = "Signed in, but couldn't load your profile. Continuing with defaults.";
-        }
-        // Always set a welcome line
-        dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-        // Decide view even if settings failed
-        const level = (userSettings && userSettings.proficiencyLevel) ? String(userSettings.proficiencyLevel) : null;
-        if (!settingsLoaded || !level || level === 'null') {
-            startPlacementTest();
-        } else {
-            showView('main-app-view');
-            showAppView('quests');
-        }
-    }
-    
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            if (!currentUser) {
-                handleUserSignIn(user);
-            }
-        } else {
-            currentUser = null;
-            showView('auth-container');
-        }
-    });
-    
-    dom.loginBtn.addEventListener('click', async () => {
-        dom.loginError.textContent = '';
-        const email = dom.loginEmailInput.value.trim();
-        const password = dom.loginPasswordInput.value.trim();
-        try { 
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            await handleUserSignIn(userCredential.user);
-        } 
-        catch (error) { dom.loginError.textContent = error.message; }
-    });
+        try {
+            const querySnapshot = await getDocs(q);
+            if (querySnapshot.empty) {
+                dom.vocabularyContainer.innerHTML = <p class="text-gray-500 text-center mt-4">Your vocabulary list is empty. Click on words in a chat to add them!</p>;
+                return;
+            }
 
-    dom.signupBtn.addEventListener('click', async () => {
-        dom.signupError.textContent = '';
-        const name = dom.signupNameInput.value.trim();
-        const email = dom.signupEmailInput.value.trim();
-        const password = dom.signupPasswordInput.value.trim();
-        if (!name || !email || !password) { dom.signupError.textContent = 'All fields are required.'; return; }
-        try {
-            const cred = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(cred.user, { displayName: name });
-            await handleUserSignIn(cred.user);
-        } catch (error) { dom.signupError.textContent = error.message; }
-    });
-    
-    dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
-    dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
-    if(dom.logoutBtn) dom.logoutBtn.addEventListener('click', () => signOut(auth));
-    if(dom.settingsBtn) dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
-    if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
-    if(dom.retakePlacementBtn) dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
-    if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
-    if(dom.mapContainer) dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
-    if(dom.startStageBtn) dom.startStageBtn.addEventListener('click', startStage);
-    if(dom.continueQuestBtn) dom.continueQuestBtn.addEventListener('click', () => {
-        dom.stageCompleteModal.classList.add('hidden');
-        showAppView('quests');
-        if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
-        else { alert('Quest Complete! 🎉'); }
-    });
-    if (dom.sendBtn) dom.sendBtn.addEventListener('click', handleSendMessage);
-    if (dom.chatInput) dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
-    if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage);
-    dom.submitQuizBtn.addEventListener('click', () => {
-        const selected = document.querySelector('input[name="quiz"]:checked');
-        if (!selected) { alert('Please select an answer.'); return; }
-        const levelQuestions = placementQuizData[currentQuizLevel];
-        if (selected.value !== levelQuestions[currentLevelQuestionIndex].answer) {
-            incorrectAnswersInLevel++;
-        }
-        currentLevelQuestionIndex++;
-        renderPlacementQuestion();
-    });
-    if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
-    if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
-    dom.chatContainer.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('clickable-word')) {
-            const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
-            if (!word) return;
-            let translation = '(translation unavailable)';
-            if (TRANSLATE_API_KEY && !TRANSLATE_API_KEY.includes('PASTE')) {
-                translation = await AIManager.getTranslation(word);
-            }
-            const popover = dom.translationPopover;
-            popover.textContent = translation;
-            const rect = e.target.getBoundingClientRect();
-            const containerRect = dom.appContainer.getBoundingClientRect();
-            popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
-            popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
-            popover.classList.remove('hidden');
-        }
-    });
-    document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
+            let flashcardsHTML = '';
+            querySnapshot.forEach(doc => {
+                const word = doc.data();
+                flashcardsHTML +=                     <div class="p-4 border rounded-lg bg-white shadow-sm cursor-pointer flashcard">                         <p class="text-lg font-semibold">${word.spanish}</p>                         <p class="text-gray-600 english-translation hidden">→ ${word.english}</p>                     </div>                ;
+            });
+            dom.vocabularyContainer.innerHTML = flashcardsHTML;
+        } catch (error) {
+            console.error("Error fetching vocabulary:", error);
+            dom.vocabularyContainer.innerHTML = <p class="text-red-500 text-center mt-4">Could not load your vocabulary.</p>;
+        }
+    }
 
-    renderQuests();
+    function startPlacementTest() {
+        currentQuizLevel = 'A1';
+        currentLevelQuestionIndex = 0;
+        incorrectAnswersInLevel = 0;
+        preliminaryLevel = 'A1';
+        renderPlacementQuestion();
+        showView('placement-view');
+    }
 
-  </script>
+    function renderPlacementQuestion() {
+        const levelQuestions = placementQuizData[currentQuizLevel];
+        if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
+            if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { 
+                preliminaryLevel = currentQuizLevel === 'A1' ? 'A2' : 'B1';
+                currentQuizLevel = preliminaryLevel;
+                currentLevelQuestionIndex = 0;
+                incorrectAnswersInLevel = 0;
+                renderPlacementQuestion(); 
+            } else {
+                finishQuiz();
+            }
+            return;
+        }
+
+        const questionData = levelQuestions[currentLevelQuestionIndex];
+        dom.quizQuestionText.textContent = questionData.question;
+        dom.placementProgress.textContent = Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1};
+        dom.quizOptions.innerHTML = questionData.options.map(option => 
+            <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>
+        ).join('');
+    }
+
+    function finishQuiz() {
+        if (preliminaryLevel === 'A1' && incorrectAnswersInLevel > 0) {
+            alert(Thanks! Based on your results, we'll start with the basics.);
+            saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
+            userSettings.proficiencyLevel = 'A1';
+            showView('main-app-view');
+        } else {
+            alert(Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.);
+            dom.placementQuizView.classList.add('hidden');
+            dom.placementChatView.classList.remove('hidden');
+            addMessage(¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?, 'ai', dom.placementChatContainer);
+        }
+    }
+
+    /* === PATCHED: Robust UI flip after sign-in === */
+    async function handleUserSignIn(user) {
+        if (!user) return;
+        currentUser = user;
+        let settingsLoaded = false;
+        try {
+            await loadUserSettings(user.uid);
+            settingsLoaded = true;
+        } catch (error) {
+            console.error("Critical error during sign-in process:", error);
+            dom.loginError.textContent = "Signed in, but couldn't load your profile. Continuing with defaults.";
+        }
+        // Always set a welcome line
+        dom.welcomeMessage.textContent = Welcome, ${user.displayName || 'Friend'}!;
+        // Decide view even if settings failed
+        const level = (userSettings && userSettings.proficiencyLevel) ? String(userSettings.proficiencyLevel) : null;
+        if (!settingsLoaded || !level || level === 'null') {
+            startPlacementTest();
+        } else {
+            showView('main-app-view');
+            showAppView('quests');
+        }
+    }
+    
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            if (!currentUser) {
+                handleUserSignIn(user);
+            }
+        } else {
+            currentUser = null;
+            showView('auth-container');
+        }
+    });
+    
+    dom.loginBtn.addEventListener('click', async () => {
+        dom.loginError.textContent = '';
+        const email = dom.loginEmailInput.value.trim();
+        const password = dom.loginPasswordInput.value.trim();
+        try { 
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            await handleUserSignIn(userCredential.user);
+        } 
+        catch (error) { dom.loginError.textContent = error.message; }
+    });
+
+    dom.signupBtn.addEventListener('click', async () => {
+        dom.signupError.textContent = '';
+        const name = dom.signupNameInput.value.trim();
+        const email = dom.signupEmailInput.value.trim();
+        const password = dom.signupPasswordInput.value.trim();
+        if (!name || !email || !password) { dom.signupError.textContent = 'All fields are required.'; return; }
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            await updateProfile(cred.user, { displayName: name });
+            await handleUserSignIn(cred.user);
+        } catch (error) { dom.signupError.textContent = error.message; }
+    });
+    
+    dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
+    dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
+    if(dom.logoutBtn) dom.logoutBtn.addEventListener('click', () => signOut(auth));
+    if(dom.settingsBtn) dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
+    if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
+    if(dom.retakePlacementBtn) dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
+    if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
+    if(dom.mapContainer) dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
+    if(dom.startStageBtn) dom.startStageBtn.addEventListener('click', startStage);
+    if(dom.continueQuestBtn) dom.continueQuestBtn.addEventListener('click', () => {
+        dom.stageCompleteModal.classList.add('hidden');
+        showAppView('quests');
+        if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
+        else { alert('Quest Complete! 🎉'); }
+    });
+    if (dom.sendBtn) dom.sendBtn.addEventListener('click', handleSendMessage);
+    if (dom.chatInput) dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+    if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage);
+    dom.submitQuizBtn.addEventListener('click', () => {
+        const selected = document.querySelector('input[name="quiz"]:checked');
+        if (!selected) { alert('Please select an answer.'); return; }
+        const levelQuestions = placementQuizData[currentQuizLevel];
+        if (selected.value !== levelQuestions[currentLevelQuestionIndex].answer) {
+            incorrectAnswersInLevel++;
+        }
+        currentLevelQuestionIndex++;
+        renderPlacementQuestion();
+    });
+    if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
+    if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
+    
+    if(dom.vocabBtn) dom.vocabBtn.addEventListener('click', () => {
+      renderVocabulary();
+      showAppView('vocabulary');
+    });
+
+    if(dom.backToQuestsBtn) dom.backToQuestsBtn.addEventListener('click', () => showAppView('quests'));
+
+    if(dom.vocabularyContainer) dom.vocabularyContainer.addEventListener('click', (e) => {
+        const card = e.target.closest('.flashcard');
+        if (card) {
+            const translation = card.querySelector('.english-translation');
+            if (translation) {
+                translation.classList.toggle('hidden');
+            }
+        }
+    });
+
+    dom.chatContainer.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('clickable-word')) {
+            const word = e.target.textContent.trim().replace(/[.,!?¡¿]/g, '');
+            if (!word) return;
+            
+            let translation = '(translation unavailable)';
+            if (TRANSLATE_API_KEY && !TRANSLATE_API_KEY.includes('PASTE')) {
+                translation = await AIManager.getTranslation(word);
+                if (translation !== "Translation unavailable." && translation !== "Translation failed.") {
+                    await saveVocabularyWord(word, translation);
+                }
+            }
+            
+            const popover = dom.translationPopover;
+            popover.textContent = translation;
+            const rect = e.target.getBoundingClientRect();
+            const containerRect = dom.appContainer.getBoundingClientRect();
+            popover.style.left = ${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px;
+            popover.style.top = ${rect.top - containerRect.top - popover.offsetHeight - 8}px;
+            popover.classList.remove('hidden');
+        }
+    });
+    document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
+
+    renderQuests();
+
+  </script>
+
 </body>
 </html>
-```
