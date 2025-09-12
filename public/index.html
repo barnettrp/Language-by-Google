@@ -869,31 +869,44 @@
         showView('main-app-view');
     }
 
+    async function initializeAppLogic(user) {
+        currentUser = user;
+        await loadUserSettings(user.uid);
+        
+        dom.welcomeMessage.textContent = `Welcome, ${userSettings.name || user.displayName || 'Friend'}!`;
+
+        const level = userSettings.proficiencyLevel ? String(userSettings.proficiencyLevel) : null;
+        if (!level || level === 'null') {
+            startPlacementTest();
+        } else {
+            renderQuests();
+            showView('main-app-view');
+            showAppView('quests');
+        }
+    }
+
+    function showLoginScreen() {
+        currentUser = null;
+        userSettings = {};
+        showView('auth-container');
+    }
+
     // This new listener is the single source of truth for app initialization.
-    onAuthStateChanged(auth, async (user) => { // Note the 'async' keyword
+    onAuthStateChanged(auth, async (user) => {
         try {
             if (user) {
-                // Only run the sign-in logic if there is no current user
-                // OR if the new user's ID is different from the one we have stored.
                 if (!currentUser || currentUser.uid !== user.uid) {
-                    await initializeAppLogic(user); // Note the 'await' keyword
+                    await initializeAppLogic(user);
                 }
             } else {
-                // Only run the sign-out logic if there was a user to sign out.
-                if (currentUser) {
-                    showLoginScreen();
-                } else {
-                   // This case handles the very first load when user is null and there's no one to sign out
-                   showLoginScreen();
-                }
+                showLoginScreen();
             }
         } catch (error) {
             console.error("Unhandled error during auth state change:", error);
-            // Display a generic error to the user on the login screen
             if(dom.loginError) {
                 dom.loginError.textContent = "An unexpected error occurred. Please try again.";
             }
-            showLoginScreen(); // Ensure user sees login screen on error
+            showLoginScreen(); // Ensure user sees login screen on error
         }
     });
     
