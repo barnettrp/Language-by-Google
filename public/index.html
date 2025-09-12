@@ -458,7 +458,7 @@
                 stages: {
                     "1": {
                         characterName: "Doctora Paciente",
-          _             objective: "Successfully describe at least two symptoms and answer a follow-up question from the doctor.",
+                        objective: "Successfully describe at least two symptoms and answer a follow-up question from the doctor.",
                         characterImage: "/images/cq_doctor_female_1.png",
                         backgroundImage: "/images/cq_clinic_1.png",
                         initialMessage: "Buenos días, pasa y toma asiento. Cuéntame, ¿qué te trae por aquí?",
@@ -851,20 +851,27 @@
         }
     }
     
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Only run the sign-in logic if there is no current user
-            // OR if the new user's ID is different from the one we have stored.
-            // This prevents the function from running again for the same user session.
-            if (!currentUser || currentUser.uid !== user.uid) {
-                handleUserSignIn(user);
+    onAuthStateChanged(auth, async (user) => { // Note the 'async' keyword
+        try {
+            if (user) {
+                // Only run the sign-in logic if there is no current user
+                // OR if the new user's ID is different from the one we have stored.
+                if (!currentUser || currentUser.uid !== user.uid) {
+                    await handleUserSignIn(user); // Note the 'await' keyword
+                }
+            } else {
+                // Only run the sign-out logic if there was a user to sign out.
+                if (currentUser) {
+                    currentUser = null;
+                    userSettings = {}; // Explicitly clear settings on logout.
+                    showView('auth-container');
+                }
             }
-        } else {
-            // Only run the sign-out logic if there was a user to sign out.
-            if (currentUser) {
-                currentUser = null;
-                userSettings = {}; // Explicitly clear settings on logout.
-                showView('auth-container');
+        } catch (error) {
+            console.error("Unhandled error during auth state change:", error);
+            // Display a generic error to the user on the login screen
+            if(dom.loginError) {
+                dom.loginError.textContent = "An unexpected error occurred. Please try again.";
             }
         }
     });
