@@ -49,6 +49,32 @@
         height: 90vh;
       }
     }
+    #chat-container {
+        background-color: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        border-radius: 8px;
+        margin: 8px;
+    }
+
+    @keyframes slide-in-float {
+        0% {
+            transform: translateX(100%) translateY(10px);
+            opacity: 0;
+        }
+        70% {
+            transform: translateX(0) translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(0) translateY(-10px);
+            opacity: 1;
+        }
+    }
+
+    #scene-character.animate {
+        animation: slide-in-float 1.5s ease-out forwards;
+    }
   </style>
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
@@ -124,14 +150,17 @@
         <div class="p-4 space-y-3 overflow-y-auto"></div>
       </div>
 
-      <div id="chat-view" class="hidden flex-col h-full">
-        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+      <div id="chat-view" class="hidden flex-col h-full relative overflow-hidden">
+        <img id="scene-background" src="" alt="Quest background" class="absolute top-0 left-0 w-full h-full object-cover z-0">
+        <img id="scene-character" src="" alt="Quest character" class="absolute bottom-0 right-0 h-2/3 z-10">
+        
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0 z-20">
           <button id="exit-quest-btn" title="Exit Quest" class="text-xl font-bold text-gray-500 hover:text-gray-800 transition-colors mr-3">←</button>
           <h1 id="chat-title" class="text-xl font-bold text-gray-800 flex-1"></h1>
           <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
         </header>
-        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
-        <div class="p-2 border-t bg-white/50 flex-shrink-0">
+        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto z-20"></div>
+        <div class="p-2 border-t bg-white/50 flex-shrink-0 z-20">
           <div class="flex items-center space-x-2">
             <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
             <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -290,7 +319,10 @@
     1. "responseText": A string containing your conversational reply in character.
     2. "isObjectiveComplete": A boolean (true or false).
 
-    Set "isObjectiveComplete" to true ONLY when the user has clearly and successfully met the objective. Otherwise, it must be false.`;
+    **Rules for Completion:**
+    - Set "isObjectiveComplete" to "false" if the conversation is ongoing and the objective is not yet met.
+    - When you determine the user has successfully met their objective, provide a natural concluding response (e.g., "Here is your coffee. Will that be all?").
+    - In that **same final response**, you MUST set "isObjectiveComplete" to "true". The application will then automatically end the quest. Do not wait for the user to say goodbye.`;
             
             const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
             const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response in the required JSON format.`;
@@ -298,7 +330,7 @@
             const rawResponse = await this.callGemini(systemPrompt, userPrompt);
 
             try {
-                // NEW: Use a regular expression to find the JSON block, ignoring markdown fences.
+                // Use a regular expression to find the JSON block, ignoring markdown fences.
                 const match = rawResponse.match(/{.*}/s);
                 if (match) {
                     // If a JSON-like block is found, parse it.
@@ -363,14 +395,12 @@
             "mercado-a1": {
                 title: "El Mercado de la Mañana",
                 objective: "Buy fruit at a local market.",
-                mapImage: "https://images.unsplash.com/photo-1571680323313-02a3a2a90189?q=80&w=2070&auto=format&fit=crop",
                 stages: {
                     "1": {
-                        id: "1",
                         characterName: "Vendedor de Frutas",
                         objective: "Successfully ask for a specific fruit and its price.",
-                        systemPrompt: "You are a friendly fruit vendor in a bustling Mexican market. Greet the customer and ask them what they would like. Use simple A1-level Spanish.",
-                        vignette_en: "You approach a colorful fruit stand. The vendor smiles warmly at you.",
+                        characterImage: "https://storage.googleapis.com/gemini-generations/cq_vendor_male_1.png",
+                        backgroundImage: "https://storage.googleapis.com/gemini-generations/cq_market_1.png",
                         initialMessage: "¡Buenos días! ¿Qué le damos hoy?",
                         reward: { xp: 25, clue: "The vendor said the professor was asking about 'rare blue corn'." }
                     }
@@ -379,14 +409,12 @@
             "cafe-a1": {
                 title: "El Café de la Esquina",
                 objective: "Order a coffee and a pastry.",
-                mapImage: "https://images.unsplash.com/photo-1559925393-8be0ec476acb?q=80&w=2070&auto=format&fit=crop",
                 stages: {
                     "1": {
-                        id: "1",
                         characterName: "Barista Amable",
                         objective: "Successfully order one coffee and one pastry.",
-                        systemPrompt: "You are a cheerful barista in a small café in Madrid. Ask the customer for their order using simple A1-level Spanish.",
-                        vignette_en: "The smell of fresh coffee fills the air as you walk up to the counter. The barista is ready to take your order.",
+                        characterImage: "https://storage.googleapis.com/gemini-generations/cq_barista_female_1.png",
+                        backgroundImage: "https://storage.googleapis.com/gemini-generations/cq_cafe_1.png",
                         initialMessage: "¡Hola! ¿Qué te pongo?",
                         reward: { xp: 25, clue: "The barista mentioned the professor paid with a strange, old coin." }
                     }
@@ -397,14 +425,12 @@
             "ropa-a2": {
                 title: "Comprando Ropa",
                 objective: "Ask for a shirt in a different size and color.",
-                mapImage: "https://images.unsplash.com/photo-1594969155368-f19461a85183?q=80&w=2070&auto=format&fit=crop",
                 stages: {
                     "1": {
-                        id: "1",
                         characterName: "Dependiente de Tienda",
                         objective: "Successfully ask for an article of clothing in a different size and color.",
-                        systemPrompt: "You are a helpful shop assistant in a clothing store in Barcelona. The customer is looking at a shirt. Ask if they need help or another size. Use A2-level Spanish.",
-                        vignette_en: "You're in a clothing store and see a shirt you like, but it's not in your size. A shop assistant approaches you.",
+                        characterImage: "https://storage.googleapis.com/gemini-generations/cq_clerk_male_1.png",
+                        backgroundImage: "https://storage.googleapis.com/gemini-generations/cq_clothing_store_1.png",
                         initialMessage: "Buenas, ¿te puedo ayudar en algo?",
                         reward: { xp: 35, clue: "The shopkeeper said the professor bought a blue scarf." }
                     }
@@ -413,14 +439,12 @@
             "direcciones-a2": {
                 title: "Direcciones en la Ciudad",
                 objective: "Ask a stranger for directions to the nearest metro station.",
-                mapImage: "https://images.unsplash.com/photo-1572455024142-b3f23f16259c?q=80&w=2070&auto=format&fit=crop",
                 stages: {
                     "1": {
-                        id: "1",
                         characterName: "Transeúnte Local",
                         objective: "Successfully ask for and understand directions to a specific place.",
-                        systemPrompt: "You are a local resident walking down a street in Buenos Aires. A tourist asks you for directions. Give simple, clear instructions to get to the metro. Use A2-level Spanish.",
-                        vignette_en: "You're a bit lost in a new city and need to find the subway to get back to your hotel. You decide to ask someone for help.",
+                        characterImage: "https://storage.googleapis.com/gemini-generations/cq_local_female_1.png",
+                        backgroundImage: "https://storage.googleapis.com/gemini-generations/cq_street_1.png",
                         initialMessage: "Disculpa, ¿necesitas ayuda?",
                         reward: { xp: 35, clue: "A local mentioned the professor was heading towards the old library." }
                     }
@@ -431,14 +455,12 @@
             "doctor-b1": {
                 title: "En el Consultorio del Doctor",
                 objective: "Describe your symptoms to a doctor.",
-                mapImage: "https://images.unsplash.com/photo-1576091160550-2173dba9996a?q=80&w=2070&auto=format&fit=crop",
                 stages: {
                     "1": {
-                        id: "1",
                         characterName: "Doctora Paciente",
                         objective: "Successfully describe at least two symptoms and answer a follow-up question from the doctor.",
-                        systemPrompt: "You are a caring doctor in a clinic in Bogotá. Ask your patient what their symptoms are and how long they've had them. Use B1-level medical vocabulary.",
-                        vignette_en: "You haven't been feeling well for a few days, so you've made a doctor's appointment. The doctor calls you into her office.",
+                        characterImage: "https://storage.googleapis.com/gemini-generations/cq_doctor_female_1.png",
+                        backgroundImage: "https://storage.googleapis.com/gemini-generations/cq_clinic_1.png",
                         initialMessage: "Buenos días, pasa y toma asiento. Cuéntame, ¿qué te trae por aquí?",
                         reward: { xp: 50, clue: "The doctor's records show the professor had a strange allergy to dust." }
                     }
@@ -485,6 +507,10 @@
         currentStage = null;
         sessionStartTime = null; // Stop the timer
 
+        // Clear visual assets
+        document.getElementById('scene-background').src = '';
+        document.getElementById('scene-character').src = '';
+
         // Switch the view back to the quest list
         showAppView('quests');
     }
@@ -529,12 +555,21 @@
 
     function startStage() {
         if (!currentStage) return;
+        
+        // Load visual assets
+        document.getElementById('scene-background').src = currentStage.backgroundImage || '';
+        const characterImg = document.getElementById('scene-character');
+        characterImg.src = currentStage.characterImage || '';
+        characterImg.classList.remove('animate'); // Reset animation
+        void characterImg.offsetWidth; // Trigger reflow to restart animation
+        characterImg.classList.add('animate');
+
         messages = [];
         dom.chatTitle.textContent = currentStage.characterName;
         dom.chatContainer.innerHTML = '';
         addMessage(currentStage.initialMessage);
         dom.vignetteModal.classList.add('hidden');
-        sessionStartTime = Date.now(); // START the timer
+        sessionStartTime = Date.now();
         showAppView('chat');
     }
     
