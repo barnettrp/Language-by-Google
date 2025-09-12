@@ -1,3 +1,4 @@
+```html
 <!-- CONVOQUEST APP V8.0 - COMPLETE FILE START -->
 <!DOCTYPE html>
 <html lang="en">
@@ -307,23 +308,23 @@
     };
 
     const quests = {
-  "hola-mercado": {
-    title: "El Mercado de la Mañana",
-    objective: "Find fresh fruit and ask prices politely.",
-    mapImage: "https://placehold.co/600x400/90caf9/0d47a1?text=Mercado",
-    stages: {
-      "1": {
-        id: "1",
-        characterName: "Vendedor del Mercado",
-        systemPrompt: "You are a friendly market vendor in CDMX. Keep responses to 1–2 sentences in clear A1/A2 Spanish with Mexican flavor.",
-        vignette_en: "You approach a fruit stand. The vendor smiles and asks how he can help.",
-        initialMessage: "¡Buenos días! ¿Qué buscas hoy?",
-        reward: { xp: 25, clue: "Aprendiste a pedir precios y cantidades." },
-        nextStages: []
+      "hola-mercado": {
+        title: "El Mercado de la Mañana",
+        objective: "Find fresh fruit and ask prices politely.",
+        mapImage: "https://placehold.co/600x400/90caf9/0d47a1?text=Mercado",
+        stages: {
+          "1": {
+            id: "1",
+            characterName: "Vendedor del Mercado",
+            systemPrompt: "You are a friendly market vendor in CDMX. Keep responses to 1–2 sentences in clear A1/A2 Spanish with Mexican flavor.",
+            vignette_en: "You approach a fruit stand. The vendor smiles and asks how he can help.",
+            initialMessage: "¡Buenos días! ¿Qué buscas hoy?",
+            reward: { xp: 25, clue: "Aprendiste a pedir precios y cantidades." },
+            nextStages: []
+          }
+        }
       }
-    }
-  }
-};
+    };
 
     // Main view switcher
     function showView(viewId) {
@@ -352,7 +353,6 @@
             return;
         }
         list.innerHTML = ids.map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
-    }
     }
     
     function showMapView(questId) {
@@ -537,21 +537,27 @@
         }
     }
 
+    /* === PATCHED: Robust UI flip after sign-in === */
     async function handleUserSignIn(user) {
         if (!user) return;
         currentUser = user;
+        let settingsLoaded = false;
         try {
             await loadUserSettings(user.uid);
-            dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-            if (!userSettings.proficiencyLevel) {
-                startPlacementTest();
-            } else {
-                showView('main-app-view');
-                showAppView('quests');
-            }
+            settingsLoaded = true;
         } catch (error) {
             console.error("Critical error during sign-in process:", error);
-            dom.loginError.textContent = "Could not load your profile. Please try again.";
+            dom.loginError.textContent = "Signed in, but couldn't load your profile. Continuing with defaults.";
+        }
+        // Always set a welcome line
+        dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
+        // Decide view even if settings failed
+        const level = (userSettings && userSettings.proficiencyLevel) ? String(userSettings.proficiencyLevel) : null;
+        if (!settingsLoaded || !level || level === 'null') {
+            startPlacementTest();
+        } else {
+            showView('main-app-view');
+            showAppView('quests');
         }
     }
     
@@ -637,17 +643,6 @@
             popover.classList.remove('hidden');
         }
     });
-            if (!word) return;
-            const translation = await AIManager.getTranslation(word);
-            const popover = dom.translationPopover;
-            popover.textContent = translation;
-            const rect = e.target.getBoundingClientRect();
-            const containerRect = dom.appContainer.getBoundingClientRect();
-            popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
-            popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
-            popover.classList.remove('hidden');
-        }
-    });
     document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
 
     renderQuests();
@@ -655,3 +650,4 @@
   </script>
 </body>
 </html>
+```
