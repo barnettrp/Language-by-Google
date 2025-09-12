@@ -104,6 +104,23 @@
             <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
         </header>
+
+                <div id="gamification-status" class="p-3 bg-blue-50/50 border-b border-gray-200/80 flex justify-between items-center text-sm">
+          <div class="flex-1 pr-4">
+              <div class="flex justify-between mb-1">
+                  <span id="user-level-text" class="font-bold text-blue-800">Level 1</span>
+                  <span id="user-xp-text" class="text-gray-600">0/100 XP</span>
+              </div>
+              <div class="w-full bg-blue-200 rounded-full h-2">
+                  <div id="xp-bar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+              </div>
+          </div>
+          <div id="streak-counter" class="text-center">
+              <span class="text-2xl">🔥</span>
+              <span id="streak-count-text" class="font-bold text-orange-600">0</span>
+          </div>
+        </div>
+                
         <div class="p-4 space-y-3 overflow-y-auto"></div>
       </div>
 
@@ -205,6 +222,7 @@
     let messages = [];
     let placementMessages = [];
     let currentLevelQuiz = [];
+    let sessionStartTime = null;
     
     let currentQuizLevel = 'A1';
     let currentLevelQuestionIndex = 0;
@@ -327,22 +345,87 @@
     };
 
     const quests = {
-      "hola-mercado": {
-        title: "El Mercado de la Mañana",
-        objective: "Find fresh fruit and ask prices politely.",
-        mapImage: "https://placehold.co/600x400/90caf9/0d47a1?text=Mercado",
-        stages: {
-          "1": {
-            id: "1",
-            characterName: "Vendedor del Mercado",
-            systemPrompt: "You are a friendly market vendor in CDMX. Keep responses to 1–2 sentences in clear A1/A2 Spanish with Mexican flavor.",
-            vignette_en: "You approach a fruit stand. The vendor smiles and asks how he can help.",
-            initialMessage: "¡Buenos días! ¿Qué buscas hoy?",
-            reward: { xp: 25, clue: "Aprendiste a pedir precios y cantidades." },
-            nextStages: []
-          }
+        'A1': {
+            "mercado-a1": {
+                title: "El Mercado de la Mañana",
+                objective: "Buy fruit at a local market.",
+                mapImage: "https://images.unsplash.com/photo-1571680323313-02a3a2a90189?q=80&w=2070&auto=format&fit=crop",
+                stages: {
+                    "1": {
+                        id: "1",
+                        characterName: "Vendedor de Frutas",
+                        systemPrompt: "You are a friendly fruit vendor in a bustling Mexican market. Greet the customer and ask them what they would like. Use simple A1-level Spanish.",
+                        vignette_en: "You approach a colorful fruit stand. The vendor smiles warmly at you.",
+                        initialMessage: "¡Buenos días! ¿Qué le damos hoy?",
+                        reward: { xp: 25, clue: "You learned to ask for fruit." }
+                    }
+                }
+            },
+            "cafe-a1": {
+                title: "El Café de la Esquina",
+                objective: "Order a coffee and a pastry.",
+                mapImage: "https://images.unsplash.com/photo-1559925393-8be0ec476acb?q=80&w=2070&auto=format&fit=crop",
+                stages: {
+                    "1": {
+                        id: "1",
+                        characterName: "Barista Amable",
+                        systemPrompt: "You are a cheerful barista in a small café in Madrid. Ask the customer for their order using simple A1-level Spanish.",
+                        vignette_en: "The smell of fresh coffee fills the air as you walk up to the counter. The barista is ready to take your order.",
+                        initialMessage: "¡Hola! ¿Qué te pongo?",
+                        reward: { xp: 25, clue: "You learned how to order a coffee." }
+                    }
+                }
+            }
+        },
+        'A2': {
+            "ropa-a2": {
+                title: "Comprando Ropa",
+                objective: "Ask for a shirt in a different size and color.",
+                mapImage: "https://images.unsplash.com/photo-1594969155368-f19461a85183?q=80&w=2070&auto=format&fit=crop",
+                stages: {
+                    "1": {
+                        id: "1",
+                        characterName: "Dependiente de Tienda",
+                        systemPrompt: "You are a helpful shop assistant in a clothing store in Barcelona. The customer is looking at a shirt. Ask if they need help or another size. Use A2-level Spanish.",
+                        vignette_en: "You're in a clothing store and see a shirt you like, but it's not in your size. A shop assistant approaches you.",
+                        initialMessage: "Buenas, ¿te puedo ayudar en algo?",
+                        reward: { xp: 35, clue: "You can now ask for clothing in different sizes." }
+                    }
+                }
+            },
+            "direcciones-a2": {
+                title: "Direcciones en la Ciudad",
+                objective: "Ask a stranger for directions to the nearest metro station.",
+                mapImage: "https://images.unsplash.com/photo-1572455024142-b3f23f16259c?q=80&w=2070&auto=format&fit=crop",
+                stages: {
+                    "1": {
+                        id: "1",
+                        characterName: "Transeúnte Local",
+                        systemPrompt: "You are a local resident walking down a street in Buenos Aires. A tourist asks you for directions. Give simple, clear instructions to get to the metro. Use A2-level Spanish.",
+                        vignette_en: "You're a bit lost in a new city and need to find the subway to get back to your hotel. You decide to ask someone for help.",
+                        initialMessage: "Disculpa, ¿necesitas ayuda?",
+                        reward: { xp: 35, clue: "You have learned to ask for and understand basic directions." }
+                    }
+                }
+            }
+        },
+        'B1': {
+            "doctor-b1": {
+                title: "En el Consultorio del Doctor",
+                objective: "Describe your symptoms to a doctor.",
+                mapImage: "https://images.unsplash.com/photo-1576091160550-2173dba9996a?q=80&w=2070&auto=format&fit=crop",
+                stages: {
+                    "1": {
+                        id: "1",
+                        characterName: "Doctora Paciente",
+                        systemPrompt: "You are a caring doctor in a clinic in Bogotá. Ask your patient what their symptoms are and how long they've had them. Use B1-level medical vocabulary.",
+                        vignette_en: "You haven't been feeling well for a few days, so you've made a doctor's appointment. The doctor calls you into her office.",
+                        initialMessage: "Buenos días, pasa y toma asiento. Cuéntame, ¿qué te trae por aquí?",
+                        reward: { xp: 50, clue: "You are now able to describe medical symptoms." }
+                    }
+                }
+            }
         }
-      }
     };
 
     // Main view switcher
@@ -380,21 +463,43 @@
         if (!dom.questView) return;
         const list = dom.questView.querySelector('.space-y-3');
         if (!list) return;
-        const ids = Object.keys(quests || {});
+
+        // Get the user's level, defaulting to A1 if not set
+        const userLevel = userSettings.proficiencyLevel || 'A1';
+        const questsForLevel = quests[userLevel] || {};
+        const ids = Object.keys(questsForLevel);
+
+        dom.welcomeMessage.textContent = `Quests for Level ${userLevel}`;
+
         if (ids.length === 0) {
-            list.innerHTML = `<div class="text-sm text-gray-500">No quests yet. Add some in code.</div>`;
+            list.innerHTML = `<div class="text-center p-4 text-gray-500">More quests for your level are coming soon!</div>`;
             return;
         }
-        list.innerHTML = ids.map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+
+        list.innerHTML = ids.map(id => {
+            const quest = questsForLevel[id];
+            return `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quest.title}</h3><p class="text-sm text-gray-600">${quest.objective}</p></div>`;
+        }).join('');
     }
     
     function showMapView(questId) {
-        currentQuest = { ...quests[questId], id: questId };
+        const userLevel = userSettings.proficiencyLevel || 'A1';
+        const questData = quests[userLevel]?.[questId];
+
+        if (!questData) {
+            console.error("Quest not found for level and ID:", userLevel, questId);
+            alert("Sorry, there was an error loading this quest.");
+            return;
+        }
+
+        currentQuest = { ...questData, id: questId };
         dom.mapTitle.textContent = currentQuest.title;
         dom.mapObjective.textContent = currentQuest.objective;
         dom.mapImage.src = currentQuest.mapImage;
         dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
-        const nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
+        
+        const nextStageIds = currentStage ? (currentStage.nextStages || []) : Object.keys(currentQuest.stages || {});
+        
         nextStageIds.forEach((stageId, index) => {
             const location = document.createElement('div');
             location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
@@ -409,12 +514,15 @@
     }
     
     function showVignette(questId, stageId) {
-        const q = quests[questId];
-        if (!q) { console.warn('Quest not found:', questId); return; }
-        const s = q.stages?.[stageId];
-        if (!s) { console.warn('Stage not found:', questId, stageId); return; }
-        currentQuest = { ...q, id: questId };
-        currentStage = { ...s, id: stageId, questId };
+        const userLevel = userSettings.proficiencyLevel || 'A1';
+        const quest = quests[userLevel]?.[questId];
+        if (!quest) { console.warn('Quest not found:', questId); return; }
+        const stage = quest.stages?.[stageId];
+        if (!stage) { console.warn('Stage not found:', questId, stageId); return; }
+        
+        currentQuest = { ...quest, id: questId };
+        currentStage = { ...stage, id: stageId, questId };
+        
         dom.vignetteTitle.textContent = currentStage.characterName;
         dom.vignetteText.textContent = currentStage.vignette_en; 
         dom.vignetteModal.classList.remove('hidden');
@@ -427,11 +535,12 @@
         dom.chatContainer.innerHTML = '';
         addMessage(currentStage.initialMessage, 'ai');
         dom.vignetteModal.classList.add('hidden');
+        sessionStartTime = Date.now(); // START the timer
         showAppView('chat');
     }
     
     function addMessage(text, role, container = dom.chatContainer) {
-        const history = (container === dom.placementChatContainer) ? placementMessages : messages;
+        const history = messages; // Only one chat history now
         history.push({ role: role, parts: [{ text: text }] });
         const isUser = role === 'user';
         const wrapper = document.createElement('div');
@@ -469,9 +578,46 @@
     }
     
     async function endStage() {
-         dom.clueText.textContent = currentStage.reward.clue;
-         dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
-         dom.stageCompleteModal.classList.remove('hidden');
+        // --- 1. Calculate and update chat time ---
+        const sessionDuration = sessionStartTime ? Date.now() - sessionStartTime : 0;
+        userSettings.totalChatTime = (userSettings.totalChatTime || 0) + sessionDuration;
+        sessionStartTime = null; // Reset timer
+
+        // --- 2. Update XP and check for level up ---
+        const oldLevel = userSettings.level || 1;
+        userSettings.xp = (userSettings.xp || 0) + currentStage.reward.xp;
+        const newLevel = Math.floor(userSettings.xp / 100) + 1;
+        if (newLevel > oldLevel) {
+            alert(`Congratulations! You've reached Level ${newLevel}! 🎉`);
+        }
+
+        // --- 3. Update Daily Streak ---
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const yesterday = new Date(Date.now() - 864e5).toISOString().split('T')[0];
+        
+        if (userSettings.lastCompletedDate !== today) {
+            if (userSettings.lastCompletedDate === yesterday) {
+                userSettings.streakCount = (userSettings.streakCount || 0) + 1;
+            } else {
+                userSettings.streakCount = 1; // Streak was broken, start a new one
+            }
+            userSettings.lastCompletedDate = today;
+        }
+
+        // --- 4. Save all changes and update UI ---
+        await saveUserSettings(currentUser.uid, {
+            xp: userSettings.xp,
+            level: newLevel,
+            streakCount: userSettings.streakCount,
+            lastCompletedDate: userSettings.lastCompletedDate,
+            totalChatTime: userSettings.totalChatTime
+        });
+        updateGamificationUI();
+
+        // --- 5. Show completion modal ---
+        dom.clueText.textContent = currentStage.reward.clue;
+        dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
+        dom.stageCompleteModal.classList.remove('hidden');
     }
     
     function getUserDocRef(userId) {
@@ -483,21 +629,49 @@
         if (!userDocRef) return;
         await setDoc(userDocRef, settings, { merge: true });
     }
+    
+    function updateGamificationUI() {
+        if (!dom.mainAppView.classList.contains('active') && !document.getElementById('gamification-status')) return;
+
+        const xpForLevel = 100; // 100 XP to level up
+        const currentLevelXP = userSettings.xp % xpForLevel;
+        userSettings.level = Math.floor(userSettings.xp / xpForLevel) + 1;
+
+        document.getElementById('user-level-text').textContent = `Level ${userSettings.level}`;
+        document.getElementById('user-xp-text').textContent = `${currentLevelXP}/${xpForLevel} XP`;
+        document.getElementById('xp-bar').style.width = `${currentLevelXP}%`;
+        document.getElementById('streak-count-text').textContent = userSettings.streakCount || 0;
+    }
+
     async function loadUserSettings(userId) {
         const userDocRef = getUserDocRef(userId);
         try {
             const snap = await getDoc(userDocRef);
             if (snap.exists() && snap.data()) {
-                userSettings = { ...userSettings, ...snap.data() };
+                userSettings = { ...snap.data() };
+                // Initialize gamification fields if they don't exist
+                if (userSettings.xp === undefined) userSettings.xp = 0;
+                if (userSettings.level === undefined) userSettings.level = 1;
+                if (userSettings.streakCount === undefined) userSettings.streakCount = 0;
+                if (userSettings.lastCompletedDate === undefined) userSettings.lastCompletedDate = null;
+                if (userSettings.totalChatTime === undefined) userSettings.totalChatTime = 0;
             } else {
                 console.log('No user settings document found, creating one.');
-                const initialSettings = { name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), xp: 0, completedStages: {}, proficiencyLevel: null, dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English' };
+                const initialSettings = { 
+                    name: currentUser.displayName || 'User', email: currentUser.email, createdAt: serverTimestamp(), 
+                    dialect: 'Mexico', formality: 'Casual', vignetteLanguage: 'English',
+                    proficiencyLevel: null,
+                    xp: 0, level: 1, streakCount: 0, lastCompletedDate: null, totalChatTime: 0
+                };
                 await setDoc(userDocRef, initialSettings);
-                userSettings = { ...userSettings, ...initialSettings };
+                userSettings = { ...initialSettings };
             }
+            
+            // Update UI
             if (dom.dialectSelect) dom.dialectSelect.value = userSettings.dialect || 'Mexico';
             if (dom.formalitySelect) dom.formalitySelect.value = userSettings.formality || 'Casual';
             if (dom.vignetteLangSelect) dom.vignetteLangSelect.value = userSettings.vignetteLanguage || 'English';
+            updateGamificationUI();
         } catch (error) {
             console.error("Error loading or creating user settings:", error);
         }
