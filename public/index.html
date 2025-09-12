@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -51,7 +50,6 @@
       }
     }
   </style>
-
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
 
@@ -146,7 +144,7 @@
     
         <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">×</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
             <div class="space-y-4">
                 <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
                 <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
@@ -261,7 +259,7 @@
     const AIManager = {
         async callGemini(systemPrompt, userPrompt) {
             if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE")) return "ERROR: Gemini API Key not configured.";
-            const url = https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY};
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
             try {
                 const response = await fetch(url, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -270,14 +268,14 @@
                         systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
                     })
                 });
-                if (!response.ok) { const err = await response.json(); return Error: ${err.error.message}; }
+                if (!response.ok) { const err = await response.json(); return `Error: ${err.error.message}`; }
                 const result = await response.json();
                 return result.candidates[0].content.parts[0].text;
             } catch (error) { return "Sorry, could not connect to AI service."; }
         },
         async getTranslation(word) {
             if (!TRANSLATE_API_KEY || TRANSLATE_API_KEY.includes("PASTE")) return "ERROR: Translate API Key not configured.";
-            const url = https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY};
+            const url = `https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY}`;
             try {
                 const response = await fetch(url, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -289,14 +287,14 @@
             } catch (error) { return "Translation unavailable."; }
         },
         async getResponse(history, stage, settings) {
-            const systemPrompt = You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.;
-            const userHistory = history.map(m => ${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}).join('\n');
-            const userPrompt = Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.;
+            const systemPrompt = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.`;
+            const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
+            const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
             return this.callGemini(systemPrompt, userPrompt);
         },
         async analyzePlacement(transcript, preliminaryLevel) {
-            const systemPrompt = You are an expert language proficiency evaluator. The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. Your job is to confirm or adjust this level based on a short, free-form conversation. Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). Respond with only the final level (e.g., "B1").;
-            const userPrompt = Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?;
+            const systemPrompt = `You are an expert language proficiency evaluator. The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. Your job is to confirm or adjust this level based on a short, free-form conversation. Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). Respond with only the final level (e.g., "B1").`;
+            const userPrompt = `Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?`;
             return this.callGemini(systemPrompt, userPrompt);
         }
     };
@@ -362,10 +360,10 @@
         if (!list) return;
         const ids = Object.keys(quests || {});
         if (ids.length === 0) {
-            list.innerHTML = <div class="text-sm text-gray-500">No quests yet. Add some in code.</div>;
+            list.innerHTML = `<div class="text-sm text-gray-500">No quests yet. Add some in code.</div>`;
             return;
         }
-        list.innerHTML = ids.map(id => <div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>).join('');
+        list.innerHTML = ids.map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
     }
     
     function showMapView(questId) {
@@ -378,8 +376,8 @@
         nextStageIds.forEach((stageId, index) => {
             const location = document.createElement('div');
             location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
-            location.style.left = ${20 + index * 40}%;
-            location.style.top = ${40 + (index % 2 * 15)}%;
+            location.style.left = `${20 + index * 40}%`;
+            location.style.top = `${40 + (index % 2 * 15)}%`;
             location.innerHTML = '<span>📍</span>';
             location.dataset.questId = questId;
             location.dataset.stageId = stageId;
@@ -415,9 +413,9 @@
         history.push({ role: role, parts: [{ text: text }] });
         const isUser = role === 'user';
         const wrapper = document.createElement('div');
-        wrapper.className = w-full flex flex-col ${isUser ? 'items-end' : 'items-start'};
+        wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
         const bubble = document.createElement('div');
-        bubble.className = chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'};
+        bubble.className = `chat-bubble p-3 rounded-lg w-fit ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
         
         if (!isUser) {
             text.split(/(\s+)/).forEach(part => {
@@ -450,7 +448,7 @@
     
     async function endStage() {
          dom.clueText.textContent = currentStage.reward.clue;
-         dom.xpGainText.textContent = +${currentStage.reward.xp} XP;
+         dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
          dom.stageCompleteModal.classList.remove('hidden');
     }
 
@@ -462,15 +460,15 @@
 
         if (placementMessages.length >= 4) { // End chat after 2 user responses
              addMessage('Analyzing your level...', 'ai', dom.placementChatContainer);
-             const transcript = placementMessages.map(m => ${m.role}: ${m.parts[0].text}).join('\n');
+             const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
              const finalLevel = await AIManager.analyzePlacement(transcript, preliminaryLevel);
              await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel.trim() });
              userSettings.proficiencyLevel = finalLevel.trim();
-             alert(Excellent! We've placed you at level: ${finalLevel.trim()}. Let's get started!);
+             alert(`Excellent! We've placed you at level: ${finalLevel.trim()}. Let's get started!`);
              showView('main-app-view');
         } else {
             const prompt = "Ask another open-ended question to gauge their fluency.";
-            const response = await AIManager.callGemini(You are a language evaluator confirming a ${preliminaryLevel} student., prompt);
+            const response = await AIManager.callGemini(`You are a language evaluator confirming a ${preliminaryLevel} student.`, prompt);
             addMessage(response, 'ai', dom.placementChatContainer);
         }
     }
@@ -514,7 +512,7 @@
                 english: englishTranslation,
                 createdAt: serverTimestamp()
             }, { merge: true }); // Use merge to not overwrite if it already exists
-            console.log(Saved '${spanishWord}' to vocabulary.);
+            console.log(`Saved '${spanishWord}' to vocabulary.`);
         } catch (error) {
             console.error("Error saving vocabulary word:", error);
         }
@@ -528,19 +526,24 @@
         try {
             const querySnapshot = await getDocs(q);
             if (querySnapshot.empty) {
-                dom.vocabularyContainer.innerHTML = <p class="text-gray-500 text-center mt-4">Your vocabulary list is empty. Click on words in a chat to add them!</p>;
+                dom.vocabularyContainer.innerHTML = `<p class="text-gray-500 text-center mt-4">Your vocabulary list is empty. Click on words in a chat to add them!</p>`;
                 return;
             }
 
             let flashcardsHTML = '';
             querySnapshot.forEach(doc => {
                 const word = doc.data();
-                flashcardsHTML +=                     <div class="p-4 border rounded-lg bg-white shadow-sm cursor-pointer flashcard">                         <p class="text-lg font-semibold">${word.spanish}</p>                         <p class="text-gray-600 english-translation hidden">→ ${word.english}</p>                     </div>                ;
+                flashcardsHTML += `
+                    <div class="p-4 border rounded-lg bg-white shadow-sm cursor-pointer flashcard">
+                        <p class="text-lg font-semibold">${word.spanish}</p>
+                        <p class="text-gray-600 english-translation hidden">→ ${word.english}</p>
+                    </div>
+                `;
             });
             dom.vocabularyContainer.innerHTML = flashcardsHTML;
         } catch (error) {
             console.error("Error fetching vocabulary:", error);
-            dom.vocabularyContainer.innerHTML = <p class="text-red-500 text-center mt-4">Could not load your vocabulary.</p>;
+            dom.vocabularyContainer.innerHTML = `<p class="text-red-500 text-center mt-4">Could not load your vocabulary.</p>`;
         }
     }
 
@@ -570,23 +573,23 @@
 
         const questionData = levelQuestions[currentLevelQuestionIndex];
         dom.quizQuestionText.textContent = questionData.question;
-        dom.placementProgress.textContent = Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1};
+        dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1}`;
         dom.quizOptions.innerHTML = questionData.options.map(option => 
-            <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>
+            `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
         ).join('');
     }
 
     function finishQuiz() {
         if (preliminaryLevel === 'A1' && incorrectAnswersInLevel > 0) {
-            alert(Thanks! Based on your results, we'll start with the basics.);
+            alert(`Thanks! Based on your results, we'll start with the basics.`);
             saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
             userSettings.proficiencyLevel = 'A1';
             showView('main-app-view');
         } else {
-            alert(Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.);
+            alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.`);
             dom.placementQuizView.classList.add('hidden');
             dom.placementChatView.classList.remove('hidden');
-            addMessage(¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?, 'ai', dom.placementChatContainer);
+            addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
         }
     }
 
@@ -603,7 +606,7 @@
             dom.loginError.textContent = "Signed in, but couldn't load your profile. Continuing with defaults.";
         }
         // Always set a welcome line
-        dom.welcomeMessage.textContent = Welcome, ${user.displayName || 'Friend'}!;
+        dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
         // Decide view even if settings failed
         const level = (userSettings && userSettings.proficiencyLevel) ? String(userSettings.proficiencyLevel) : null;
         if (!settingsLoaded || !level || level === 'null') {
@@ -714,8 +717,8 @@
             popover.textContent = translation;
             const rect = e.target.getBoundingClientRect();
             const containerRect = dom.appContainer.getBoundingClientRect();
-            popover.style.left = ${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px;
-            popover.style.top = ${rect.top - containerRect.top - popover.offsetHeight - 8}px;
+            popover.style.left = `${rect.left - containerRect.left + (rect.width / 2) - (popover.offsetWidth / 2)}px`;
+            popover.style.top = `${rect.top - containerRect.top - popover.offsetHeight - 8}px`;
             popover.classList.remove('hidden');
         }
     });
@@ -724,6 +727,5 @@
     renderQuests();
 
   </script>
-
 </body>
 </html>
