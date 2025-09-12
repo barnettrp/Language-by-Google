@@ -207,6 +207,7 @@
         </div>
     </div>
     <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
+    <div id="hint-popover" class="hidden absolute bg-yellow-200 text-gray-800 text-sm rounded-md px-3 py-1.5 z-50 shadow-lg border border-yellow-400"></div>
   </div>
 
     <script type="module" id="app-script">
@@ -280,6 +281,7 @@
         vocabularyContainer: document.getElementById('vocabulary-container'),
         backToQuestsBtn: document.getElementById('back-to-quests-btn'),
         exitQuestBtn: document.getElementById('exit-quest-btn'),
+        hintPopover: document.getElementById('hint-popover'),
     };
 
     const AIManager = {
@@ -344,6 +346,27 @@
                 const cleanedText = rawResponse.replace(/```json|```/g, '').trim();
                 return { responseText: cleanedText, isObjectiveComplete: false };
             }
+        },
+        async getHint(history, stage, settings) {
+            const systemPrompt = `You are a helpful language tutor. The user is in a role-playing conversation and has asked for a hint. Your task is to provide a concise, useful suggestion in English that includes Spanish keywords to help them continue the conversation.
+
+    **Rules:**
+    - Your response MUST be in English.
+    - Your hint should have two parts: 
+        1. A strategic suggestion (e.g., "You could ask what they recommend.").
+        2. A few relevant Spanish words or a short example phrase in italics (e.g., "Try using *'recomienda'* or *'¿Qué me recomienda?'*.").
+    - Do NOT provide a full, complete sentence that the user can just copy. The goal is to guide, not to give the answer away.
+    - Keep the entire hint concise.
+
+    **Context:**
+    - User's proficiency: ${settings.proficiencyLevel}
+    - Scenario objective: "${stage.objective}"
+    - Character they are talking to: "${stage.characterName}"`;
+            
+            const userHistory = history.map(m => `${m.role === 'ai' ? 'Character' : 'User'}: ${m.parts[0].text}`).join('\n');
+            const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, what is a good hint for the user?`;
+
+            return this.callGemini(systemPrompt, userPrompt);
         },
     };
 
@@ -917,6 +940,7 @@
     if (dom.sendBtn) dom.sendBtn.addEventListener('click', handleSendMessage);
     if (dom.chatInput) dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
     if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage);
+    if (dom.hintBtn) dom.hintBtn.addEventListener('click', handleHintRequest);
     dom.submitQuizBtn.addEventListener('click', () => {
         const selected = document.querySelector('input[name="quiz"]:checked');
         if (!selected) { alert('Please select an answer.'); return; }
