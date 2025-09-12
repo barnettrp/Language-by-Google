@@ -498,9 +498,16 @@
         // Add the user's action to the chat transcript for the AI to analyze later
         addMessage("I don't understand.", 'user', dom.placementChatContainer);
 
-        // Prompt the AI to generate a simpler question
-        const systemPrompt = `You are a language evaluator. The user is at a preliminary level of ${preliminaryLevel}.`;
-        const userPrompt = `The user clicked "I don't understand" in response to the previous question. Ask a new, simpler, open-ended question appropriate for a lower proficiency level to re-evaluate their fluency.`;
+        // Prompt the AI to generate a simpler question with stricter rules
+        const systemPrompt = `You are a language evaluator conducting a placement test in Spanish. The user is at a preliminary level of ${preliminaryLevel}.`;
+        
+        // This new prompt is more explicit and forbids translation.
+        const userPrompt = `The user clicked "I don't understand" in response to the previous question. Your task is to ask a new, simpler question to re-evaluate their fluency.
+        
+        **Important rules:**
+        1. Your entire response MUST be in Spanish.
+        2. Do NOT translate the previous question or provide any English.
+        3. Ask a completely new, easier, open-ended question suitable for a lower CEFR level.`;
         
         const response = await AIManager.callGemini(systemPrompt, userPrompt);
         addMessage(response, 'ai', dom.placementChatContainer);
@@ -601,7 +608,7 @@
                 currentLevelQuestionIndex = 0;
                 incorrectAnswersInLevel = 0;
                 renderPlacementQuestion(); // Load the next level's questions.
-          _ } else {
+            } else {
                 // End of Test Condition: User fails a level OR completes the final (B1) level.
                 if (incorrectAnswersInLevel <= 1 && currentQuizLevel === 'B1') {
                      preliminaryLevel = 'B1'; // If they passed B1, lock it in.
@@ -661,10 +668,10 @@
     }
     
     onAuthStateChanged(auth, (user) => {
-        // Only run the sign-in logic if there is no current user
-        // OR if the new user's ID is different from the one we have stored.
-        // This prevents the function from running again for the same user session.
         if (user) {
+            // Only run the sign-in logic if there is no current user
+            // OR if the new user's ID is different from the one we have stored.
+            // This prevents the function from running again for the same user session.
             if (!currentUser || currentUser.uid !== user.uid) {
                 handleUserSignIn(user);
             }
