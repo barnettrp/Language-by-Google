@@ -126,7 +126,8 @@
 
       <div id="chat-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-          <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+          <button id="exit-quest-btn" title="Exit Quest" class="text-xl font-bold text-gray-500 hover:text-gray-800 transition-colors mr-3">←</button>
+          <h1 id="chat-title" class="text-xl font-bold text-gray-800 flex-1"></h1>
           <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
         </header>
         <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
@@ -165,15 +166,6 @@
             <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
             <p id="vignette-text" class="text-gray-600 mb-6"></p>
             <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
-        </div>
-    </div>
-    <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-            <h2 id="map-title" class="text-2xl font-bold mb-1"></h2>
-            <p id="map-objective" class="text-gray-600 mb-4"></p>
-            <div id="map-container" class="relative rounded-lg overflow-hidden">
-                <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
-            </div>
         </div>
     </div>
     <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
@@ -220,7 +212,6 @@
     let currentQuest = null;
     let currentStage = null;
     let messages = [];
-    let placementMessages = [];
     let currentLevelQuiz = [];
     let sessionStartTime = null;
     
@@ -248,9 +239,7 @@
         endSessionBtn: document.getElementById('end-session-btn'), translationPopover: document.getElementById('translation-popover'),
         vignetteModal: document.getElementById('vignette-modal'), vignetteTitle: document.getElementById('vignette-title'),
         vignetteText: document.getElementById('vignette-text'), startStageBtn: document.getElementById('start-stage-btn'),
-        mapModal: document.getElementById('map-modal'), mapTitle: document.getElementById('map-title'),
-        mapObjective: document.getElementById('map-objective'), mapContainer: document.getElementById('map-container'),
-        mapImage: document.getElementById('map-image'), stageCompleteModal: document.getElementById('stage-complete-modal'),
+        stageCompleteModal: document.getElementById('stage-complete-modal'),
         clueText: document.getElementById('clue-text'), xpGainText: document.getElementById('xp-gain-text'),
         continueQuestBtn: document.getElementById('continue-quest-btn'), hintBtn: document.getElementById('hint-btn'),
         placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
@@ -261,6 +250,7 @@
         vocabularyView: document.getElementById('vocabulary-view'),
         vocabularyContainer: document.getElementById('vocabulary-container'),
         backToQuestsBtn: document.getElementById('back-to-quests-btn'),
+        exitQuestBtn: document.getElementById('exit-quest-btn'),
     };
 
     const AIManager = {
@@ -294,10 +284,27 @@
             } catch (error) { return "Translation unavailable."; }
         },
         async getResponse(history, stage, settings) {
-            const systemPrompt = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your response concise (1-2 sentences) and in character.`;
+            const systemPrompt = `You are the character "${stage.characterName}". The user's objective is: "${stage.objective}". Your response must be at a CEFR ${userSettings.proficiencyLevel} level. The user's target language dialect is ${settings.dialect}. Keep your conversational reply concise (1-3 sentences) and in character.
+
+    You MUST respond with a valid JSON object. The JSON object must have two keys:
+    1. "responseText": A string containing your conversational reply in character.
+    2. "isObjectiveComplete": A boolean (true or false).
+
+    Set "isObjectiveComplete" to true ONLY when the user has clearly and successfully met the objective. Otherwise, it must be false.`;
+            
             const userHistory = history.map(m => `${m.role === 'ai' ? 'Tutor' : 'User'}: ${m.parts[0].text}`).join('\n');
-            const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
-            return this.callGemini(systemPrompt, userPrompt);
+            const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response in the required JSON format.`;
+            
+            const rawResponse = await this.callGemini(systemPrompt, userPrompt);
+
+            try {
+                // Attempt to parse the structured JSON response.
+                return JSON.parse(rawResponse);
+            } catch (error) {
+                // If the AI fails to return valid JSON, fall back gracefully.
+                console.warn("AI response was not valid JSON. Falling back to plain text.", rawResponse);
+                return { responseText: rawResponse, isObjectiveComplete: false };
+            }
         },
     };
 
@@ -354,10 +361,11 @@
                     "1": {
                         id: "1",
                         characterName: "Vendedor de Frutas",
+                        objective: "Successfully ask for a specific fruit and its price.",
                         systemPrompt: "You are a friendly fruit vendor in a bustling Mexican market. Greet the customer and ask them what they would like. Use simple A1-level Spanish.",
                         vignette_en: "You approach a colorful fruit stand. The vendor smiles warmly at you.",
                         initialMessage: "¡Buenos días! ¿Qué le damos hoy?",
-                        reward: { xp: 25, clue: "You learned to ask for fruit." }
+                        reward: { xp: 25, clue: "The vendor said the professor was asking about 'rare blue corn'." }
                     }
                 }
             },
@@ -369,10 +377,11 @@
                     "1": {
                         id: "1",
                         characterName: "Barista Amable",
+                        objective: "Successfully order one coffee and one pastry.",
                         systemPrompt: "You are a cheerful barista in a small café in Madrid. Ask the customer for their order using simple A1-level Spanish.",
                         vignette_en: "The smell of fresh coffee fills the air as you walk up to the counter. The barista is ready to take your order.",
                         initialMessage: "¡Hola! ¿Qué te pongo?",
-                        reward: { xp: 25, clue: "You learned how to order a coffee." }
+                        reward: { xp: 25, clue: "The barista mentioned the professor paid with a strange, old coin." }
                     }
                 }
             }
@@ -386,10 +395,11 @@
                     "1": {
                         id: "1",
                         characterName: "Dependiente de Tienda",
+                        objective: "Successfully ask for an article of clothing in a different size and color.",
                         systemPrompt: "You are a helpful shop assistant in a clothing store in Barcelona. The customer is looking at a shirt. Ask if they need help or another size. Use A2-level Spanish.",
                         vignette_en: "You're in a clothing store and see a shirt you like, but it's not in your size. A shop assistant approaches you.",
                         initialMessage: "Buenas, ¿te puedo ayudar en algo?",
-                        reward: { xp: 35, clue: "You can now ask for clothing in different sizes." }
+                        reward: { xp: 35, clue: "The shopkeeper said the professor bought a blue scarf." }
                     }
                 }
             },
@@ -401,10 +411,11 @@
                     "1": {
                         id: "1",
                         characterName: "Transeúnte Local",
+                        objective: "Successfully ask for and understand directions to a specific place.",
                         systemPrompt: "You are a local resident walking down a street in Buenos Aires. A tourist asks you for directions. Give simple, clear instructions to get to the metro. Use A2-level Spanish.",
                         vignette_en: "You're a bit lost in a new city and need to find the subway to get back to your hotel. You decide to ask someone for help.",
                         initialMessage: "Disculpa, ¿necesitas ayuda?",
-                        reward: { xp: 35, clue: "You have learned to ask for and understand basic directions." }
+                        reward: { xp: 35, clue: "A local mentioned the professor was heading towards the old library." }
                     }
                 }
             }
@@ -418,10 +429,11 @@
                     "1": {
                         id: "1",
                         characterName: "Doctora Paciente",
+                        objective: "Successfully describe at least two symptoms and answer a follow-up question from the doctor.",
                         systemPrompt: "You are a caring doctor in a clinic in Bogotá. Ask your patient what their symptoms are and how long they've had them. Use B1-level medical vocabulary.",
                         vignette_en: "You haven't been feeling well for a few days, so you've made a doctor's appointment. The doctor calls you into her office.",
                         initialMessage: "Buenos días, pasa y toma asiento. Cuéntame, ¿qué te trae por aquí?",
-                        reward: { xp: 50, clue: "You are now able to describe medical symptoms." }
+                        reward: { xp: 50, clue: "The doctor's records show the professor had a strange allergy to dust." }
                     }
                 }
             }
@@ -458,6 +470,17 @@
             dom.vocabularyView.classList.remove('hidden');
         }
     }
+    
+    function returnToQuestList() {
+        // Reset the state of the current session
+        messages = [];
+        currentQuest = null;
+        currentStage = null;
+        sessionStartTime = null; // Stop the timer
+
+        // Switch the view back to the quest list
+        showAppView('quests');
+    }
 
     function renderQuests() {
         if (!dom.questView) return;
@@ -482,37 +505,6 @@
         }).join('');
     }
     
-    function showMapView(questId) {
-        const userLevel = userSettings.proficiencyLevel || 'A1';
-        const questData = quests[userLevel]?.[questId];
-
-        if (!questData) {
-            console.error("Quest not found for level and ID:", userLevel, questId);
-            alert("Sorry, there was an error loading this quest.");
-            return;
-        }
-
-        currentQuest = { ...questData, id: questId };
-        dom.mapTitle.textContent = currentQuest.title;
-        dom.mapObjective.textContent = currentQuest.objective;
-        dom.mapImage.src = currentQuest.mapImage;
-        dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
-        
-        const nextStageIds = currentStage ? (currentStage.nextStages || []) : Object.keys(currentQuest.stages || {});
-        
-        nextStageIds.forEach((stageId, index) => {
-            const location = document.createElement('div');
-            location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
-            location.style.left = `${20 + index * 40}%`;
-            location.style.top = `${40 + (index % 2 * 15)}%`;
-            location.innerHTML = '<span>📍</span>';
-            location.dataset.questId = questId;
-            location.dataset.stageId = stageId;
-            dom.mapContainer.appendChild(location);
-        });
-        dom.mapModal.classList.remove('hidden');
-    }
-    
     function showVignette(questId, stageId) {
         const userLevel = userSettings.proficiencyLevel || 'A1';
         const quest = quests[userLevel]?.[questId];
@@ -533,15 +525,14 @@
         messages = [];
         dom.chatTitle.textContent = currentStage.characterName;
         dom.chatContainer.innerHTML = '';
-        addMessage(currentStage.initialMessage, 'ai');
+        addMessage(currentStage.initialMessage);
         dom.vignetteModal.classList.add('hidden');
         sessionStartTime = Date.now(); // START the timer
         showAppView('chat');
     }
     
-    function addMessage(text, role, container = dom.chatContainer) {
-        const history = messages; // Only one chat history now
-        history.push({ role: role, parts: [{ text: text }] });
+    function addMessage(text, role = 'ai') {
+        messages.push({ role: role, parts: [{ text: text }] });
         const isUser = role === 'user';
         const wrapper = document.createElement('div');
         wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
@@ -561,20 +552,32 @@
             });
         } else { bubble.textContent = text; }
         wrapper.appendChild(bubble);
-        container.insertBefore(wrapper, container.firstChild);
+        dom.chatContainer.insertBefore(wrapper, dom.chatContainer.firstChild);
     }
 
     async function handleSendMessage() {
         const userInput = dom.chatInput.value.trim();
         if (!userInput) return;
+
         addMessage(userInput, 'user');
         dom.chatInput.value = '';
-        if (!GEMINI_API_KEY || GEMINI_API_KEY.includes('PASTE')) {
-            addMessage('(Tutor) ¡Bien! Cuéntame, ¿qué fruta te gusta comprar en el mercado?', 'ai');
-            return;
-        }
+        dom.sendBtn.disabled = true;
+        dom.chatInput.disabled = true;
+
         const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
-        addMessage(response, 'ai');
+        addMessage(response.responseText);
+
+        if (response.isObjectiveComplete) {
+            // Objective met! Disable input and end stage after a short delay.
+            setTimeout(() => {
+                endStage();
+            }, 2000); // 2-second delay for the user to read the final message.
+        } else {
+            // Continue conversation
+            dom.sendBtn.disabled = false;
+            dom.chatInput.disabled = false;
+            dom.chatInput.focus();
+        }
     }
     
     async function endStage() {
@@ -613,11 +616,13 @@
             totalChatTime: userSettings.totalChatTime
         });
         updateGamificationUI();
-
-        // --- 5. Show completion modal ---
+        
+        // --- 5. Show completion modal and re-enable chat input for next time ---
         dom.clueText.textContent = currentStage.reward.clue;
         dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
         dom.stageCompleteModal.classList.remove('hidden');
+        dom.sendBtn.disabled = false;
+        dom.chatInput.disabled = false;
     }
     
     function getUserDocRef(userId) {
@@ -634,8 +639,8 @@
         if (!dom.mainAppView.classList.contains('active') && !document.getElementById('gamification-status')) return;
 
         const xpForLevel = 100; // 100 XP to level up
-        const currentLevelXP = userSettings.xp % xpForLevel;
-        userSettings.level = Math.floor(userSettings.xp / xpForLevel) + 1;
+        const currentLevelXP = (userSettings.xp || 0) % xpForLevel;
+        userSettings.level = Math.floor((userSettings.xp || 0) / xpForLevel) + 1;
 
         document.getElementById('user-level-text').textContent = `Level ${userSettings.level}`;
         document.getElementById('user-xp-text').textContent = `${currentLevelXP}/${xpForLevel} XP`;
@@ -852,15 +857,14 @@
     if(dom.settingsBtn) dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
     if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
     if(dom.retakePlacementBtn) dom.retakePlacementBtn.addEventListener('click', () => { dom.settingsModal.classList.add('hidden'); startPlacementTest(); });
-    if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showMapView(card.dataset.questId); });
-    if(dom.mapContainer) dom.mapContainer.addEventListener('click', e => { const loc = e.target.closest('.map-location'); if (loc) { dom.mapModal.classList.add('hidden'); showVignette(loc.dataset.questId, loc.dataset.stageId); } });
+    if(dom.questView) dom.questView.addEventListener('click', e => { const card = e.target.closest('.quest-card'); if (card) showVignette(card.dataset.questId, "1"); });
     if(dom.startStageBtn) dom.startStageBtn.addEventListener('click', startStage);
     if(dom.continueQuestBtn) dom.continueQuestBtn.addEventListener('click', () => {
         dom.stageCompleteModal.classList.add('hidden');
-        showAppView('quests');
-        if (currentStage?.nextStages?.length > 0) { showMapView(currentStage.questId); } 
-        else { alert('Quest Complete! 🎉'); }
+        alert('Quest Complete! 🎉');
+        returnToQuestList();
     });
+    if(dom.exitQuestBtn) dom.exitQuestBtn.addEventListener('click', returnToQuestList);
     if (dom.sendBtn) dom.sendBtn.addEventListener('click', handleSendMessage);
     if (dom.chatInput) dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
     if (dom.endSessionBtn) dom.endSessionBtn.addEventListener('click', endStage);
