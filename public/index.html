@@ -335,8 +335,18 @@
 
     // Main view switcher
     function showView(viewId) {
-        document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
-        document.getElementById(viewId)?.classList.add('active');
+        // Hide all main views by directly setting their display style to 'none'.
+        document.querySelectorAll('.main-view').forEach(v => {
+            v.style.display = 'none';
+            v.classList.remove('active'); // Also remove the class for consistency.
+        });
+
+        // Show the target view by directly setting its display style to 'flex'.
+        const viewToShow = document.getElementById(viewId);
+        if (viewToShow) {
+            viewToShow.style.display = 'flex';
+            viewToShow.classList.add('active'); // Also add the class for consistency.
+        }
     }
 
     // View switcher for inside the main app
@@ -435,7 +445,7 @@
 
     async function handleSendMessage() {
         const userInput = dom.chatInput.value.trim();
-  _      if (!userInput) return;
+        if (!userInput) return;
         addMessage(userInput, 'user');
         dom.chatInput.value = '';
         if (!GEMINI_API_KEY || GEMINI_API_KEY.includes('PASTE')) {
