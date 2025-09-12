@@ -435,7 +435,7 @@
 
     async function handleSendMessage() {
         const userInput = dom.chatInput.value.trim();
-        if (!userInput) return;
+  _      if (!userInput) return;
         addMessage(userInput, 'user');
         dom.chatInput.value = '';
         if (!GEMINI_API_KEY || GEMINI_API_KEY.includes('PASTE')) {
@@ -633,8 +633,8 @@
         const email = dom.loginEmailInput.value.trim();
         const password = dom.loginPasswordInput.value.trim();
         try { 
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            await handleUserSignIn(userCredential.user);
+            await signInWithEmailAndPassword(auth, email, password);
+            // The onAuthStateChanged listener will handle the UI update.
         } 
         catch (error) { dom.loginError.textContent = error.message; }
     });
@@ -648,7 +648,7 @@
         try {
             const cred = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(cred.user, { displayName: name });
-            await handleUserSignIn(cred.user);
+            // The onAuthStateChanged listener will handle the UI update.
         } catch (error) { dom.signupError.textContent = error.message; }
     });
     
