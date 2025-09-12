@@ -298,12 +298,19 @@
             const rawResponse = await this.callGemini(systemPrompt, userPrompt);
 
             try {
-                // Attempt to parse the structured JSON response.
-                return JSON.parse(rawResponse);
+                // NEW: Use a regular expression to find the JSON block, ignoring markdown fences.
+                const match = rawResponse.match(/{.*}/s);
+                if (match) {
+                    // If a JSON-like block is found, parse it.
+                    return JSON.parse(match[0]);
+                }
+                // If no JSON block is found, treat it as an error to fall back gracefully.
+                throw new Error("No JSON object found in the response.");
             } catch (error) {
-                // If the AI fails to return valid JSON, fall back gracefully.
+                // If parsing fails, fall back by cleaning up the raw text as best as possible.
                 console.warn("AI response was not valid JSON. Falling back to plain text.", rawResponse);
-                return { responseText: rawResponse, isObjectiveComplete: false };
+                const cleanedText = rawResponse.replace(/```json|```/g, '').trim();
+                return { responseText: cleanedText, isObjectiveComplete: false };
             }
         },
     };
