@@ -265,7 +265,7 @@
             try {
                 const response = await fetch(url, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+            _        body: JSON.stringify({
                         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
                         systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
                     })
@@ -592,13 +592,20 @@
     function renderPlacementQuestion() {
         const levelQuestions = placementQuizData[currentQuizLevel];
         if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
-            if (incorrectAnswersInLevel === 0 && currentQuizLevel !== 'B1') { 
-                preliminaryLevel = currentQuizLevel === 'A1' ? 'A2' : 'B1';
-                currentQuizLevel = preliminaryLevel;
+            // This block runs when all questions for a level are answered.
+
+            // Pass Condition: User gets 1 or fewer wrong AND is not on the final level.
+            if (incorrectAnswersInLevel <= 1 && currentQuizLevel !== 'B1') {
+                preliminaryLevel = currentQuizLevel; // Lock in the highest passed level.
+                currentQuizLevel = (currentQuizLevel === 'A1') ? 'A2' : 'B1'; // Advance to next level.
                 currentLevelQuestionIndex = 0;
                 incorrectAnswersInLevel = 0;
-                renderPlacementQuestion(); 
+                renderPlacementQuestion(); // Load the next level's questions.
             } else {
+                // End of Test Condition: User fails a level OR completes the final (B1) level.
+                if (incorrectAnswersInLevel <= 1 && currentQuizLevel === 'B1') {
+                     preliminaryLevel = 'B1'; // If they passed B1, lock it in.
+                }
                 finishQuiz();
             }
             return;
@@ -607,22 +614,25 @@
         const questionData = levelQuestions[currentLevelQuestionIndex];
         dom.quizQuestionText.textContent = questionData.question;
         dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1} of ${levelQuestions.length}`;
-        dom.quizOptions.innerHTML = questionData.options.map(option => 
+        dom.quizOptions.innerHTML = questionData.options.map(option =>
             `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
         ).join('');
     }
 
     function finishQuiz() {
-        if (preliminaryLevel === 'A1' && incorrectAnswersInLevel > 0) {
+        // The ONLY condition to skip the chat is if the user fails the very first (A1) level.
+        // Our fail threshold is now more than 1 incorrect answer.
+        if (currentQuizLevel === 'A1' && incorrectAnswersInLevel > 1) {
             alert(`Thanks! Based on your results, we'll start with the basics.`);
             saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
             userSettings.proficiencyLevel = 'A1';
             showView('main-app-view');
         } else {
-            alert(`Great job! You've passed the initial quiz. Now for a quick chat to confirm your level of ${preliminaryLevel}.`);
+            // In ALL other cases (passing A1, A2, or B1), we proceed to the chat for confirmation.
+            alert(`Great job! We've placed you at a preliminary ${preliminaryLevel} level. Now for a quick chat to confirm.`);
             dom.placementQuizView.classList.add('hidden');
             dom.placementChatView.classList.remove('hidden');
-            addMessage(`¡Hola! Veo que tienes un buen nivel. Para empezar, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
+            addMessage(`¡Hola! Para confirmar tu nivel, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
         }
     }
 
