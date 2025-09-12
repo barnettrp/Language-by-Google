@@ -98,6 +98,7 @@
         <div class="p-2 border-t bg-white/50">
           <div class="flex items-center space-x-2">
             <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
+            <button id="placement-understand-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold text-sm">I don't understand</button>
             <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
           </div>
         </div>
@@ -254,6 +255,7 @@
         vocabularyView: document.getElementById('vocabulary-view'),
         vocabularyContainer: document.getElementById('vocabulary-container'),
         backToQuestsBtn: document.getElementById('back-to-quests-btn'),
+        placementUnderstandBtn: document.getElementById('placement-understand-btn'),
     };
 
     const AIManager = {
@@ -491,6 +493,18 @@
             addMessage(response, 'ai', dom.placementChatContainer);
         }
     }
+
+    async function handlePlacementUnderstand() {
+        // Add the user's action to the chat transcript for the AI to analyze later
+        addMessage("I don't understand.", 'user', dom.placementChatContainer);
+
+        // Prompt the AI to generate a simpler question
+        const systemPrompt = `You are a language evaluator. The user is at a preliminary level of ${preliminaryLevel}.`;
+        const userPrompt = `The user clicked "I don't understand" in response to the previous question. Ask a new, simpler, open-ended question appropriate for a lower proficiency level to re-evaluate their fluency.`;
+        
+        const response = await AIManager.callGemini(systemPrompt, userPrompt);
+        addMessage(response, 'ai', dom.placementChatContainer);
+    }
     
     function getUserDocRef(userId) {
         if (!userId) return null;
@@ -701,6 +715,7 @@
     });
     if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
     if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
+    if(dom.placementUnderstandBtn) dom.placementUnderstandBtn.addEventListener('click', handlePlacementUnderstand);
     
     if(dom.vocabBtn) dom.vocabBtn.addEventListener('click', () => {
       renderVocabulary();
