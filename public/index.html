@@ -301,16 +301,25 @@
 
     const placementQuizData = {
         'A1': [
-            { question: "Which of these means 'hello'?", options: ["Adiós", "Hola", "Gracias"], answer: "Hola" },
-            { question: "How do you say 'thank you'?", options: ["Por favor", "Lo siento", "Gracias"], answer: "Gracias" },
+            { question: "Which of these means 'hello'?", options: ["Adiós", "Hola", "Gracias", "De nada"], answer: "Hola" },
+            { question: "How do you say 'thank you'?", options: ["Por favor", "Lo siento", "Gracias", "Buenos días"], answer: "Gracias" },
+            { question: "How do you say 'goodbye'?", options: ["Adiós", "Por favor", "Lo siento", "Con permiso"], answer: "Adiós" },
+            { question: "What is the Spanish word for 'water'?", options: ["Pan", "Leche", "Agua", "Vino"], answer: "Agua" },
+            { question: "The opposite of *grande* (big) is...?", options: ["Pequeño", "Alto", "Rojo", "Feliz"], answer: "Pequeño" }
         ],
         'A2': [
-            { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré"], answer: "Hablé" },
-            { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches"], answer: "Los coches rojos" },
+            { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré", "Hablaba"], answer: "Hablé" },
+            { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches", "La coche roja"], answer: "Los coches rojos" },
+            { question: "Which phrase means 'I am going to the beach'?", options: ["Voy a la playa", "Soy a la playa", "Estoy a la playa", "Tengo a la playa"], answer: "Voy a la playa" },
+            { question: "How do you say 'she ate'?", options: ["Ella como", "Ella comer", "Ella comió", "Ella comes"], answer: "Ella comió" },
+            { question: "Which word means 'yesterday'?", options: ["Mañana", "Siempre", "Ayer", "Nunca"], answer: "Ayer" }
         ],
         'B1': [
-            { question: "Choose the correct subjunctive form: 'I hope you ___ well.' (estar)", options: ["estás", "estés", "estar"], answer: "estés" },
-            { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something"], answer: "To have just done something" },
+            { question: "Choose the correct subjunctive form: 'I hope you ___ well.' (estar)", options: ["estás", "estés", "estar", "estuvieras"], answer: "estés" },
+            { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something", "To be tired of something"], answer: "To have just done something" },
+            { question: "If I had more time, I ___ travel more.", options: ["viajaría", "viajaré", "viajé", "viajaba"], answer: "viajaría" },
+            { question: "Choose the correct preposition for 'to dream ___.' (soñar)", options: ["soñar con", "soñar a", "soñar de", "soñar en"], answer: "soñar con" },
+            { question: "'Se me olvidó' is a common, passive way to say...", options: ["I was late", "I remembered it", "I forgot", "I understood"], answer: "I forgot" }
         ]
     };
 
@@ -583,7 +592,7 @@
 
         const questionData = levelQuestions[currentLevelQuestionIndex];
         dom.quizQuestionText.textContent = questionData.question;
-        dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1}`;
+        dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1} of ${levelQuestions.length}`;
         dom.quizOptions.innerHTML = questionData.options.map(option => 
             `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
         ).join('');
