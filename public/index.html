@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -94,7 +94,11 @@
 <body class="flex items-start justify-center p-2 md:p-4">
 
   <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
-        <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
+    <div id="loader-view" class="main-view active flex-col h-full p-6 justify-center items-center">
+        <h1 class="text-2xl font-bold text-gray-700">Loading ConvoQuest...</h1>
+    </div>
+
+        <div id="auth-container" class="main-view flex-col h-full p-6 justify-center">
       <div id="login-view">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
         <div class="space-y-4">
@@ -265,6 +269,7 @@
     let preliminaryLevel = 'A1';
 
     const dom = {
+        loaderView: document.getElementById('loader-view'),
         authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
         placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
         signupView: document.getElementById('signup-view'), loginEmailInput: document.getElementById('login-email-input'),
@@ -463,7 +468,7 @@
                 title: "Comprando Ropa",
                 objective: "Ask for a shirt in a different size and color.",
                 stages: {
-      _               "1": {
+                    "1": {
                         characterName: "Dependiente de Tienda",
                         objective: "Successfully ask for an article of clothing in a different size and color.",
                         characterImage: "/images/cq_clerk_male_1.png",
@@ -864,44 +869,22 @@
         showView('main-app-view');
     }
 
-    /* === PATCHED: Robust UI flip after sign-in === */
-    async function handleUserSignIn(user) {
-        if (!user) return;
-        currentUser = user;
-        let settingsLoaded = false;
-        try {
-            await loadUserSettings(user.uid);
-            settingsLoaded = true;
-        } catch (error) {
-            console.error("Critical error during sign-in process:", error);
-            dom.loginError.textContent = "Signed in, but couldn't load your profile. Continuing with defaults.";
-        }
-        // Always set a welcome line
-        dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-        // Decide view even if settings failed
-        const level = (userSettings && userSettings.proficiencyLevel) ? String(userSettings.proficiencyLevel) : null;
-        if (!settingsLoaded || !level || level === 'null') {
-            startPlacementTest();
-        } else {
-            showView('main-app-view');
-            showAppView('quests');
-        }
-    }
-    
+    // This new listener is the single source of truth for app initialization.
     onAuthStateChanged(auth, async (user) => { // Note the 'async' keyword
         try {
             if (user) {
                 // Only run the sign-in logic if there is no current user
                 // OR if the new user's ID is different from the one we have stored.
                 if (!currentUser || currentUser.uid !== user.uid) {
-                    await handleUserSignIn(user); // Note the 'await' keyword
+                    await initializeAppLogic(user); // Note the 'await' keyword
                 }
             } else {
                 // Only run the sign-out logic if there was a user to sign out.
                 if (currentUser) {
-                    currentUser = null;
-                    userSettings = {}; // Explicitly clear settings on logout.
-                    showView('auth-container');
+                    showLoginScreen();
+                } else {
+                   // This case handles the very first load when user is null and there's no one to sign out
+                   showLoginScreen();
                 }
             }
         } catch (error) {
@@ -910,6 +893,7 @@
             if(dom.loginError) {
                 dom.loginError.textContent = "An unexpected error occurred. Please try again.";
             }
+            showLoginScreen(); // Ensure user sees login screen on error
         }
     });
     
@@ -1006,8 +990,6 @@
         }
     });
     document.body.addEventListener('click', (e) => { if (!e.target.closest('.clickable-word')) dom.translationPopover.classList.add('hidden'); }, true);
-
-    renderQuests();
 
   </script>
 </body>
