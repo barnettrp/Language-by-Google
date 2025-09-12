@@ -92,17 +92,6 @@
         </div>
         <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
       </div>
-       <div id="placement-chat-view" class="hidden flex-col h-full">
-        <header class="p-4 border-b"><h1 class="text-xl font-bold text-gray-800">A Quick Chat</h1></header>
-        <div id="placement-chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto"></div>
-        <div class="p-2 border-t bg-white/50">
-          <div class="flex items-center space-x-2">
-            <input type="text" id="placement-chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md">
-            <button id="placement-understand-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold text-sm">I don't understand</button>
-            <button id="placement-send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold">Send</button>
-          </div>
-        </div>
-      </div>
     </div>
 
         <div id="main-app-view" class="main-view flex-col flex-1">
@@ -215,6 +204,7 @@
     let currentStage = null;
     let messages = [];
     let placementMessages = [];
+    let currentLevelQuiz = [];
     
     let currentQuizLevel = 'A1';
     let currentLevelQuestionIndex = 0;
@@ -246,8 +236,6 @@
         clueText: document.getElementById('clue-text'), xpGainText: document.getElementById('xp-gain-text'),
         continueQuestBtn: document.getElementById('continue-quest-btn'), hintBtn: document.getElementById('hint-btn'),
         placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
-        placementChatView: document.getElementById('placement-chat-view'), placementChatContainer: document.getElementById('placement-chat-container'),
-        placementChatInput: document.getElementById('placement-chat-input'), placementSendBtn: document.getElementById('placement-send-btn'),
         retakePlacementBtn: document.getElementById('retake-placement-btn'), appContainer: document.getElementById('app-container'),
         quizQuestionText: document.getElementById('quiz-question-text'), quizOptions: document.getElementById('quiz-options'),
         placementProgress: document.getElementById('placement-progress'),
@@ -255,7 +243,6 @@
         vocabularyView: document.getElementById('vocabulary-view'),
         vocabularyContainer: document.getElementById('vocabulary-container'),
         backToQuestsBtn: document.getElementById('back-to-quests-btn'),
-        placementUnderstandBtn: document.getElementById('placement-understand-btn'),
     };
 
     const AIManager = {
@@ -294,34 +281,48 @@
             const userPrompt = `Here is the recent conversation history:\n${userHistory}\n\nBased on this, provide your next response.`;
             return this.callGemini(systemPrompt, userPrompt);
         },
-        async analyzePlacement(transcript, preliminaryLevel) {
-            const systemPrompt = `You are an expert language proficiency evaluator. The user has completed a multiple-choice test and placed at a preliminary CEFR level of ${preliminaryLevel}. Your job is to confirm or adjust this level based on a short, free-form conversation. Analyze the user's Spanish conversation and assign a final CEFR level (A1, A2, B1, B2, C1, C2). Respond with only the final level (e.g., "B1").`;
-            const userPrompt = `Here is the conversation transcript:\n${transcript}\n\nBased on this conversation and the preliminary level of ${preliminaryLevel}, what is the user's final CEFR level?`;
-            return this.callGemini(systemPrompt, userPrompt);
-        }
     };
 
     const placementQuizData = {
         'A1': [
-            { question: "Which of these means 'hello'?", options: ["Adiós", "Hola", "Gracias", "De nada"], answer: "Hola" },
-            { question: "How do you say 'thank you'?", options: ["Por favor", "Lo siento", "Gracias", "Buenos días"], answer: "Gracias" },
-            { question: "How do you say 'goodbye'?", options: ["Adiós", "Por favor", "Lo siento", "Con permiso"], answer: "Adiós" },
-            { question: "What is the Spanish word for 'water'?", options: ["Pan", "Leche", "Agua", "Vino"], answer: "Agua" },
-            { question: "The opposite of *grande* (big) is...?", options: ["Pequeño", "Alto", "Rojo", "Feliz"], answer: "Pequeño" }
+            { question: "¿Cómo se dice 'book' en español?", options: ["Casa", "Libro", "Gato", "Agua"], answer: "Libro" },
+            { question: "Complete la frase: 'Yo ___ de México.'", options: ["soy", "estoy", "tengo", "voy"], answer: "soy" },
+            { question: "What is 'uno, dos, tres' in English?", options: ["Three, two, one", "One, three, two", "One, two, three", "Two, one, three"], answer: "One, two, three" },
+            { question: "Which of these is a greeting?", options: ["Adiós", "Gracias", "Por favor", "Buenos días"], answer: "Buenos días" },
+            { question: "The opposite of 'frío' (cold) is...", options: ["Caliente", "Grande", "Bajo", "Triste"], answer: "Caliente" },
+            { question: "How do you say 'cat'?", options: ["Perro", "Casa", "Mesa", "Gato"], answer: "Gato" },
+            { question: "What is 'rojo'?", options: ["Blue", "Yellow", "Red", "Green"], answer: "Red" },
+            { question: "Choose the correct article for 'casa' (house).", options: ["El", "La", "Los", "Las"], answer: "La" }
         ],
         'A2': [
-            { question: "What is the past tense of 'I speak' (hablo)?", options: ["Hablé", "Hablo", "Hablaré", "Hablaba"], answer: "Hablé" },
-            { question: "Which is correct for 'the red cars'?", options: ["Los coches rojos", "El coche rojo", "Las rojas coches", "La coche roja"], answer: "Los coches rojos" },
-            { question: "Which phrase means 'I am going to the beach'?", options: ["Voy a la playa", "Soy a la playa", "Estoy a la playa", "Tengo a la playa"], answer: "Voy a la playa" },
-            { question: "How do you say 'she ate'?", options: ["Ella como", "Ella comer", "Ella comió", "Ella comes"], answer: "Ella comió" },
-            { question: "Which word means 'yesterday'?", options: ["Mañana", "Siempre", "Ayer", "Nunca"], answer: "Ayer" }
+            { question: "What is the past tense of 'yo como' (I eat)?", options: ["Yo comí", "Yo como", "Yo comeré", "Yo comía"], answer: "Yo comí" },
+            { question: "Which means 'I like the beach'?", options: ["Me gusta la playa", "Yo gusto la playa", "Soy gusta la playa", "Estoy la playa"], answer: "Me gusta la playa" },
+            { question: "Complete: 'La casa es más ___ que el apartamento.'", options: ["grande", "grandes", "el grande", "la grande"], answer: "grande" },
+            { question: "How do you say 'I'm going to work'?", options: ["Voy al trabajo", "Vengo del trabajo", "Estoy en trabajo", "Soy trabajo"], answer: "Voy al trabajo" },
+            { question: "'Ellos ___ en el parque ayer.' (to run)", options: ["corren", "corrieron", "correrán", "corrían"], answer: "corrieron" },
+            { question: "What is 'el hermano de mi padre'?", options: ["Mi primo", "Mi abuelo", "Mi tío", "Mi padre"], answer: "Mi tío" },
+            { question: "The direct object pronoun for 'la manzana' is...", options: ["Lo", "La", "Le", "Se"], answer: "La" },
+            { question: "Which word means 'always'?", options: ["Nunca", "A veces", "Siempre", "Casi"], answer: "Siempre" }
         ],
         'B1': [
-            { question: "Choose the correct subjunctive form: 'I hope you ___ well.' (estar)", options: ["estás", "estés", "estar", "estuvieras"], answer: "estés" },
-            { question: "What does 'acabar de' mean?", options: ["To have just done something", "To finish something later", "To be about to do something", "To be tired of something"], answer: "To have just done something" },
-            { question: "If I had more time, I ___ travel more.", options: ["viajaría", "viajaré", "viajé", "viajaba"], answer: "viajaría" },
-            { question: "Choose the correct preposition for 'to dream ___.' (soñar)", options: ["soñar con", "soñar a", "soñar de", "soñar en"], answer: "soñar con" },
-            { question: "'Se me olvidó' is a common, passive way to say...", options: ["I was late", "I remembered it", "I forgot", "I understood"], answer: "I forgot" }
+            { question: "Choose the imperfect tense: 'Cuando era niño, yo ___ mucho.' (to play)", options: ["juego", "jugué", "jugaba", "jugaría"], answer: "jugaba" },
+            { question: "Choose the correct form: 'Espero que ___ un buen día.' (tener)", options: ["tienes", "tengas", "tendrás", "tuviste"], answer: "tengas" },
+            { question: "How do you say 'If I were you...'?", options: ["Si yo fui tú...", "Si yo soy tú...", "Si yo era tú...", "Si yo fuera tú..."], answer: "Si yo fuera tú..." },
+            { question: "Choose the correct preposition for 'I'm thinking ___ you.'", options: ["pienso a", "pienso en", "pienso con", "pienso por"], answer: "pienso en" },
+            { question: "What does 'solía' mean, as in 'Yo solía nadar'?", options: ["I have to", "I used to", "I want to", "I am able to"], answer: "I used to" },
+            { question: "Which is a formal command for 'speak'?", options: ["Hablas", "Habla", "Hables", "Hable"], answer: "Hable" },
+            { question: "This gift is ___ you. (recipient)", options: ["por", "para", "de", "a"], answer: "para" },
+            { question: "I have lived here for 5 years.", options: ["He vivido aquí por 5 años.", "Viví aquí por 5 años.", "Vivía aquí por 5 años.", "Viviré aquí por 5 años."], answer: "He vivido aquí por 5 años." }
+        ],
+        'B2': [
+            { question: "Choose the pluperfect subjunctive: 'Si ___ sabido, habría venido.' (I had)", options: ["hubiera", "había", "hube", "haya"], answer: "hubiera" },
+            { question: "What does '¡Qué va!' express?", options: ["Agreement", "Surprise", "Disbelief or rejection", "Happiness"], answer: "Disbelief or rejection" },
+            { question: "'No creo que ___ la respuesta.' (saber, él)", options: ["sabe", "sabrá", "supiera", "sepa"], answer: "sepa" },
+            { question: "The project, ___ goal is to improve efficiency, is underway.", options: ["cuyo", "que", "cual", "cuales"], answer: "cuyo" },
+            { question: "He finished the report 'a regañadientes'. How?", options: ["Quickly", "Carefully", "Reluctantly", "Enthusiastically"], answer: "Reluctantly" },
+            { question: "The passive voice of 'They built the house' is...", options: ["Se construyó la casa.", "Construyeron la casa.", "La casa construida.", "Están construyendo la casa."], answer: "Se construyó la casa." },
+            { question: "Which expresses 'no matter how much you study'?", options: ["Por mucho que estudies", "Para mucho que estudies", "Con mucho que estudies", "De mucho que estudies"], answer: "Por mucho que estudies" },
+            { question: "If he had called me, I would have gone.", options: ["Si me llamaría, iría.", "Si me llamara, habría ido.", "Si me llamó, habría ido.", "Si me hubiera llamado, habría ido."], answer: "Si me hubiera llamado, habría ido." }
         ]
     };
 
@@ -472,46 +473,6 @@
          dom.xpGainText.textContent = `+${currentStage.reward.xp} XP`;
          dom.stageCompleteModal.classList.remove('hidden');
     }
-
-    async function handlePlacementSend() {
-        const userInput = dom.placementChatInput.value.trim();
-        if (!userInput) return;
-        addMessage(userInput, 'user', dom.placementChatContainer);
-        dom.placementChatInput.value = '';
-
-        if (placementMessages.length >= 4) { // End chat after 2 user responses
-             addMessage('Analyzing your level...', 'ai', dom.placementChatContainer);
-             const transcript = placementMessages.map(m => `${m.role}: ${m.parts[0].text}`).join('\n');
-             const finalLevel = await AIManager.analyzePlacement(transcript, preliminaryLevel);
-             await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel.trim() });
-             userSettings.proficiencyLevel = finalLevel.trim();
-             alert(`Excellent! We've placed you at level: ${finalLevel.trim()}. Let's get started!`);
-             showView('main-app-view');
-        } else {
-            const prompt = "Ask another open-ended question to gauge their fluency.";
-            const response = await AIManager.callGemini(`You are a language evaluator confirming a ${preliminaryLevel} student.`, prompt);
-            addMessage(response, 'ai', dom.placementChatContainer);
-        }
-    }
-
-    async function handlePlacementUnderstand() {
-        // Add the user's action to the chat transcript for the AI to analyze later
-        addMessage("I don't understand.", 'user', dom.placementChatContainer);
-
-        // Prompt the AI to generate a simpler question with stricter rules
-        const systemPrompt = `You are a language evaluator conducting a placement test in Spanish. The user is at a preliminary level of ${preliminaryLevel}.`;
-        
-        // This new prompt is more explicit and forbids translation.
-        const userPrompt = `The user clicked "I don't understand" in response to the previous question. Your task is to ask a new, simpler question to re-evaluate their fluency.
-        
-        **Important rules:**
-        1. Your entire response MUST be in Spanish.
-        2. Do NOT translate the previous question or provide any English.
-        3. Ask a completely new, easier, open-ended question suitable for a lower CEFR level.`;
-        
-        const response = await AIManager.callGemini(systemPrompt, userPrompt);
-        addMessage(response, 'ai', dom.placementChatContainer);
-    }
     
     function getUserDocRef(userId) {
         if (!userId) return null;
@@ -587,60 +548,62 @@
         }
     }
 
-    function startPlacementTest() {
-        currentQuizLevel = 'A1';
+    function prepareLevelQuestions(level) {
+        const questionBank = [...placementQuizData[level]]; // Create a copy
+        // Fisher-Yates shuffle algorithm
+        for (let i = questionBank.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questionBank[i], questionBank[j]] = [questionBank[j], questionBank[i]];
+        }
+        currentLevelQuiz = questionBank.slice(0, 5); // Select the first 5 random questions
         currentLevelQuestionIndex = 0;
         incorrectAnswersInLevel = 0;
-        preliminaryLevel = 'A1';
+    }
+
+    function startPlacementTest() {
+        currentQuizLevel = 'A1';
+        preliminaryLevel = 'A1'; // This will now be the final level
+        prepareLevelQuestions('A1');
         renderPlacementQuestion();
         showView('placement-view');
     }
 
     function renderPlacementQuestion() {
-        const levelQuestions = placementQuizData[currentQuizLevel];
-        if (!levelQuestions || currentLevelQuestionIndex >= levelQuestions.length) {
-            // This block runs when all questions for a level are answered.
-
-            // Pass Condition: User gets 1 or fewer wrong AND is not on the final level.
-            if (incorrectAnswersInLevel <= 1 && currentQuizLevel !== 'B1') {
+        if (currentLevelQuestionIndex >= currentLevelQuiz.length) {
+            // Pass Condition: User gets 1 or fewer wrong
+            if (incorrectAnswersInLevel <= 1 && currentQuizLevel !== 'B2') {
                 preliminaryLevel = currentQuizLevel; // Lock in the highest passed level.
-                currentQuizLevel = (currentQuizLevel === 'A1') ? 'A2' : 'B1'; // Advance to next level.
-                currentLevelQuestionIndex = 0;
-                incorrectAnswersInLevel = 0;
-                renderPlacementQuestion(); // Load the next level's questions.
+                // Advance to the next level
+                const levels = ['A1', 'A2', 'B1', 'B2'];
+                const nextLevelIndex = levels.indexOf(currentQuizLevel) + 1;
+                currentQuizLevel = levels[nextLevelIndex];
+                prepareLevelQuestions(currentQuizLevel);
+                renderPlacementQuestion();
             } else {
-                // End of Test Condition: User fails a level OR completes the final (B1) level.
-                if (incorrectAnswersInLevel <= 1 && currentQuizLevel === 'B1') {
-                     preliminaryLevel = 'B1'; // If they passed B1, lock it in.
+                // End of Test Condition: User fails a level OR completes the final (B2) level.
+                if (incorrectAnswersInLevel <= 1 && currentQuizLevel === 'B2') {
+                     preliminaryLevel = 'B2';
                 }
                 finishQuiz();
             }
             return;
         }
 
-        const questionData = levelQuestions[currentLevelQuestionIndex];
+        const questionData = currentLevelQuiz[currentLevelQuestionIndex];
         dom.quizQuestionText.textContent = questionData.question;
-        dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1} of ${levelQuestions.length}`;
+        dom.placementProgress.textContent = `Level ${currentQuizLevel} - Question ${currentLevelQuestionIndex + 1} of ${currentLevelQuiz.length}`;
         dom.quizOptions.innerHTML = questionData.options.map(option =>
             `<label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="quiz" value="${option}" class="mr-2"> ${option}</label>`
         ).join('');
     }
 
     function finishQuiz() {
-        // The ONLY condition to skip the chat is if the user fails the very first (A1) level.
-        // Our fail threshold is now more than 1 incorrect answer.
-        if (currentQuizLevel === 'A1' && incorrectAnswersInLevel > 1) {
-            alert(`Thanks! Based on your results, we'll start with the basics.`);
-            saveUserSettings(currentUser.uid, { proficiencyLevel: 'A1' });
-            userSettings.proficiencyLevel = 'A1';
-            showView('main-app-view');
-        } else {
-            // In ALL other cases (passing A1, A2, or B1), we proceed to the chat for confirmation.
-            alert(`Great job! We've placed you at a preliminary ${preliminaryLevel} level. Now for a quick chat to confirm.`);
-            dom.placementQuizView.classList.add('hidden');
-            dom.placementChatView.classList.remove('hidden');
-            addMessage(`¡Hola! Para confirmar tu nivel, ¿puedes contarme un poco sobre ti?`, 'ai', dom.placementChatContainer);
-        }
+        // Determine the final level based on the highest passed level.
+        const finalLevel = preliminaryLevel;
+        alert(`Test complete! Based on your answers, we've placed you at level: ${finalLevel}.`);
+        saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel });
+        userSettings.proficiencyLevel = finalLevel;
+        showView('main-app-view');
     }
 
     /* === PATCHED: Robust UI flip after sign-in === */
@@ -730,16 +693,13 @@
     dom.submitQuizBtn.addEventListener('click', () => {
         const selected = document.querySelector('input[name="quiz"]:checked');
         if (!selected) { alert('Please select an answer.'); return; }
-        const levelQuestions = placementQuizData[currentQuizLevel];
-        if (selected.value !== levelQuestions[currentLevelQuestionIndex].answer) {
+        const questionData = currentLevelQuiz[currentLevelQuestionIndex];
+        if (selected.value !== questionData.answer) {
             incorrectAnswersInLevel++;
         }
         currentLevelQuestionIndex++;
         renderPlacementQuestion();
     });
-    if(dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
-    if(dom.placementChatInput) dom.placementChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePlacementSend(); });
-    if(dom.placementUnderstandBtn) dom.placementUnderstandBtn.addEventListener('click', handlePlacementUnderstand);
     
     if(dom.vocabBtn) dom.vocabBtn.addEventListener('click', () => {
       renderVocabulary();
