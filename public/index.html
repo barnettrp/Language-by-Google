@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ConvoQuest</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ocean-teal': '#2A9D8F',
+            'sandy-orange': '#F4A261',
+            'sun-yellow': '#E9C46A',
+            'seashell-white': '#FEFDF5',
+          },
+        },
+      },
+    };
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root { color-scheme: light; }
@@ -17,7 +31,7 @@
       min-height: 100vh;
     }
     .contained-area {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(254, 253, 245, 0.9); /* Seashell White */
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -26,7 +40,10 @@
     @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
     .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
-    .chat-bubble-user { background-color: #3b82f6; color: white; }
+    .chat-bubble-user {
+      background-color: #F4A261; /* Sandy Orange */
+      color: white;
+    }
     .chat-bubble-ai { background-color: #f3f4f6; color: #1f2937; }
     #chat-container::-webkit-scrollbar, #placement-chat-container::-webkit-scrollbar, #vocabulary-container::-webkit-scrollbar { display: none; }
     #chat-container, #placement-chat-container, #vocabulary-container { -ms-overflow-style: none; scrollbar-width: none; }
@@ -102,26 +119,26 @@
       <div id="login-view">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
         <div class="space-y-4">
-          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-teal">
+          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-teal">
         </div>
         <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
-          <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Log In</button>
-          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+          <button id="login-btn" class="w-full bg-ocean-teal text-white p-3 rounded-md font-semibold hover:opacity-90 transition-opacity">Log In</button>
+          <button id="show-signup-btn" class="w-full text-center text-sm text-ocean-teal hover:underline">Don't have an account? Sign Up</button>
         </div>
       </div>
       <div id="signup-view" class="hidden">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
         <div class="space-y-4">
-          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-teal">
+          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-teal">
+          <input type="password" id="signup-password-input" placeholder="Password (min. 6 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-teal">
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
-          <button id="signup-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors">Create Account</button>
-          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Log In</button>
+          <button id="signup-btn" class="w-full bg-ocean-teal text-white p-3 rounded-md font-semibold hover:opacity-90 transition-opacity">Create Account</button>
+          <button id="show-login-btn" class="w-full text-center text-sm text-ocean-teal hover:underline">Already have an account? Log In</button>
         </div>
       </div>
     </div>
@@ -134,7 +151,7 @@
           <p id="quiz-question-text" class="text-left font-semibold mb-2"></p>
           <div id="quiz-options" class="space-y-2 text-left"></div>
         </div>
-        <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 mt-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Next</button>
+        <button id="submit-quiz-btn" class="w-full bg-ocean-teal text-white p-3 mt-6 rounded-md font-semibold hover:opacity-90 transition-opacity">Next</button>
       </div>
     </div>
 
@@ -149,14 +166,14 @@
           </div>
         </header>
 
-                <div id="gamification-status" class="p-3 bg-blue-50/50 border-b border-gray-200/80 flex justify-between items-center text-sm">
+                <div id="gamification-status" class="p-3 bg-teal-50/50 border-b border-gray-200/80 flex justify-between items-center text-sm">
           <div class="flex-1 pr-4">
               <div class="flex justify-between mb-1">
-                  <span id="user-level-text" class="font-bold text-blue-800">Level 1</span>
+                  <span id="user-level-text" class="font-bold text-ocean-teal">Level 1</span>
                   <span id="user-xp-text" class="text-gray-600">0/100 XP</span>
               </div>
-              <div class="w-full bg-blue-200 rounded-full h-2">
-                  <div id="xp-bar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+              <div class="w-full bg-teal-200 rounded-full h-2">
+                  <div id="xp-bar" class="bg-ocean-teal h-2 rounded-full" style="width: 0%"></div>
               </div>
           </div>
           <div id="streak-counter" class="text-center">
@@ -164,7 +181,7 @@
               <span id="streak-count-text" class="font-bold text-orange-600">0</span>
           </div>
         </div>
-                
+        
         <div class="p-4 space-y-3 overflow-y-auto"></div>
       </div>
 
@@ -175,14 +192,14 @@
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0 z-20">
           <button id="exit-quest-btn" title="Exit Quest" class="text-xl font-bold text-gray-500 hover:text-gray-800 transition-colors mr-3">←</button>
           <h1 id="chat-title" class="text-xl font-bold text-gray-800 flex-1"></h1>
-          <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
+          <button id="end-session-btn" class="bg-ocean-teal text-white px-3 py-1 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity">Complete Stage</button>
         </header>
-        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto z-20"></div>
-        <div class="p-2 border-t bg-white/50 flex-shrink-0 z-20">
+        <div id="chat-container" class="relative flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto z-20"></div>
+        <div class="p-2 border-t bg-seashell-white/50 flex-shrink-0 z-20">
           <div class="flex items-center space-x-2">
-            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
-            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
+            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-ocean-teal">💡</button>
+            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-teal">
+            <button id="send-btn" class="bg-ocean-teal text-white px-4 py-2 rounded-md font-semibold hover:opacity-90 transition-opacity">Send</button>
           </div>
         </div>
       </div>
@@ -190,38 +207,39 @@
             <div id="vocabulary-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <h1 class="text-xl font-bold text-gray-800">My Vocabulary</h1>
-          <button id="back-to-quests-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
+          <button id="back-to-quests-btn" class="bg-ocean-teal text-white px-3 py-1 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity">Back to Quests</button>
         </header>
         <div id="vocabulary-container" class="p-4 space-y-3 overflow-y-auto">
                   </div>
       </div>
-          </div>
+
+    </div>
     
         <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <div class="modal-content bg-seashell-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
             <div class="space-y-4">
                 <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
                 <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
                 <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
-                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
+                <button id="retake-placement-btn" class="w-full text-center text-sm text-ocean-teal hover:underline pt-2">Retake Placement Test</button>
             </div>
         </div>
     </div>
     <div id="vignette-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+        <div class="modal-content bg-seashell-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
             <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
             <p id="vignette-text" class="text-gray-600 mb-6"></p>
-            <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
+            <button id="start-stage-btn" class="w-full bg-ocean-teal text-white p-3 rounded-md font-semibold">Start Stage</button>
         </div>
     </div>
     <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
-            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete! 🎉</h2>
+        <div class="modal-content bg-seashell-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold text-ocean-teal mb-2">Stage Complete! 🎉</h2>
             <p class="text-gray-700">New clue unlocked:</p>
-            <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
-            <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
-            <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Continue Quest</button>
+            <p id="clue-text" class="bg-sun-yellow/30 p-3 rounded-md my-4 font-semibold"></p>
+            <p id="xp-gain-text" class="text-lg font-bold text-ocean-teal mb-6"></p>
+            <button id="continue-quest-btn" class="w-full bg-ocean-teal text-white p-3 rounded-md font-semibold">Continue Quest</button>
         </div>
     </div>
     <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
@@ -441,8 +459,8 @@
                     "1": {
                         characterName: "Vendedor de Frutas",
                         objective: "Successfully ask for a specific fruit and its price.",
-                        characterImage: "/images/cq_vendor_male_1.png.PNG",
-                        backgroundImage: "/images/cq_market_1.png.PNG",
+                        characterImage: "/public/images/cq_vendor_male_1.png.PNG",
+                        backgroundImage: "/public/images/cq_market_1.png.PNG",
                         initialMessage: "¡Buenos días! ¿Qué le damos hoy?",
                         reward: { xp: 25, clue: "The vendor said the professor was asking about 'rare blue corn'." }
                     }
@@ -455,8 +473,8 @@
                     "1": {
                         characterName: "Barista Amable",
                         objective: "Successfully order one coffee and one pastry.",
-                        characterImage: "/images/cq_barista_female_1.png.PNG",
-                        backgroundImage: "/images/cq_cafe_1.png.PNG",
+                        characterImage: "/public/images/cq_barista_female_1.png.PNG",
+                        backgroundImage: "/public/images/cq_cafe_1.png.PNG",
                         initialMessage: "¡Hola! ¿Qué te pongo?",
                         reward: { xp: 25, clue: "The barista mentioned the professor paid with a strange, old coin." }
                     }
@@ -471,8 +489,8 @@
                     "1": {
                         characterName: "Dependiente de Tienda",
                         objective: "Successfully ask for an article of clothing in a different size and color.",
-                        characterImage: "/images/cq_clerk_male_1.png.PNG",
-                        backgroundImage: "/images/cq_clothing_store_1.png.PNG",
+                        characterImage: "/public/images/cq_clerk_male_1.png.PNG",
+                        backgroundImage: "/public/images/cq_clothing_store_1.png.PNG",
                         initialMessage: "Buenas, ¿te puedo ayudar en algo?",
                         reward: { xp: 35, clue: "The shopkeeper said the professor bought a blue scarf." }
                     }
@@ -485,8 +503,8 @@
                     "1": {
                         characterName: "Transeúnte Local",
                         objective: "Successfully ask for and understand directions to a specific place.",
-                        characterImage: "/images/cq_local_female_1.png.PNG",
-                        backgroundImage: "/images/cq_street_1.png.PNG",
+                        characterImage: "/public/images/cq_local_female_1.png.PNG",
+                        backgroundImage: "/public/images/cq_street_1.png.PNG",
                         initialMessage: "Disculpa, ¿necesitas ayuda?",
                         reward: { xp: 35, clue: "A local mentioned the professor was heading towards the old library." }
                     }
@@ -501,8 +519,8 @@
                     "1": {
                         characterName: "Doctora Paciente",
                         objective: "Successfully describe at least two symptoms and answer a follow-up question from the doctor.",
-                        characterImage: "/images/cq_doctor_female_1.png.PNG",
-                        backgroundImage: "/images/cq_clinic_1.png.PNG",
+                        characterImage: "/public/images/cq_doctor_female_1.png.PNG",
+                        backgroundImage: "/public/images/cq_clinic_1.png.PNG",
                         initialMessage: "Buenos días, pasa y toma asiento. Cuéntame, ¿qué te trae por aquí?",
                         reward: { xp: 50, clue: "The doctor's records show the professor had a strange allergy to dust." }
                     }
@@ -869,7 +887,7 @@
         showView('main-app-view');
     }
 
-    async function initializeAppLogic(user) {
+    function initializeAppLogic(user) {
         currentUser = user;
         await loadUserSettings(user.uid);
         
