@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
   <title>ConvoQuest</title>
 
   <!-- Tailwind (CDN) -->
@@ -22,10 +25,9 @@
     };
   </script>
 
-  <!-- If you were using a "JS normalizer" or any polyfill, keep its <script> tag here -->
-  <!-- <script src="js-normalizer.js" defer></script> -->
-
+  <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     :root { color-scheme: light; }
     html, body { height: 100%; }
@@ -33,32 +35,65 @@
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
       background: #FEFDF5;
     }
+    .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(42,157,143,0.35); }
+    .link { color: #2A9D8F; text-decoration: underline; }
   </style>
 </head>
 
 <body class="min-h-screen">
-  <!-- App wrapper -->
   <div class="mx-auto max-w-3xl p-4">
 
     <!-- Login Screen -->
     <section id="loginScreen" class="bg-white rounded-2xl shadow p-6 border border-ocean-teal/10">
-      <h1 class="text-2xl font-semibold text-ocean-teal mb-4">Welcome to ConvoQuest</h1>
+      <h1 class="text-2xl font-semibold text-ocean-teal mb-2">Welcome to ConvoQuest</h1>
       <p class="text-gray-600 mb-6">Log in to continue.</p>
 
       <form id="loginForm" class="grid gap-4">
         <label class="grid gap-2">
-          <span class="text-sm text-gray-700">Username</span>
-          <input id="username" class="border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-ocean-teal" placeholder="yourname" required />
+          <span class="text-sm text-gray-700">Email</span>
+          <input id="email" type="email" class="border rounded-lg px-3 py-2 focus-ring" placeholder="you@example.com" required />
         </label>
 
         <label class="grid gap-2">
           <span class="text-sm text-gray-700">Password</span>
-          <input id="password" type="password" class="border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-ocean-teal" placeholder="••••••••" required />
+          <input id="password" type="password" class="border rounded-lg px-3 py-2 focus-ring" placeholder="••••••••" required />
         </label>
 
-        <button id="loginBtn" class="bg-ocean-teal text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition">
+        <button
+          id="loginBtn"
+          class="bg-ocean-teal text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition focus-ring"
+        >
           Log In
         </button>
+
+        <p id="loginError" class="text-red-600 text-sm hidden"></p>
+
+        <p class="text-sm text-gray-700">
+          New here?
+          <a id="signupLink" href="#" class="link">Create an account</a>
+        </p>
+      </form>
+
+      <!-- Sign Up form (hidden by default) -->
+      <form id="signupForm" class="grid gap-4 hidden mt-6">
+        <h2 class="text-lg font-semibold">Create account</h2>
+
+        <label class="grid gap-2">
+          <span class="text-sm text-gray-700">Email</span>
+          <input id="signupEmail" type="email" class="border rounded-lg px-3 py-2 focus-ring" placeholder="you@example.com" />
+        </label>
+
+        <label class="grid gap-2">
+          <span class="text-sm text-gray-700">Password (min 6 chars)</span>
+          <input id="signupPassword" type="password" class="border rounded-lg px-3 py-2 focus-ring" placeholder="••••••••" />
+        </label>
+
+        <div class="flex items-center gap-2">
+          <button id="createAccountBtn" class="border rounded-lg px-4 py-2 hover:bg-seashell-white focus-ring">Sign Up</button>
+          <a id="backToLogin" href="#" class="link">Back to Login</a>
+        </div>
+
+        <p id="signupError" class="text-red-600 text-sm hidden"></p>
       </form>
     </section>
 
@@ -66,30 +101,270 @@
     <section id="appScreen" class="hidden bg-white rounded-2xl shadow p-6 border border-ocean-teal/10 mt-6">
       <header class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-ocean-teal">ConvoQuest</h2>
-        <div class="flex gap-2">
-          <button id="hintBtn" class="border rounded-lg px-3 py-1 hover:bg-seashell-white">💡 Hint</button>
-          <button id="logoutBtn" class="border rounded-lg px-3 py-1 hover:bg-seashell-white">Log out</button>
+        <div class="flex items-center gap-3">
+          <span id="whoami" class="text-sm text-gray-600"></span>
+          <button id="hintBtn" class="border rounded-lg px-3 py-1 hover:bg-seashell-white focus-ring" title="Get a hint">💡 Hint</button>
+          <button id="logoutBtn" class="border rounded-lg px-3 py-1 hover:bg-seashell-white focus-ring">Log out</button>
         </div>
       </header>
 
-      <div id="messages" class="border rounded-xl p-4 h-64 overflow-y-auto bg-seashell-white/60 mb-4">
-        <!-- Messages will render here -->
+      <!-- Messages -->
+      <div id="messages" class="border rounded-xl p-4 h-72 overflow-y-auto bg-seashell-white/60 mb-4">
+        <!-- Messages render here -->
       </div>
 
+      <!-- Chat input -->
       <form id="chatForm" class="flex gap-2">
-        <input id="userInput" class="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-ocean-teal" placeholder="Type a message…" />
-        <button id="sendBtn" class="bg-sandy-orange text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition">
+        <input
+          id="userInput"
+          class="flex-1 border rounded-lg px-3 py-2 focus-ring"
+          placeholder="Type a message…"
+          autocomplete="off"
+        />
+        <button
+          id="sendBtn"
+          class="bg-sandy-orange text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition focus-ring"
+        >
           Send
         </button>
       </form>
-    </section>
 
+      <!-- Translate utility -->
+      <div class="mt-6 grid gap-3">
+        <div class="flex items-center gap-2">
+          <h3 class="font-medium text-gray-800">Quick Translate</h3>
+          <span class="text-xs text-gray-500">(Google Translate API)</span>
+        </div>
+
+        <div class="grid sm:grid-cols-[1fr_auto_auto] gap-2">
+          <input id="translateInput" class="border rounded-lg px-3 py-2 focus-ring" placeholder="Text to translate…" />
+          <select id="translateTarget" class="border rounded-lg px-3 py-2 focus-ring">
+            <option value="es">Spanish (es)</option>
+            <option value="en">English (en)</option>
+            <option value="fr">French (fr)</option>
+            <option value="de">German (de)</option>
+            <option value="it">Italian (it)</option>
+            <option value="pt">Portuguese (pt)</option>
+          </select>
+          <button id="translateBtn" class="border rounded-lg px-4 py-2 hover:bg-seashell-white focus-ring">Translate</button>
+        </div>
+
+        <div id="translateOut" class="min-h-10 border rounded-lg px-3 py-2 bg-seashell-white/60 text-gray-800"></div>
+      </div>
+    </section>
   </div>
 
-  <!-- If you use Firebase, include your firebase-init.js ABOVE app.js -->
-  <!-- <script src="./firebase-init.js" defer></script> -->
+  <!-- App logic (module). Imports Firebase + your local firebase-config.js -->
+  <script type="module">
+    // --- Firebase SDK (modular) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged,
+      signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { firebaseConfig } from "./firebase-config.js";
 
-  <!-- Your app code -->
-  <script type="module" src="./app.js"></script>
+    // --- Init Firebase ---
+    const fbApp = initializeApp(firebaseConfig);
+    const auth = getAuth(fbApp);
+
+    // --- UI helpers & state ---
+    const $ = (id) => document.getElementById(id);
+    function show(el, yes) { el.classList.toggle("hidden", !yes); }
+    function setBusy(btn, busy) { if (!btn) return; btn.disabled = busy; btn.style.opacity = busy ? "0.6" : "1"; }
+    function addMessage(text, role = "ai") {
+      const box = $("messages");
+      const wrap = document.createElement("div");
+      wrap.className = \`mb-3 \${role === "user" ? "text-right" : "text-left"}\`;
+      const bubble = document.createElement("div");
+      bubble.className = "inline-block max-w-[80%] rounded-xl px-3 py-2 " + (role === "user" ? "bg-ocean-teal text-white" : "bg-white border");
+      bubble.textContent = String(text ?? "");
+      wrap.appendChild(bubble);
+      box.appendChild(wrap);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    const messagesState = []; // {role, content}
+    let currentStage = "default";
+    const userSettings = {};
+
+    function flipToApp(user) {
+      $("whoami").textContent = user?.email ? "Signed in as " + user.email : "";
+      show($("loginScreen"), false);
+      show($("appScreen"), true);
+      if (!messagesState.length) addMessage("You're logged in. How can I help?", "ai");
+    }
+    function flipToLogin() {
+      show($("appScreen"), false);
+      show($("loginScreen"), true);
+      $("whoami").textContent = "";
+      $("messages").innerHTML = "";
+      messagesState.length = 0;
+    }
+
+    // --- Auth state listener (auto flip) ---
+    onAuthStateChanged(auth, (user) => {
+      if (user) flipToApp(user);
+      else flipToLogin();
+    });
+
+    // --- Login form ---
+    $("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      $("loginError").classList.add("hidden");
+      try {
+        setBusy($("loginBtn"), true);
+        const email = $("email").value.trim();
+        const pw = $("password").value;
+        await signInWithEmailAndPassword(auth, email, pw);
+        // Flip happens via onAuthStateChanged
+      } catch (err) {
+        console.error(err);
+        const msg =
+          err.code === "auth/invalid-credential" ? "Invalid email or password." :
+          err.code === "auth/user-not-found"      ? "No account found for that email." :
+          err.code === "auth/too-many-requests"   ? "Too many attempts—try again later." :
+          err.message || "Login failed.";
+        $("loginError").textContent = msg;
+        $("loginError").classList.remove("hidden");
+      } finally {
+        setBusy($("loginBtn"), false);
+      }
+    });
+
+    // --- Sign up toggle ---
+    $("signupLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      show($("loginForm"), false);
+      show($("signupForm"), true);
+      $("signupEmail").value = $("email").value;
+    });
+    $("backToLogin").addEventListener("click", (e) => {
+      e.preventDefault();
+      show($("signupForm"), false);
+      show($("loginForm"), true);
+    });
+
+    // --- Create account ---
+    $("signupForm").addEventListener("submit", (e) => e.preventDefault());
+    $("createAccountBtn").addEventListener("click", async (e) => {
+      e.preventDefault();
+      $("signupError").classList.add("hidden");
+      try {
+        setBusy($("createAccountBtn"), true);
+        const email = $("signupEmail").value.trim();
+        const pw = $("signupPassword").value;
+        if (!email || !pw) throw new Error("Enter email and password.");
+        await createUserWithEmailAndPassword(auth, email, pw);
+        // Signed in automatically; onAuthStateChanged will flip
+      } catch (err) {
+        console.error(err);
+        const msg =
+          err.code === "auth/email-already-in-use" ? "That email is already registered." :
+          err.code === "auth/weak-password"        ? "Password must be at least 6 characters." :
+          err.message || "Signup failed.";
+        $("signupError").textContent = msg;
+        $("signupError").classList.remove("hidden");
+      } finally {
+        setBusy($("createAccountBtn"), false);
+      }
+    });
+
+    // --- Logout ---
+    $("logoutBtn").addEventListener("click", async () => {
+      try { await signOut(auth); } catch (e) { console.error(e); }
+    });
+
+    // ----------------- API Manager (your Vercel routes) -----------------
+    const AIManager = {
+      async getHint(recentMessages, stage = "default", settings = {}) {
+        const resp = await fetch("/api/hint", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recentMessages, stage, settings }),
+        });
+        if (!resp.ok) throw new Error("Hint API error: " + resp.status);
+        const data = await resp.json();
+        return data.hint || "Try asking me to summarize the last message.";
+      },
+      async chat(allMessages) {
+        const resp = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: allMessages }),
+        });
+        if (!resp.ok) throw new Error("Chat API error: " + resp.status);
+        const data = await resp.json();
+        return data.reply || "";
+      },
+      async translate(text, target = "es", source = "") {
+        const resp = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: text, target, source }),
+        });
+        if (!resp.ok) throw new Error("Translate API error: " + resp.status);
+        const data = await resp.json();
+        return data.translated || "";
+      },
+    };
+
+    // ----------------- Hint + Chat + Translate wiring -----------------
+    async function handleHintRequest() {
+      try {
+        setBusy($("hintBtn"), true);
+        const recent = messagesState.slice(-6);
+        const hint = await AIManager.getHint(recent, currentStage, userSettings);
+        addMessage(hint, "ai");
+      } catch (err) {
+        console.error(err);
+        addMessage("Sorry—couldn't fetch a hint right now.", "ai");
+      } finally {
+        setBusy($("hintBtn"), false);
+      }
+    }
+    $("hintBtn").addEventListener("click", handleHintRequest);
+
+    $("chatForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = $("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      messagesState.push({ role: "user", content: text });
+      addMessage(text, "user");
+      input.value = "";
+
+      try {
+        setBusy($("sendBtn"), true);
+        const reply = await AIManager.chat(messagesState);
+        messagesState.push({ role: "ai", content: reply });
+        addMessage(reply, "ai");
+      } catch (err) {
+        console.error(err);
+        addMessage("Hmm, I hit a snag. Try again.", "ai");
+      } finally {
+        setBusy($("sendBtn"), false);
+      }
+    });
+
+    $("translateBtn").addEventListener("click", async () => {
+      const q = $("translateInput").value.trim();
+      const target = $("translateTarget").value;
+      if (!q) { $("translateOut").textContent = "Enter text to translate."; return; }
+      try {
+        setBusy($("translateBtn"), true);
+        $("translateOut").textContent = "Translating…";
+        const translated = await AIManager.translate(q, target);
+        $("translateOut").textContent = translated || "(no result)";
+      } catch (err) {
+        console.error(err);
+        $("translateOut").textContent = "Translate failed. Check your API setup.";
+      } finally {
+        setBusy($("translateBtn"), false);
+      }
+    });
+  </script>
 </body>
 </html>
+
