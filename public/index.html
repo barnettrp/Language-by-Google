@@ -212,4 +212,173 @@
     if (auth) {
       onAuthStateChanged(auth, (user) => {
         if (user) { clearNote(); flipToApp(user); }
-        else { flipToLogin()
+        else { flipToLogin(); }
+      });
+    }
+
+    // Login submit
+    $("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      $("loginError").classList.add("hidden");
+      if (!auth) { note("Auth not initialized. See console.", "red"); return; }
+      try {
+        setBusy($("loginBtn"), true);
+        const email = $("email").value.trim();
+        const pw = $("password").value;
+        await signInWithEmailAndPassword(auth, email, pw);
+        // flip occurs in onAuthStateChanged
+      } catch (err) {
+        console.error(err);
+        const msg =
+          err.code === "auth/invalid-credential" ? "Invalid email or password." :
+          err.code === "auth/operation-not-allowed" ? "Email/password sign-in is not enabled in Firebase." :
+          err.code === "auth/unauthorized-domain" ? "Add this domain in Firebase Authentication → Authorized domains." :
+          err.code === "auth/user-not-found" ? "No account for that email." :
+          err.code === "auth/too-many-requests" ? "Too many attempts—try later." :
+          err.message || "Login failed.";
+        $("loginError").textContent = msg;
+        $("loginError").classList.remove("hidden");
+        note("Login error: " + msg, "red");
+      } finally {
+        setBusy($("loginBtn"), false);
+      }
+    });
+
+    // Sign up toggle
+    $("signupLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      show($("loginForm"), false);
+      show($("signupForm"), true);
+      $("signupEmail").value = $("email").value;
+    });
+    $("backToLogin").addEventListener("click", (e) => {
+      e.preventDefault();
+      show($("signupForm"), false);
+      show($("loginForm"), true);
+    });
+
+    // Create account
+    $("signupForm").addEventListener("submit", (e) => e.preventDefault());
+    $("createAccountBtn").addEventListener("click", async (e) => {
+      e.preventDefault();
+      $("signupError").classList.add("hidden");
+      if (!auth) { note("Auth not initialized. See console.", "red"); return; }
+      try {
+        setBusy($("createAccountBtn"), true);
+        const email = $("signupEmail").value.trim();
+        const pw = $("signupPassword").value;
+        if (!email || !pw) throw new Error("Enter email and password.");
+        await createUserWithEmailAndPassword(auth, email, pw);
+        // flip occurs in onAuthStateChanged
+      } catch (err) {
+        console.error(err);
+        const msg =
+          err.code === "auth/email-already-in-use" ? "That email is already registered." :
+          err.code === "auth/weak-password" ? "Password must be at least 6 characters." :
+          err.message || "Signup failed.";
+        $("signupError").textContent = msg;
+        $("signupError").classList.remove("hidden");
+        note("Signup error: " + msg, "red");
+      } finally {
+        setBusy($("createAccountBtn"), false);
+      }
+    });
+
+    // Logout
+    $("logoutBtn").addEventListener("click", async () => {
+      try { await signOut(auth); } catch (e) { console.error(e); note("Logout error. See console.", "red"); }
+    });
+
+    // API Manager (Gemini + Translate routes you already built)
+    const AIManager = {
+      async getHint(recentMessages, stage = "default", settings = {}) {
+        const resp = await fetch("/api/hint", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recentMessages, stage, settings }),
+        });
+        if (!resp.ok) throw new Error("Hint API error: " + resp.status);
+        const data = await resp.json();
+        return data.hint || "Try asking me to summarize the last message.";
+      },
+      async chat(allMessages) {
+        const resp = await fetch("/api/chat", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: allMessages }),
+        });
+        if (!resp.ok) throw new Error("Chat API error: " + resp.status);
+        const data = await resp.json();
+        return data.reply || "";
+      },
+      async translate(text, target = "es", source = "") {
+        const resp = await fetch("/api/translate", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: text, target, source }),
+        });
+        if (!resp.ok) throw new Error("Translate API error: " + resp.status);
+        const data = await resp.json();
+        return data.translated || "";
+      },
+    };
+
+    // Hint / Chat / Translate wiring
+    $("hintBtn").addEventListener("click", async () => {
+      try {
+        const hint = await AIManager.getHint(messagesState.slice(-6));
+        addMessage(hint, "ai");
+      } catch (e) {
+        console.error(e);
+        addMessage("Sorry—couldn't fetch a hint right now.", "ai");
+      }
+    });
+
+    $("chatForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = $("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+      messagesState.push({ role: "user", content: text });
+      addMessage(text, "user");
+      input.value = "";
+      try {
+        const reply = await AIManager.chat(messagesState);
+        messagesState.push({ role: "ai", content: reply });
+        addMessage(reply, "ai");
+      } catch (e) {
+        console.error(e);
+        addMessage("Hmm, I hit a snag. Try again.", "ai");
+      }
+    });
+
+    $("translateBtn").addEventListener("click", async () => {
+      const q = $("translateInput").value.trim();
+      const target = $("translateTarget").value;
+      if (!q) { $("translateOut").textContent = "Enter text to translate."; return; }
+      try {
+        $("translateOut").textContent = "Translating…";
+        const translated = await AIManager.translate(q, target);
+        $("translateOut").textContent = translated || "(no result)";
+      } catch (e) {
+        console.error(e);
+        $("translateOut").textContent = "Translate failed. Check your API setup.";
+      }
+    });
+
+    // Global error handler: show something visible for silent errors
+    window.addEventListener("error", (ev) => {
+      note("A script error occurred. Open DevTools → Console for details.", "red");
+    });
+  </script>
+
+  <!-- If module failed to run (e.g., opened via file://), show a clear banner -->
+  <script>
+    setTimeout(() => {
+      if (!window.__cqBooted) {
+        const el = document.getElementById("statusBanner");
+        el.textContent = "Your module script did not load. Serve this over http (e.g., `vercel dev` or `npx serve .`). Also ensure ./firebase-config.js exists.";
+        el.className = "px-4 py-3 text-sm bg-red-50 text-red-900 border-b border-red-200";
+        el.classList.remove("hidden");
+      }
+    }, 1200);
+  </script>
+</body>
+</html>
