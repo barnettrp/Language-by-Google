@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>ConvoQuest</title>
 
   <!-- Tailwind (CDN) -->
@@ -38,9 +35,17 @@
     .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(42,157,143,0.35); }
     .link { color: #2A9D8F; text-decoration: underline; }
   </style>
+
+  <!-- Boot flag so we can detect if the module didn't run -->
+  <script>window.__cqBooted = false;</script>
 </head>
 
 <body class="min-h-screen">
+  <!-- Status banner (auto-hides if all good) -->
+  <div id="statusBanner" class="hidden px-4 py-3 text-sm bg-yellow-50 text-yellow-900 border-b border-yellow-200">
+    Loading…
+  </div>
+
   <div class="mx-auto max-w-3xl p-4">
 
     <!-- Login Screen -->
@@ -59,10 +64,7 @@
           <input id="password" type="password" class="border rounded-lg px-3 py-2 focus-ring" placeholder="••••••••" required />
         </label>
 
-        <button
-          id="loginBtn"
-          class="bg-ocean-teal text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition focus-ring"
-        >
+        <button id="loginBtn" class="bg-ocean-teal text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition focus-ring">
           Log In
         </button>
 
@@ -109,24 +111,12 @@
       </header>
 
       <!-- Messages -->
-      <div id="messages" class="border rounded-xl p-4 h-72 overflow-y-auto bg-seashell-white/60 mb-4">
-        <!-- Messages render here -->
-      </div>
+      <div id="messages" class="border rounded-xl p-4 h-72 overflow-y-auto bg-seashell-white/60 mb-4"></div>
 
       <!-- Chat input -->
       <form id="chatForm" class="flex gap-2">
-        <input
-          id="userInput"
-          class="flex-1 border rounded-lg px-3 py-2 focus-ring"
-          placeholder="Type a message…"
-          autocomplete="off"
-        />
-        <button
-          id="sendBtn"
-          class="bg-sandy-orange text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition focus-ring"
-        >
-          Send
-        </button>
+        <input id="userInput" class="flex-1 border rounded-lg px-3 py-2 focus-ring" placeholder="Type a message…" autocomplete="off" />
+        <button id="sendBtn" class="bg-sandy-orange text-white rounded-xl px-4 py-2 hover:opacity-90 active:opacity-80 transition focus-ring">Send</button>
       </form>
 
       <!-- Translate utility -->
@@ -154,8 +144,11 @@
     </section>
   </div>
 
-  <!-- App logic (module). Imports Firebase + your local firebase-config.js -->
+  <!-- MAIN APP (module) -->
   <script type="module">
+    // Mark that the module actually ran (used by the banner below)
+    window.__cqBooted = true;
+
     // --- Firebase SDK (modular) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -164,18 +157,35 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { firebaseConfig } from "./firebase-config.js";
 
-    // --- Init Firebase ---
-    const fbApp = initializeApp(firebaseConfig);
-    const auth = getAuth(fbApp);
-
-    // --- UI helpers & state ---
+    // Helper DOM utils
     const $ = (id) => document.getElementById(id);
+    const banner = $("statusBanner");
     function show(el, yes) { el.classList.toggle("hidden", !yes); }
     function setBusy(btn, busy) { if (!btn) return; btn.disabled = busy; btn.style.opacity = busy ? "0.6" : "1"; }
+    function note(msg, color="yellow") {
+      banner.textContent = msg;
+      banner.className = `px-4 py-3 text-sm border-b ${color==="red" ? "bg-red-50 text-red-900 border-red-200" : "bg-yellow-50 text-yellow-900 border-yellow-200"}`;
+      banner.classList.remove("hidden");
+    }
+    function clearNote() { banner.classList.add("hidden"); }
+
+    // Init Firebase
+    let auth;
+    try {
+      const fbApp = initializeApp(firebaseConfig);
+      auth = getAuth(fbApp);
+      clearNote(); // init OK
+    } catch (e) {
+      console.error(e);
+      note("Firebase failed to initialize. Check firebase-config.js path and contents.", "red");
+    }
+
+    // Chat UI helpers
+    const messagesState = [];
     function addMessage(text, role = "ai") {
       const box = $("messages");
       const wrap = document.createElement("div");
-      wrap.className = \`mb-3 \${role === "user" ? "text-right" : "text-left"}\`;
+      wrap.className = `mb-3 ${role === "user" ? "text-right" : "text-left"}`;
       const bubble = document.createElement("div");
       bubble.className = "inline-block max-w-[80%] rounded-xl px-3 py-2 " + (role === "user" ? "bg-ocean-teal text-white" : "bg-white border");
       bubble.textContent = String(text ?? "");
@@ -183,10 +193,6 @@
       box.appendChild(wrap);
       box.scrollTop = box.scrollHeight;
     }
-
-    const messagesState = []; // {role, content}
-    let currentStage = "default";
-    const userSettings = {};
 
     function flipToApp(user) {
       $("whoami").textContent = user?.email ? "Signed in as " + user.email : "";
@@ -202,169 +208,8 @@
       messagesState.length = 0;
     }
 
-    // --- Auth state listener (auto flip) ---
-    onAuthStateChanged(auth, (user) => {
-      if (user) flipToApp(user);
-      else flipToLogin();
-    });
-
-    // --- Login form ---
-    $("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      $("loginError").classList.add("hidden");
-      try {
-        setBusy($("loginBtn"), true);
-        const email = $("email").value.trim();
-        const pw = $("password").value;
-        await signInWithEmailAndPassword(auth, email, pw);
-        // Flip happens via onAuthStateChanged
-      } catch (err) {
-        console.error(err);
-        const msg =
-          err.code === "auth/invalid-credential" ? "Invalid email or password." :
-          err.code === "auth/user-not-found"      ? "No account found for that email." :
-          err.code === "auth/too-many-requests"   ? "Too many attempts—try again later." :
-          err.message || "Login failed.";
-        $("loginError").textContent = msg;
-        $("loginError").classList.remove("hidden");
-      } finally {
-        setBusy($("loginBtn"), false);
-      }
-    });
-
-    // --- Sign up toggle ---
-    $("signupLink").addEventListener("click", (e) => {
-      e.preventDefault();
-      show($("loginForm"), false);
-      show($("signupForm"), true);
-      $("signupEmail").value = $("email").value;
-    });
-    $("backToLogin").addEventListener("click", (e) => {
-      e.preventDefault();
-      show($("signupForm"), false);
-      show($("loginForm"), true);
-    });
-
-    // --- Create account ---
-    $("signupForm").addEventListener("submit", (e) => e.preventDefault());
-    $("createAccountBtn").addEventListener("click", async (e) => {
-      e.preventDefault();
-      $("signupError").classList.add("hidden");
-      try {
-        setBusy($("createAccountBtn"), true);
-        const email = $("signupEmail").value.trim();
-        const pw = $("signupPassword").value;
-        if (!email || !pw) throw new Error("Enter email and password.");
-        await createUserWithEmailAndPassword(auth, email, pw);
-        // Signed in automatically; onAuthStateChanged will flip
-      } catch (err) {
-        console.error(err);
-        const msg =
-          err.code === "auth/email-already-in-use" ? "That email is already registered." :
-          err.code === "auth/weak-password"        ? "Password must be at least 6 characters." :
-          err.message || "Signup failed.";
-        $("signupError").textContent = msg;
-        $("signupError").classList.remove("hidden");
-      } finally {
-        setBusy($("createAccountBtn"), false);
-      }
-    });
-
-    // --- Logout ---
-    $("logoutBtn").addEventListener("click", async () => {
-      try { await signOut(auth); } catch (e) { console.error(e); }
-    });
-
-    // ----------------- API Manager (your Vercel routes) -----------------
-    const AIManager = {
-      async getHint(recentMessages, stage = "default", settings = {}) {
-        const resp = await fetch("/api/hint", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ recentMessages, stage, settings }),
-        });
-        if (!resp.ok) throw new Error("Hint API error: " + resp.status);
-        const data = await resp.json();
-        return data.hint || "Try asking me to summarize the last message.";
-      },
-      async chat(allMessages) {
-        const resp = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: allMessages }),
-        });
-        if (!resp.ok) throw new Error("Chat API error: " + resp.status);
-        const data = await resp.json();
-        return data.reply || "";
-      },
-      async translate(text, target = "es", source = "") {
-        const resp = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ q: text, target, source }),
-        });
-        if (!resp.ok) throw new Error("Translate API error: " + resp.status);
-        const data = await resp.json();
-        return data.translated || "";
-      },
-    };
-
-    // ----------------- Hint + Chat + Translate wiring -----------------
-    async function handleHintRequest() {
-      try {
-        setBusy($("hintBtn"), true);
-        const recent = messagesState.slice(-6);
-        const hint = await AIManager.getHint(recent, currentStage, userSettings);
-        addMessage(hint, "ai");
-      } catch (err) {
-        console.error(err);
-        addMessage("Sorry—couldn't fetch a hint right now.", "ai");
-      } finally {
-        setBusy($("hintBtn"), false);
-      }
-    }
-    $("hintBtn").addEventListener("click", handleHintRequest);
-
-    $("chatForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const input = $("userInput");
-      const text = input.value.trim();
-      if (!text) return;
-
-      messagesState.push({ role: "user", content: text });
-      addMessage(text, "user");
-      input.value = "";
-
-      try {
-        setBusy($("sendBtn"), true);
-        const reply = await AIManager.chat(messagesState);
-        messagesState.push({ role: "ai", content: reply });
-        addMessage(reply, "ai");
-      } catch (err) {
-        console.error(err);
-        addMessage("Hmm, I hit a snag. Try again.", "ai");
-      } finally {
-        setBusy($("sendBtn"), false);
-      }
-    });
-
-    $("translateBtn").addEventListener("click", async () => {
-      const q = $("translateInput").value.trim();
-      const target = $("translateTarget").value;
-      if (!q) { $("translateOut").textContent = "Enter text to translate."; return; }
-      try {
-        setBusy($("translateBtn"), true);
-        $("translateOut").textContent = "Translating…";
-        const translated = await AIManager.translate(q, target);
-        $("translateOut").textContent = translated || "(no result)";
-      } catch (err) {
-        console.error(err);
-        $("translateOut").textContent = "Translate failed. Check your API setup.";
-      } finally {
-        setBusy($("translateBtn"), false);
-      }
-    });
-  </script>
-</body>
-</html>
-
+    // Auth state
+    if (auth) {
+      onAuthStateChanged(auth, (user) => {
+        if (user) { clearNote(); flipToApp(user); }
+        else { flipToLogin()
