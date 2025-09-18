@@ -1,1 +1,9 @@
-{"rewrites":[{"source":"/api/gemini","destination":"/api/gemini"},{"source":"/(.*)","destination":"/index.html"}],"builds":[{"src":"api/gemini.js","use":"@vercel/node"},{"src":"package.json","use":"@vercel/static-build","config":{"distDir":"dist"}}]}
+{
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
