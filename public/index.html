@@ -199,25 +199,36 @@
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // This configuration is now meant to be populated by Vercel's environment variables
+    // This configuration uses Vite environment variables that can be set in .env or deployment environment
     const firebaseConfig = {
-      apiKey: "%VITE_FIREBASE_API_KEY%",
-      authDomain: "%VITE_FIREBASE_AUTH_DOMAIN%",
-      projectId: "%VITE_FIREBASE_PROJECT_ID%",
-      storageBucket: "%VITE_FIREBASE_STORAGE_BUCKET%",
-      messagingSenderId: "%VITE_FIREBASE_MESSAGING_SENDER_ID%",
-      appId: "%VITE_FIREBASE_APP_ID%"
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    // Validate Firebase configuration
+    const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'appId'];
+    const missingConfig = requiredConfig.filter(key => !firebaseConfig[key] || firebaseConfig[key] === 'undefined');
+    
+    if (missingConfig.length > 0) {
+      console.error('[ConvoQuest] Missing Firebase configuration:', missingConfig);
+      // Set window variables to null so the main app can handle the error
+      window.firebaseInstances = null;
+      window.firebaseFunctions = null;
+    } else {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-    window.firebaseInstances = { app, auth, db };
-    window.firebaseFunctions = {
-        onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-        signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, signInWithCustomToken
-    };
+      window.firebaseInstances = { app, auth, db };
+      window.firebaseFunctions = {
+          onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+          signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp, signInWithCustomToken
+      };
+    }
   </script>
   
   <!-- Main app logic -->
