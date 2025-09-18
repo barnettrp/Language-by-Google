@@ -47,7 +47,8 @@
 </head>
 <body class="flex items-start justify-center p-2 md:p-4">
 
-  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden mt-10 relative">
+  <!-- UI FIX: Removed mt-10 from this container -->
+  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden relative">
     <!-- AUTH VIEW -->
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
       <div id="login-view">
@@ -288,13 +289,24 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ systemInstruction, contents })
                     });
+
                     if (!response.ok) {
                         const errorBody = await response.json();
                         console.error("API Error:", errorBody);
                         return `Error: ${errorBody.error || 'Unknown API error'}`;
                     }
+
                     const result = await response.json();
-                    return result.candidates[0].content.parts[0].text;
+
+                    // CHAT FIX: Safely access the response text
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        // Handle cases where the API returns a response with no candidates (e.g., due to safety filters)
+                        console.warn("API returned no candidates. Full response:", result);
+                        return "I'm sorry, I couldn't generate a response for that. Please try something else.";
+                    }
+
                 } catch (error) {
                     console.error("Fetch Error:", error);
                     return "Sorry, I couldn't connect to the AI service.";
