@@ -5,6 +5,8 @@
 
 # Local Environment Variables
 .env
+.env.*
+!.env.example
 .env*.local
 
 # Log files
