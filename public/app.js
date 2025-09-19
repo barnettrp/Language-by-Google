@@ -1,5 +1,6 @@
 // app.js - Main application logic
 import { auth, db, isFirebaseConfigured, getFirebaseConfigStatus } from './firebase.js';
+import { safeSetDoc, safeGetDoc } from './firebaseHelpers.js';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -9,20 +10,22 @@ import {
 } from 'firebase/auth';
 import { 
   doc, 
-  setDoc, 
-  getDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
 
 // Initialize the application
 export function initializeApp() {
-  if (!isFirebaseConfigured()) {
-    console.error('[ConvoQuest] Firebase is not configured properly.');
-    showFirebaseConfigurationError();
-    return;
-  }
-
   console.log('[ConvoQuest] Starting application initialization...');
+
+  // Check Firebase configuration status first
+  const configStatus = getFirebaseConfigStatus();
+  
+  if (!configStatus.configured) {
+    console.error('[ConvoQuest] Firebase is not configured properly.');
+    showConfigurationBanner(configStatus);
+    disableAuthControls();
+    // Don't return - continue with app initialization but with disabled auth
+  }
 
   // Application variables
   let currentUser = null;
@@ -163,6 +166,12 @@ export function initializeApp() {
 
   // Authentication functions
   async function handleLogin() {
+    if (!auth) {
+      alert('Sign-in is currently unavailable. Please check Firebase configuration.');
+      updateConfigurationBannerMessage('Sign-in attempted but Firebase not configured');
+      return;
+    }
+
     const email = dom.loginEmailInput.value.trim();
     const password = dom.loginPasswordInput.value;
 
@@ -187,6 +196,12 @@ export function initializeApp() {
   }
 
   async function handleSignup() {
+    if (!auth || !db) {
+      alert('Account creation is currently unavailable. Please check Firebase configuration.');
+      updateConfigurationBannerMessage('Signup attempted but Firebase not configured');
+      return;
+    }
+
     const email = dom.signupEmailInput.value.trim();
     const password = dom.signupPasswordInput.value;
     const displayName = dom.signupDisplayNameInput.value.trim();
@@ -203,8 +218,8 @@ export function initializeApp() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
       
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      // Create user document in Firestore using safe helper
+      const success = await safeSetDoc(doc(db, 'users', userCredential.user.uid), {
         displayName,
         email,
         createdAt: serverTimestamp(),
@@ -214,6 +229,10 @@ export function initializeApp() {
         },
         placementCompleted: false
       });
+      
+      if (!success) {
+        alert('Account created but user profile could not be saved. You may need to complete setup again.');
+      }
       
       // onAuthStateChanged will handle the UI update
     } catch (error) {
@@ -226,6 +245,11 @@ export function initializeApp() {
   }
 
   async function handleLogout() {
+    if (!auth) {
+      alert('Logout is currently unavailable. Please check Firebase configuration.');
+      return;
+    }
+
     try {
       await signOut(auth);
       // onAuthStateChanged will handle the UI update
@@ -237,9 +261,15 @@ export function initializeApp() {
 
   // Load user data from Firestore
   async function loadUserData(user) {
+    if (!db) {
+      console.error('Cannot load user data: Firestore not configured');
+      updateConfigurationBannerMessage('Cannot load user data - Firestore not configured');
+      return null;
+    }
+
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
+      const userDoc = await safeGetDoc(doc(db, 'users', user.uid));
+      if (userDoc && userDoc.exists()) {
         const userData = userDoc.data();
         userSettings = userData.settings || { dialect: 'Mexico', formality: 'Casual' };
         
@@ -394,53 +424,157 @@ export function initializeApp() {
 
   dom.saveSettingsBtn.addEventListener('click', async () => {
     if (currentUser) {
+      if (!db) {
+        alert('Cannot save settings: Firestore not configured');
+        updateConfigurationBannerMessage('Cannot save settings - Firestore not configured');
+        return;
+      }
+
       userSettings.dialect = dom.dialectSelect.value;
       userSettings.formality = dom.formalitySelect.value;
       
-      try {
-        await setDoc(doc(db, 'users', currentUser.uid), {
-          settings: userSettings
-        }, { merge: true });
-        
+      const success = await safeSetDoc(doc(db, 'users', currentUser.uid), {
+        settings: userSettings
+      }, { merge: true });
+      
+      if (success) {
         dom.settingsModal.classList.add('hidden');
         alert('Settings saved successfully!');
-      } catch (error) {
-        console.error('Error saving settings:', error);
-        alert('Failed to save settings. Please try again.');
+      } else {
+        alert('Failed to save settings. Please check Firebase configuration and try again.');
       }
     }
   });
 
-  // Auth state listener
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      dom.userDisplayName.textContent = user.displayName || 'User';
-      
-      // Load user data
-      const userData = await loadUserData(user);
-      
-      // Check if placement test is needed
-      if (!userData || !userData.placementCompleted) {
-        showView('placement-view');
+  // Auth state listener - only attach if auth is available
+  if (auth) {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        dom.userDisplayName.textContent = user.displayName || 'User';
+        
+        // Load user data
+        const userData = await loadUserData(user);
+        
+        // Check if placement test is needed
+        if (!userData || !userData.placementCompleted) {
+          showView('placement-view');
+        } else {
+          showView('main-app-view');
+        }
+        
+        dom.authContainer.style.display = 'none';
+        document.querySelector('.main-content').style.display = 'block';
       } else {
-        showView('main-app-view');
+        currentUser = null;
+        dom.authContainer.style.display = 'flex';
+        document.querySelector('.main-content').style.display = 'none';
+        showView('login-view');
       }
-      
-      dom.authContainer.style.display = 'none';
-      document.querySelector('.main-content').style.display = 'block';
-    } else {
-      currentUser = null;
-      dom.authContainer.style.display = 'flex';
-      document.querySelector('.main-content').style.display = 'none';
-      showView('login-view');
-    }
-  });
+    });
+  } else {
+    console.warn('[ConvoQuest] Auth state listener not attached - Firebase Auth not configured');
+    // Show auth container but with disabled controls
+    dom.authContainer.style.display = 'flex';
+    document.querySelector('.main-content').style.display = 'none';
+    showView('login-view');
+  }
 
   // Initialize quest list
   renderQuests();
   
   console.log('[ConvoQuest] Application initialized successfully');
+}
+
+// Function to create and show configuration banner
+function showConfigurationBanner(configStatus) {
+  // Remove existing banner if present
+  const existingBanner = document.getElementById('firebase-config-banner');
+  if (existingBanner) {
+    existingBanner.remove();
+  }
+
+  const missingFields = configStatus.error?.missingEnvVars || [];
+  const bannerHtml = `
+    <div id="firebase-config-banner" style="background: #fef2f2; border: 2px solid #fecaca; margin: 0; padding: 12px; font-family: system-ui, sans-serif; position: relative; z-index: 100;">
+      <div style="max-width: 450px; margin: 0 auto;">
+        <div style="display: flex; align-items: start; gap: 8px;">
+          <div style="color: #dc2626; font-size: 18px; line-height: 1; margin-top: 2px;">⚠️</div>
+          <div style="flex: 1;">
+            <div style="color: #dc2626; font-weight: 600; font-size: 14px; margin-bottom: 4px;">
+              Firebase not configured — sign-in disabled
+            </div>
+            <div class="banner-message" style="color: #991b1b; font-size: 13px; line-height: 1.4; margin-bottom: 6px;">
+              Fix by copying .env.example → .env and filling VITE_FIREBASE_* variables
+            </div>
+            ${missingFields.length > 0 ? `
+              <div style="font-size: 12px; color: #7f1d1d;">
+                Missing: ${missingFields.map(field => field.replace('VITE_FIREBASE_', '')).join(', ')}
+              </div>
+            ` : ''}
+            <div style="margin-top: 6px;">
+              <a href="/debug-config.html" target="_blank" style="color: #dc2626; text-decoration: underline; font-size: 12px;">
+                View detailed configuration →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Insert banner at the top of the app container
+  const appContainer = document.getElementById('app-container');
+  appContainer.insertAdjacentHTML('afterbegin', bannerHtml);
+}
+
+// Function to disable auth controls when Firebase is not configured
+function disableAuthControls() {
+  // Use setTimeout to ensure DOM elements are available
+  setTimeout(() => {
+    const loginBtn = document.getElementById('login-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const loginEmail = document.getElementById('login-email-input');
+    const loginPassword = document.getElementById('login-password-input');
+    const signupEmail = document.getElementById('signup-email-input');
+    const signupPassword = document.getElementById('signup-password-input');
+    const signupName = document.getElementById('signup-display-name-input');
+
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Firebase Not Configured';
+      loginBtn.style.opacity = '0.6';
+      loginBtn.style.cursor = 'not-allowed';
+    }
+
+    if (signupBtn) {
+      signupBtn.disabled = true;
+      signupBtn.textContent = 'Firebase Not Configured';
+      signupBtn.style.opacity = '0.6';
+      signupBtn.style.cursor = 'not-allowed';
+    }
+
+    // Add disabled styling to inputs
+    [loginEmail, loginPassword, signupEmail, signupPassword, signupName].forEach(input => {
+      if (input) {
+        input.disabled = true;
+        input.style.opacity = '0.6';
+        input.style.cursor = 'not-allowed';
+        input.placeholder = 'Firebase configuration required';
+      }
+    });
+  }, 100);
+}
+
+// Function to update configuration banner message
+function updateConfigurationBannerMessage(message) {
+  const banner = document.getElementById('firebase-config-banner');
+  if (banner) {
+    const messageEl = banner.querySelector('.banner-message');
+    if (messageEl) {
+      messageEl.textContent = message;
+    }
+  }
 }
 
 // Function to display detailed Firebase configuration error
