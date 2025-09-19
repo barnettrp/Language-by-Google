@@ -18,19 +18,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Create feature branch
         id: branch
         run: |
           BRANCH="fix/firebase-hardening-$(date +%s)"
           echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
           git checkout -b "$BRANCH"
-      
+
       - name: Create firebaseHelpers.js
         run: |
           mkdir -p public
@@ -38,14 +39,16 @@ jobs:
           // Safe Firestore helpers for frontend
           import { db } from './firebase.js';
           import { setDoc, getDoc } from 'firebase/firestore';
-          
+
           export function getDbAvailable() {
             return db !== null && db !== undefined;
           }
-          
+
           export async function safeSetDoc(ref, data, options = {}) {
             if (!getDbAvailable()) {
-              console.error('[ConvoQuest] safeSetDoc: Firestore not initialized');
+              console.error(
+                '[ConvoQuest] safeSetDoc: Firestore not initialized'
+              );
               return false;
             }
             try {
@@ -56,10 +59,12 @@ jobs:
               return false;
             }
           }
-          
+
           export async function safeGetDoc(ref) {
             if (!getDbAvailable()) {
-              console.error('[ConvoQuest] safeGetDoc: Firestore not initialized');
+              console.error(
+                '[ConvoQuest] safeGetDoc: Firestore not initialized'
+              );
               return null;
             }
             try {
@@ -70,18 +75,21 @@ jobs:
             }
           }
           EOF
-      
+
       - name: Add import to app.js
         run: |
           cp public/app.js public/app.js.backup
-          sed -i '1i import { safeSetDoc, safeGetDoc, getDbAvailable } from "./firebaseHelpers.js";' public/app.js
-      
+          IMPORT_LINE='import { safeSetDoc, safeGetDoc, getDbAvailable }'
+          IMPORT_LINE="$IMPORT_LINE from \"./firebaseHelpers.js\";"
+          sed -i "1i $IMPORT_LINE" public/app.js
+
       - name: Commit and push changes
         run: |
           git add public/firebaseHelpers.js public/app.js
-          git commit -m "Add Firebase safe helpers and defensive initialization"
+          git commit \
+            -m "Add Firebase safe helpers and defensive initialization"
           git push -u origin ${{ steps.branch.outputs.branch_name }}
-      
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
@@ -90,23 +98,23 @@ jobs:
           title: ${{ github.event.inputs.pr_title }}
           body: |
             ## Firebase Configuration Hardening
-            
+
             This PR adds defensive programming for Firebase initialization:
-            
+
             ### Changes Made
             - **New file**: `firebaseHelpers.js` with safe Firestore wrappers
             - **Enhanced**: `app.js` with import for safe helpers
             - **Improved**: Error handling for missing Firebase config
-            
+
             ### Testing Instructions
             ```bash
             cp .env.example .env
             # Leave Firebase variables blank or invalid
             npm run dev
             ```
-            
-            The app should load without crashing and show helpful error messages.
-            
+
+            The app should load without crashing and show helpful messages.
+
             ### Benefits
             - Prevents crashes when Firebase config is missing
             - Provides clear error messages for debugging
