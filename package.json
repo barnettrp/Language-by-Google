@@ -1,1 +1,18 @@
-{"name":"language-by-google","private":true,"version":"0.0.0","scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},"devDependencies":{"vite":"^5.0.0"}}
+{
+  "name": "language-by-google",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "vercel-build": "vite build"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
