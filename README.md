@@ -135,13 +135,32 @@ The `vercel.json` configuration file handles:
 
 ## Error Handling
 
-If Firebase is not configured correctly, the app will display:
-> Critical Error: App could not load. Firebase is not configured correctly.
+### Firebase Configuration Errors
 
-This error appears when:
-- Environment variables are not set
-- Firebase configuration values are invalid
-- Firebase modules fail to load
+The app provides comprehensive error handling for Firebase configuration issues:
+
+**Enhanced Error Messages:**
+- Specific identification of missing environment variables
+- Clear instructions for both development and production setup
+- Visual configuration status with ✅/❌ indicators
+- Direct links to Firebase Console and documentation
+
+**Configuration Debug Page:**
+- Visit `/debug-config.html` for detailed configuration diagnostics
+- Real-time status of all Firebase environment variables
+- Environment information and troubleshooting guidance
+- Auto-refresh every 30 seconds to monitor configuration changes
+
+**Error Display Examples:**
+- Missing variables: Shows exactly which `VITE_FIREBASE_*` variables are not set
+- Invalid configuration: Displays specific Firebase initialization errors
+- Network issues: Provides guidance for connectivity problems
+
+If Firebase is not configured correctly, the app will display a detailed error page instead of the generic message, providing:
+- Specific missing environment variables
+- Step-by-step setup instructions
+- Links to relevant documentation
+- A retry button once configuration is fixed
 
 ## Security Notes
 
@@ -160,10 +179,45 @@ This error appears when:
 
 ## Troubleshooting
 
-### Firebase Initialization Errors
-- Check that all VITE_FIREBASE_* environment variables are set
-- Verify Firebase project settings match your environment variables
-- Ensure Firebase Authentication and Firestore are enabled in Firebase console
+### Firebase Configuration Errors
+
+If you see "Critical Error: App could not load. Firebase is not configured correctly", follow these steps:
+
+#### Quick Diagnosis
+1. **Visit the debug page**: Navigate to `/debug-config.html` in your browser
+2. **Check configuration status**: The page shows exactly which variables are missing
+3. **Follow the specific instructions** provided on the error page
+
+#### Common Issues and Solutions
+
+**Missing Environment Variables:**
+- Copy `.env.example` to `.env` for local development
+- Fill in all `VITE_FIREBASE_*` variables with your actual Firebase credentials
+- For production: Set environment variables in your Vercel dashboard under Settings → Environment Variables
+
+**Invalid Firebase Configuration:**
+- Verify your Firebase project exists and is active
+- Ensure Firebase Authentication and Firestore are enabled in the Firebase Console
+- Double-check that your credentials match exactly (no extra spaces or characters)
+
+**Firebase Project Setup:**
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Create a new project or select existing one
+3. Enable Authentication (Email/Password provider)
+4. Create a Firestore database
+5. Get your web app config from Project Settings → General → Your apps
+
+#### Development vs Production
+
+**Local Development:**
+- Environment variables go in `.env` file (never commit this file!)
+- Use `npm run dev` to start development server
+- Visit `http://localhost:5173/debug-config.html` to verify configuration
+
+**Production (Vercel):**
+- Set all `VITE_FIREBASE_*` variables in Vercel dashboard
+- Set `GEMINI_API_KEY` as well (server-side only)
+- Redeploy after changing environment variables
 
 ### API Errors
 - Verify GEMINI_API_KEY is set in Vercel environment variables
@@ -174,3 +228,10 @@ This error appears when:
 - Run `npm install` to ensure all dependencies are installed
 - Check that Node.js version is 18 or higher
 - Verify all environment variables are properly formatted
+
+### Still Having Issues?
+
+1. **Check the debug page** at `/debug-config.html` for detailed configuration status
+2. **Review browser console** for specific error messages
+3. **Verify Firebase project setup** in the Firebase Console
+4. **Test with a fresh `.env` file** copied from `.env.example`

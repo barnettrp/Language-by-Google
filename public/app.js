@@ -1,5 +1,5 @@
 // app.js - Main application logic
-import { auth, db, isFirebaseConfigured } from './firebase.js';
+import { auth, db, isFirebaseConfigured, getFirebaseConfigStatus } from './firebase.js';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -18,8 +18,7 @@ import {
 export function initializeApp() {
   if (!isFirebaseConfigured()) {
     console.error('[ConvoQuest] Firebase is not configured properly.');
-    // Display a user-friendly error message
-    document.body.innerHTML = '<div style="color: red; text-align: center; margin-top: 50px; padding: 20px;">Critical Error: App could not load. Firebase is not configured correctly.<br><br>Please check your environment variables and ensure all Firebase configuration values are set properly.</div>';
+    showFirebaseConfigurationError();
     return;
   }
 
@@ -442,6 +441,105 @@ export function initializeApp() {
   renderQuests();
   
   console.log('[ConvoQuest] Application initialized successfully');
+}
+
+// Function to display detailed Firebase configuration error
+function showFirebaseConfigurationError() {
+  const configStatus = getFirebaseConfigStatus();
+  
+  let errorContent = `
+    <div style="max-width: 800px; margin: 50px auto; padding: 30px; font-family: system-ui, -apple-system, sans-serif; line-height: 1.6;">
+      <div style="background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+        <h1 style="color: #dc2626; margin: 0 0 10px;">🚨 Firebase Configuration Error</h1>
+        <p style="color: #991b1b; margin: 0; font-size: 16px;">The app cannot start because Firebase is not configured correctly.</p>
+      </div>
+
+      <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+        <h2 style="color: #374151; margin: 0 0 15px; font-size: 18px;">🔍 Configuration Status</h2>
+  `;
+
+  // Add specific configuration status
+  Object.entries(configStatus.config).forEach(([key, status]) => {
+    const envVar = `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`;
+    const statusColor = status.includes('✓') ? '#059669' : '#dc2626';
+    errorContent += `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding: 8px 12px; background: white; border-radius: 4px;">
+        <span style="font-weight: 500;">${envVar}</span>
+        <span style="color: ${statusColor}; font-weight: 600;">${status}</span>
+      </div>
+    `;
+  });
+
+  errorContent += `
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+        <h2 style="color: #1e40af; margin: 0 0 15px; font-size: 18px;">🛠️ How to Fix This</h2>
+  `;
+
+  if (configStatus.error?.type === 'missing_variables') {
+    errorContent += `
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #1e40af; margin: 0 0 10px; font-size: 16px;">For Local Development:</h3>
+          <ol style="margin: 0; padding-left: 20px; color: #1e3a8a;">
+            <li>Copy <code style="background: #dbeafe; padding: 2px 6px; border-radius: 3px;">.env.example</code> to <code style="background: #dbeafe; padding: 2px 6px; border-radius: 3px;">.env</code></li>
+            <li>Get your Firebase credentials from the <a href="https://console.firebase.google.com" target="_blank" style="color: #2563eb;">Firebase Console</a></li>
+            <li>Fill in the following environment variables in your <code style="background: #dbeafe; padding: 2px 6px; border-radius: 3px;">.env</code> file:</li>
+          </ol>
+          <div style="background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 6px; margin: 15px 0; font-family: 'Courier New', monospace; font-size: 14px; overflow-x: auto;">
+    `;
+
+    configStatus.error.missingEnvVars.forEach(envVar => {
+      errorContent += `${envVar}=your-actual-${envVar.toLowerCase().replace('vite_firebase_', '').replace(/_/g, '-')}<br>`;
+    });
+
+    errorContent += `
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #1e40af; margin: 0 0 10px; font-size: 16px;">For Production (Vercel):</h3>
+          <ol style="margin: 0; padding-left: 20px; color: #1e3a8a;">
+            <li>Go to your Vercel project dashboard</li>
+            <li>Navigate to Settings → Environment Variables</li>
+            <li>Add the missing environment variables listed above</li>
+            <li>Redeploy your application</li>
+          </ol>
+        </div>
+    `;
+  }
+
+  if (configStatus.error?.type === 'initialization_failed') {
+    errorContent += `
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 15px; margin: 15px 0;">
+          <h3 style="color: #dc2626; margin: 0 0 10px; font-size: 16px;">Initialization Error:</h3>
+          <p style="color: #991b1b; margin: 0; font-family: monospace; background: white; padding: 10px; border-radius: 4px;">${configStatus.error.error}</p>
+        </div>
+        <p style="color: #1e3a8a; margin: 0;">Check that your Firebase project settings match your environment variables and that Firebase Authentication and Firestore are enabled.</p>
+    `;
+  }
+
+  errorContent += `
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px;">
+        <h2 style="color: #15803d; margin: 0 0 15px; font-size: 18px;">📚 Need Help?</h2>
+        <ul style="margin: 0; padding-left: 20px; color: #166534;">
+          <li><a href="https://console.firebase.google.com" target="_blank" style="color: #16a34a;">Firebase Console</a> - Get your configuration values</li>
+          <li><a href="https://firebase.google.com/docs/web/setup" target="_blank" style="color: #16a34a;">Firebase Setup Guide</a> - Official documentation</li>
+          <li>Check the README.md file in this repository for detailed setup instructions</li>
+        </ul>
+      </div>
+
+      <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 8px; text-align: center;">
+        <button onclick="window.location.reload()" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+          🔄 Retry After Fixing Configuration
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.innerHTML = errorContent;
 }
 
 // Auto-initialize when DOM is ready
