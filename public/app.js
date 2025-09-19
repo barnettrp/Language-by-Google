@@ -14,11 +14,202 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
+// Helper function to initialize UI without Firebase functionality
+function initializeUIWithoutFirebase() {
+  console.log('[ConvoQuest] Initializing UI without Firebase...');
+
+  // Application variables
+  let currentUser = null;
+  let userSettings = {};
+
+  // DOM elements (same as in full initialization)
+  const dom = {
+    authContainer: document.getElementById('auth-container'),
+    mainAppView: document.getElementById('main-app-view'),
+    placementView: document.getElementById('placement-view'),
+    loginView: document.getElementById('login-view'),
+    signupView: document.getElementById('signup-view'),
+    loginEmailInput: document.getElementById('login-email-input'),
+    loginPasswordInput: document.getElementById('login-password-input'),
+    loginBtn: document.getElementById('login-btn'),
+    signupEmailInput: document.getElementById('signup-email-input'),
+    signupPasswordInput: document.getElementById('signup-password-input'),
+    signupDisplayNameInput: document.getElementById('signup-display-name-input'),
+    signupBtn: document.getElementById('signup-btn'),
+    showSignupBtn: document.getElementById('show-signup-btn'),
+    showLoginBtn: document.getElementById('show-login-btn'),
+    userDisplayName: document.getElementById('user-display-name'),
+    logoutBtn: document.getElementById('logout-btn'),
+    settingsBtn: document.getElementById('settings-btn'),
+    settingsModal: document.getElementById('settings-modal'),
+    closeSettingsBtn: document.getElementById('close-settings-btn'),
+    dialectSelect: document.getElementById('dialect-select'),
+    formalitySelect: document.getElementById('formality-select'),
+    saveSettingsBtn: document.getElementById('save-settings-btn')
+  };
+
+  // Utility functions
+  function showView(viewId) {
+    document.querySelectorAll('.main-view').forEach(view => {
+      view.style.display = view.id === viewId ? 'flex' : 'none';
+    });
+  }
+
+  // Disabled auth functions that show error messages
+  function handleLoginDisabled() {
+    alert('Firebase is not configured. Please check your environment variables and refresh the page.');
+  }
+
+  function handleSignupDisabled() {
+    alert('Firebase is not configured. Please check your environment variables and refresh the page.');
+  }
+
+  function handleLogoutDisabled() {
+    alert('Firebase is not configured. Cannot logout.');
+  }
+
+  // Set up basic event listeners (view switching only)
+  dom.showSignupBtn.addEventListener('click', () => showView('signup-view'));
+  dom.showLoginBtn.addEventListener('click', () => showView('login-view'));
+  
+  // Auth buttons that show error messages instead of trying to authenticate
+  dom.loginBtn.addEventListener('click', handleLoginDisabled);
+  dom.signupBtn.addEventListener('click', handleSignupDisabled);  
+  dom.logoutBtn.addEventListener('click', handleLogoutDisabled);
+
+  // Show login view initially
+  showView('login-view');
+
+  console.log('[ConvoQuest] UI initialized in error mode - Firebase configuration required');
+}
+
+// Helper function to disable auth forms when Firebase is not configured
+function disableAuthForms() {
+  const loginBtn = document.getElementById('login-btn');
+  const signupBtn = document.getElementById('signup-btn');
+  const loginEmailInput = document.getElementById('login-email-input');
+  const loginPasswordInput = document.getElementById('login-password-input');
+  const signupEmailInput = document.getElementById('signup-email-input');
+  const signupPasswordInput = document.getElementById('signup-password-input');
+  const signupDisplayNameInput = document.getElementById('signup-display-name-input');
+
+  // Disable all auth inputs and buttons
+  [loginBtn, signupBtn].forEach(btn => {
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+    }
+  });
+
+  [loginEmailInput, loginPasswordInput, signupEmailInput, signupPasswordInput, signupDisplayNameInput].forEach(input => {
+    if (input) {
+      input.disabled = true;
+      input.style.opacity = '0.5';
+    }
+  });
+}
+
+// Helper function to show persistent Firebase error banner
+function showFirebaseErrorBanner(configStatus) {
+  const authContainer = document.getElementById('auth-container');
+  if (!authContainer) return;
+
+  // Create error banner
+  const errorBanner = document.createElement('div');
+  errorBanner.id = 'firebase-error-banner';
+  errorBanner.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-bottom: 2px solid #f87171;
+    padding: 12px 16px;
+    z-index: 1000;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  `;
+
+  const missingVars = configStatus.error?.missingEnvVars || [];
+  const shortMissingList = missingVars.length > 3 ? 
+    `${missingVars.slice(0, 3).join(', ')} (+${missingVars.length - 3} more)` : 
+    missingVars.join(', ');
+
+  errorBanner.innerHTML = `
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 20px;">🚨</div>
+        <div>
+          <div style="color: #dc2626; margin: 0; font-size: 16px; font-weight: 600;">Firebase Configuration Error</div>
+          <div style="color: #991b1b; margin: 0; font-size: 14px;">
+            Missing: ${shortMissingList}
+            <button onclick="toggleConfigDetails()" style="margin-left: 8px; background: none; border: none; color: #dc2626; text-decoration: underline; cursor: pointer; font-size: 14px;">
+              Show Details
+            </button>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <a href="/debug-config.html" style="background: #dc2626; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 500;">
+          Debug Config
+        </a>
+        <button onclick="document.getElementById('firebase-error-banner').style.display='none'" 
+                style="background: none; border: none; color: #dc2626; font-size: 20px; cursor: pointer; padding: 4px; line-height: 1;">×</button>
+      </div>
+    </div>
+    
+    <div id="config-details" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f87171;">
+      <div style="max-width: 1200px; margin: 0 auto;">
+        <div style="font-size: 14px; color: #991b1b; margin-bottom: 8px; font-weight: 600;">Missing Environment Variables:</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;">
+          ${missingVars.map(envVar => `
+            <div style="background: rgba(185, 28, 28, 0.1); padding: 6px 10px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #dc2626;">
+              ${envVar}
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top: 8px; font-size: 12px; color: #991b1b;">
+          Copy <code style="background: rgba(185, 28, 28, 0.1); padding: 2px 4px; border-radius: 2px;">.env.example</code> to 
+          <code style="background: rgba(185, 28, 28, 0.1); padding: 2px 4px; border-radius: 2px;">.env</code> and fill in these values.
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Add toggle function to global scope
+  window.toggleConfigDetails = function() {
+    const details = document.getElementById('config-details');
+    const button = document.querySelector('button[onclick="toggleConfigDetails()"]');
+    if (details.style.display === 'none') {
+      details.style.display = 'block';
+      button.textContent = 'Hide Details';
+    } else {
+      details.style.display = 'none';
+      button.textContent = 'Show Details';
+    }
+  };
+
+  // Insert banner at the top of the page
+  document.body.insertBefore(errorBanner, document.body.firstChild);
+
+  // Adjust auth container margin to account for banner
+  authContainer.style.marginTop = '80px';
+}
+
 // Initialize the application
 export function initializeApp() {
-  if (!isFirebaseConfigured()) {
+  // Check Firebase configuration status first
+  const configStatus = getFirebaseConfigStatus();
+  if (!configStatus.configured) {
     console.error('[ConvoQuest] Firebase is not configured properly.');
-    showFirebaseConfigurationError();
+    
+    // Show error banner and disable auth forms, but continue with UI setup
+    disableAuthForms();
+    showFirebaseErrorBanner(configStatus);
+    
+    // Continue with limited initialization (UI setup without Firebase functionality)
+    initializeUIWithoutFirebase();
     return;
   }
 
@@ -163,6 +354,12 @@ export function initializeApp() {
 
   // Authentication functions
   async function handleLogin() {
+    // Check if Firebase auth is available
+    if (!auth) {
+      alert('Firebase is not configured. Please check your environment variables.');
+      return;
+    }
+
     const email = dom.loginEmailInput.value.trim();
     const password = dom.loginPasswordInput.value;
 
@@ -187,6 +384,12 @@ export function initializeApp() {
   }
 
   async function handleSignup() {
+    // Check if Firebase auth and db are available
+    if (!auth || !db) {
+      alert('Firebase is not configured. Please check your environment variables.');
+      return;
+    }
+
     const email = dom.signupEmailInput.value.trim();
     const password = dom.signupPasswordInput.value;
     const displayName = dom.signupDisplayNameInput.value.trim();
@@ -226,6 +429,12 @@ export function initializeApp() {
   }
 
   async function handleLogout() {
+    // Check if Firebase auth is available
+    if (!auth) {
+      alert('Firebase is not configured. Cannot logout.');
+      return;
+    }
+
     try {
       await signOut(auth);
       // onAuthStateChanged will handle the UI update
@@ -237,6 +446,12 @@ export function initializeApp() {
 
   // Load user data from Firestore
   async function loadUserData(user) {
+    // Check if Firestore db is available
+    if (!db) {
+      console.error('Firestore is not configured. Cannot load user data.');
+      return null;
+    }
+
     try {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (userDoc.exists()) {
@@ -393,6 +608,11 @@ export function initializeApp() {
   });
 
   dom.saveSettingsBtn.addEventListener('click', async () => {
+    if (!db) {
+      alert('Firebase is not configured. Cannot save settings.');
+      return;
+    }
+
     if (currentUser) {
       userSettings.dialect = dom.dialectSelect.value;
       userSettings.formality = dom.formalitySelect.value;
@@ -412,30 +632,36 @@ export function initializeApp() {
   });
 
   // Auth state listener
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      dom.userDisplayName.textContent = user.displayName || 'User';
-      
-      // Load user data
-      const userData = await loadUserData(user);
-      
-      // Check if placement test is needed
-      if (!userData || !userData.placementCompleted) {
-        showView('placement-view');
+  if (auth) {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        dom.userDisplayName.textContent = user.displayName || 'User';
+        
+        // Load user data
+        const userData = await loadUserData(user);
+        
+        // Check if placement test is needed
+        if (!userData || !userData.placementCompleted) {
+          showView('placement-view');
+        } else {
+          showView('main-app-view');
+        }
+        
+        dom.authContainer.style.display = 'none';
+        document.querySelector('.main-content').style.display = 'block';
       } else {
-        showView('main-app-view');
+        currentUser = null;
+        dom.authContainer.style.display = 'flex';
+        document.querySelector('.main-content').style.display = 'none';
+        showView('login-view');
       }
-      
-      dom.authContainer.style.display = 'none';
-      document.querySelector('.main-content').style.display = 'block';
-    } else {
-      currentUser = null;
-      dom.authContainer.style.display = 'flex';
-      document.querySelector('.main-content').style.display = 'none';
-      showView('login-view');
-    }
-  });
+    });
+  } else {
+    // Firebase auth is not available, show error state
+    console.error('Cannot set up auth state listener - Firebase auth is not available');
+    showView('login-view');
+  }
 
   // Initialize quest list
   renderQuests();
