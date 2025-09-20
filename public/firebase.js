@@ -15,7 +15,25 @@ const firebaseConfig = {
 
 // Validate Firebase configuration
 const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'appId'];
-const missingConfig = requiredConfig.filter(key => !firebaseConfig[key] || firebaseConfig[key] === 'undefined');
+
+// Check for missing or placeholder values
+const isPlaceholder = (value) => {
+  if (!value || value === 'undefined') return true;
+  
+  // Specific placeholder values from .env.example
+  const placeholderValues = [
+    'your-firebase-api-key',
+    'your-project.firebaseapp.com',
+    'your-project-id',
+    'your-project.appspot.com',
+    '123456789',
+    '1:123456789:web:your-app-id'
+  ];
+  
+  return placeholderValues.includes(value);
+};
+
+const missingConfig = requiredConfig.filter(key => isPlaceholder(firebaseConfig[key]));
 
 let app, auth, db;
 let configurationError = null;
@@ -26,12 +44,12 @@ if (missingConfig.length > 0) {
     type: 'missing_variables',
     missingFields: missingConfig,
     missingEnvVars: missingVars,
-    message: `Missing Firebase configuration: ${missingConfig.join(', ')}`
+    message: `Firebase configuration contains placeholder values: ${missingConfig.join(', ')}. Please replace with actual Firebase project credentials.`
   };
   
-  console.error('[ConvoQuest] Missing Firebase configuration:', missingConfig);
-  console.error('[ConvoQuest] Missing environment variables:', missingVars);
-  console.error('[ConvoQuest] Please check your environment variables and ensure they are properly set.');
+  console.error('[ConvoQuest] Firebase configuration contains placeholder values:', missingConfig);
+  console.error('[ConvoQuest] Environment variables with placeholder values:', missingVars);
+  console.error('[ConvoQuest] Please replace placeholder values with actual Firebase project credentials from your Firebase Console.');
   
   // Export null instances to indicate configuration failure
   app = null;
@@ -68,17 +86,23 @@ export function isFirebaseConfigured() {
 
 // Export detailed configuration status for debugging
 export function getFirebaseConfigStatus() {
+  const getConfigStatus = (value) => {
+    if (!value || value === 'undefined') return '✗ Missing';
+    if (isPlaceholder(value)) return '⚠️ Placeholder';
+    return '✓ Set';
+  };
+
   if (configurationError) {
     return {
       configured: false,
       error: configurationError,
       config: {
-        apiKey: firebaseConfig.apiKey ? '✓ Set' : '✗ Missing',
-        authDomain: firebaseConfig.authDomain ? '✓ Set' : '✗ Missing',
-        projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
-        storageBucket: firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing',
-        messagingSenderId: firebaseConfig.messagingSenderId ? '✓ Set' : '✗ Missing',
-        appId: firebaseConfig.appId ? '✓ Set' : '✗ Missing'
+        apiKey: getConfigStatus(firebaseConfig.apiKey),
+        authDomain: getConfigStatus(firebaseConfig.authDomain),
+        projectId: getConfigStatus(firebaseConfig.projectId),
+        storageBucket: getConfigStatus(firebaseConfig.storageBucket),
+        messagingSenderId: getConfigStatus(firebaseConfig.messagingSenderId),
+        appId: getConfigStatus(firebaseConfig.appId)
       }
     };
   }

@@ -76,13 +76,28 @@
             Object.entries(status.config).forEach(([key, value]) => {
                 const envVar = `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`;
                 const isSet = value.includes('✓');
-                const statusClass = isSet ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
-                const statusIcon = isSet ? '✅' : '❌';
+                const isPlaceholder = value.includes('⚠️');
+                const isMissing = value.includes('✗');
+                
+                let statusClass, statusIcon, statusText;
+                if (isSet) {
+                    statusClass = 'text-green-600 bg-green-50 border-green-200';
+                    statusIcon = '✅';
+                    statusText = 'Set';
+                } else if (isPlaceholder) {
+                    statusClass = 'text-yellow-600 bg-yellow-50 border-yellow-200';
+                    statusIcon = '⚠️';
+                    statusText = 'Placeholder';
+                } else {
+                    statusClass = 'text-red-600 bg-red-50 border-red-200';
+                    statusIcon = '❌';
+                    statusText = 'Missing';
+                }
 
                 content += `
-                    <div class="flex justify-between items-center p-3 rounded border ${isSet ? 'border-green-200' : 'border-red-200'} ${statusClass}">
+                    <div class="flex justify-between items-center p-3 rounded border ${statusClass}">
                         <span class="font-medium">${envVar}</span>
-                        <span class="font-semibold">${statusIcon} ${isSet ? 'Set' : 'Missing'}</span>
+                        <span class="font-semibold">${statusIcon} ${statusText}</span>
                     </div>
                 `;
             });
