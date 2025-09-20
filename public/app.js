@@ -1,18 +1,13 @@
 // app.js - Main application logic
 import { auth, db, isFirebaseConfigured, getFirebaseConfigStatus } from './firebase.js';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  updateProfile 
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
 } from 'firebase/auth';
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  serverTimestamp 
-} from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 // Helper function to initialize UI without Firebase functionality
 function initializeUIWithoutFirebase() {
@@ -45,7 +40,7 @@ function initializeUIWithoutFirebase() {
     closeSettingsBtn: document.getElementById('close-settings-btn'),
     dialectSelect: document.getElementById('dialect-select'),
     formalitySelect: document.getElementById('formality-select'),
-    saveSettingsBtn: document.getElementById('save-settings-btn')
+    saveSettingsBtn: document.getElementById('save-settings-btn'),
   };
 
   // Utility functions
@@ -57,11 +52,15 @@ function initializeUIWithoutFirebase() {
 
   // Disabled auth functions that show error messages
   function handleLoginDisabled() {
-    alert('Firebase is not configured. Please check your environment variables and refresh the page.');
+    alert(
+      'Firebase is not configured. Please check your environment variables and refresh the page.'
+    );
   }
 
   function handleSignupDisabled() {
-    alert('Firebase is not configured. Please check your environment variables and refresh the page.');
+    alert(
+      'Firebase is not configured. Please check your environment variables and refresh the page.'
+    );
   }
 
   function handleLogoutDisabled() {
@@ -71,10 +70,10 @@ function initializeUIWithoutFirebase() {
   // Set up basic event listeners (view switching only)
   dom.showSignupBtn.addEventListener('click', () => showView('signup-view'));
   dom.showLoginBtn.addEventListener('click', () => showView('login-view'));
-  
+
   // Auth buttons that show error messages instead of trying to authenticate
   dom.loginBtn.addEventListener('click', handleLoginDisabled);
-  dom.signupBtn.addEventListener('click', handleSignupDisabled);  
+  dom.signupBtn.addEventListener('click', handleSignupDisabled);
   dom.logoutBtn.addEventListener('click', handleLogoutDisabled);
 
   // Show login view initially
@@ -102,7 +101,13 @@ function disableAuthForms() {
     }
   });
 
-  [loginEmailInput, loginPasswordInput, signupEmailInput, signupPasswordInput, signupDisplayNameInput].forEach(input => {
+  [
+    loginEmailInput,
+    loginPasswordInput,
+    signupEmailInput,
+    signupPasswordInput,
+    signupDisplayNameInput,
+  ].forEach(input => {
     if (input) {
       input.disabled = true;
       input.style.opacity = '0.5';
@@ -132,9 +137,10 @@ function showFirebaseErrorBanner(configStatus) {
   `;
 
   const missingVars = configStatus.error?.missingEnvVars || [];
-  const shortMissingList = missingVars.length > 3 ? 
-    `${missingVars.slice(0, 3).join(', ')} (+${missingVars.length - 3} more)` : 
-    missingVars.join(', ');
+  const shortMissingList =
+    missingVars.length > 3
+      ? `${missingVars.slice(0, 3).join(', ')} (+${missingVars.length - 3} more)`
+      : missingVars.join(', ');
 
   errorBanner.innerHTML = `
     <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
@@ -163,11 +169,15 @@ function showFirebaseErrorBanner(configStatus) {
       <div style="max-width: 1200px; margin: 0 auto;">
         <div style="font-size: 14px; color: #991b1b; margin-bottom: 8px; font-weight: 600;">Missing Environment Variables:</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;">
-          ${missingVars.map(envVar => `
+          ${missingVars
+            .map(
+              envVar => `
             <div style="background: rgba(185, 28, 28, 0.1); padding: 6px 10px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #dc2626;">
               ${envVar}
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
         <div style="margin-top: 8px; font-size: 12px; color: #991b1b;">
           Copy <code style="background: rgba(185, 28, 28, 0.1); padding: 2px 4px; border-radius: 2px;">.env.example</code> to 
@@ -178,7 +188,7 @@ function showFirebaseErrorBanner(configStatus) {
   `;
 
   // Add toggle function to global scope
-  window.toggleConfigDetails = function() {
+  window.toggleConfigDetails = function () {
     const details = document.getElementById('config-details');
     const button = document.querySelector('button[onclick="toggleConfigDetails()"]');
     if (details.style.display === 'none') {
@@ -203,11 +213,11 @@ export function initializeApp() {
   const configStatus = getFirebaseConfigStatus();
   if (!configStatus.configured) {
     console.error('[ConvoQuest] Firebase is not configured properly.');
-    
+
     // Show error banner and disable auth forms, but continue with UI setup
     disableAuthForms();
     showFirebaseErrorBanner(configStatus);
-    
+
     // Continue with limited initialization (UI setup without Firebase functionality)
     initializeUIWithoutFirebase();
     return;
@@ -275,7 +285,7 @@ export function initializeApp() {
     placementChatContainer: document.getElementById('placement-chat-container'),
     placementChatInput: document.getElementById('placement-chat-input'),
     placementSendBtn: document.getElementById('placement-send-btn'),
-    retakePlacementBtn: document.getElementById('retake-placement-btn')
+    retakePlacementBtn: document.getElementById('retake-placement-btn'),
   };
 
   // AI Manager for secure backend communication
@@ -285,64 +295,70 @@ export function initializeApp() {
         const response = await fetch('/api/gemini', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ systemInstruction, contents })
+          body: JSON.stringify({ systemInstruction, contents }),
         });
 
         if (!response.ok) {
           const errorBody = await response.json();
-          console.error("API Error:", errorBody);
+          console.error('API Error:', errorBody);
           return `Error: ${errorBody.error || 'Unknown API error'}`;
         }
 
         const result = await response.json();
 
         // Safely access the response text
-        if (result.candidates && result.candidates.length > 0 && 
-            result.candidates[0].content && result.candidates[0].content.parts && 
-            result.candidates[0].content.parts.length > 0) {
+        if (
+          result.candidates &&
+          result.candidates.length > 0 &&
+          result.candidates[0].content &&
+          result.candidates[0].content.parts &&
+          result.candidates[0].content.parts.length > 0
+        ) {
           return result.candidates[0].content.parts[0].text;
         } else {
-          console.warn("API returned no candidates. Full response:", result);
+          console.warn('API returned no candidates. Full response:', result);
           return "I'm sorry, I couldn't generate a response for that. Please try something else.";
         }
       } catch (error) {
-        console.error("Fetch Error:", error);
-        return "Sorry, there was a network error. Please try again.";
+        console.error('Fetch Error:', error);
+        return 'Sorry, there was a network error. Please try again.';
       }
     },
 
     async sendMessage(text) {
-      const systemInstruction = "You are a helpful Spanish language tutor.";
-      const contents = [{ role: "user", parts: [{ text }] }];
+      const systemInstruction = 'You are a helpful Spanish language tutor.';
+      const contents = [{ role: 'user', parts: [{ text }] }];
       return this.callAPI(systemInstruction, contents);
-    }
+    },
   };
 
   // Quest data structure
   const quests = {
-    "missing-guitar": {
-      title: "The Missing Guitar",
+    'missing-guitar': {
+      title: 'The Missing Guitar',
       objective: "A famous musician's guitar is missing. Find it before his show!",
-      mapImage: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop",
+      mapImage:
+        'https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop',
       stages: {
-        "1": {
-          characterName: "Mateo, the Concierge",
-          vignette_en: "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen.",
-          systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
+        1: {
+          characterName: 'Mateo, the Concierge',
+          vignette_en:
+            "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen.",
+          systemPrompt: 'You are Mateo, a professional but worried hotel concierge in Bogotá.',
           reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
-          nextStages: ["2a", "2b"],
-          initialMessage: "Good morning. How can I help you today?"
+          nextStages: ['2a', '2b'],
+          initialMessage: 'Good morning. How can I help you today?',
         },
-        "2a": {
-          characterName: "Elena, the Vendor",
-          vignette_en: "You arrive at the bustling plaza. Your goal: Ask her if she saw Carlos.",
-          systemPrompt: "You are Elena, a chatty and knowledgeable street vendor.",
-          reward: { clue: "Carlos was seen with a rival musician, Javier.", xp: 75 },
-          nextStages: ["3"],
-          initialMessage: "¡Hola! ¿Buscas algo bonito?"
-        }
-      }
-    }
+        '2a': {
+          characterName: 'Elena, the Vendor',
+          vignette_en: 'You arrive at the bustling plaza. Your goal: Ask her if she saw Carlos.',
+          systemPrompt: 'You are Elena, a chatty and knowledgeable street vendor.',
+          reward: { clue: 'Carlos was seen with a rival musician, Javier.', xp: 75 },
+          nextStages: ['3'],
+          initialMessage: '¡Hola! ¿Buscas algo bonito?',
+        },
+      },
+    },
   };
 
   // Utility functions
@@ -371,7 +387,7 @@ export function initializeApp() {
     try {
       dom.loginBtn.disabled = true;
       dom.loginBtn.textContent = 'Signing In...';
-      
+
       await signInWithEmailAndPassword(auth, email, password);
       // onAuthStateChanged will handle the UI update
     } catch (error) {
@@ -402,10 +418,10 @@ export function initializeApp() {
     try {
       dom.signupBtn.disabled = true;
       dom.signupBtn.textContent = 'Creating Account...';
-      
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
-      
+
       // Create user document in Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         displayName,
@@ -413,11 +429,11 @@ export function initializeApp() {
         createdAt: serverTimestamp(),
         settings: {
           dialect: 'Mexico',
-          formality: 'Casual'
+          formality: 'Casual',
         },
-        placementCompleted: false
+        placementCompleted: false,
       });
-      
+
       // onAuthStateChanged will handle the UI update
     } catch (error) {
       console.error('Signup error:', error);
@@ -457,11 +473,11 @@ export function initializeApp() {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         userSettings = userData.settings || { dialect: 'Mexico', formality: 'Casual' };
-        
+
         // Update UI with user settings
         dom.dialectSelect.value = userSettings.dialect;
         dom.formalitySelect.value = userSettings.formality;
-        
+
         return userData;
       }
     } catch (error) {
@@ -475,7 +491,8 @@ export function initializeApp() {
     dom.questList.innerHTML = '';
     Object.entries(quests).forEach(([questKey, quest]) => {
       const questEl = document.createElement('div');
-      questEl.className = 'quest-card p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer';
+      questEl.className =
+        'quest-card p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer';
       questEl.innerHTML = `
         <h3 class="text-lg font-semibold">${quest.title}</h3>
         <p class="text-gray-600 text-sm mt-1">${quest.objective}</p>
@@ -488,23 +505,23 @@ export function initializeApp() {
   // Start a quest
   function startQuest(questKey) {
     currentQuest = questKey;
-    currentStage = "1";
+    currentStage = '1';
     messages = [];
-    
+
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
-    
+
     dom.questTitle.textContent = quest.title;
     dom.questObjective.textContent = quest.objective;
     dom.questMapImage.src = quest.mapImage;
     dom.characterName.textContent = stage.characterName;
     dom.vignette.textContent = stage.vignette_en;
-    
+
     dom.chatContainer.innerHTML = '';
     if (stage.initialMessage) {
       addMessage('npc', stage.initialMessage);
     }
-    
+
     showView('quest-view');
   }
 
@@ -533,13 +550,13 @@ export function initializeApp() {
       const quest = quests[currentQuest];
       const stage = quest.stages[currentStage];
       const response = await AIManager.callAPI(stage.systemPrompt, [
-        { role: "user", parts: [{ text: message }] }
+        { role: 'user', parts: [{ text: message }] },
       ]);
-      
+
       addMessage('npc', response);
     } catch (error) {
       console.error('Error sending message:', error);
-      addMessage('npc', 'Sorry, I couldn\'t understand that. Could you try again?');
+      addMessage('npc', "Sorry, I couldn't understand that. Could you try again?");
     } finally {
       dom.sendBtn.disabled = false;
       dom.sendBtn.textContent = 'Send';
@@ -555,22 +572,23 @@ export function initializeApp() {
     messageEl.className = 'message user-message p-3 rounded-lg mb-2 bg-blue-100 ml-8';
     messageEl.textContent = message;
     dom.placementChatContainer.appendChild(messageEl);
-    
+
     dom.placementChatInput.value = '';
     dom.placementSendBtn.disabled = true;
     dom.placementSendBtn.textContent = 'Sending...';
 
     try {
-      const systemInstruction = "You are a Spanish language assessment tutor. Evaluate the user's Spanish level and provide appropriate responses.";
+      const systemInstruction =
+        "You are a Spanish language assessment tutor. Evaluate the user's Spanish level and provide appropriate responses.";
       const response = await AIManager.callAPI(systemInstruction, [
-        { role: "user", parts: [{ text: message }] }
+        { role: 'user', parts: [{ text: message }] },
       ]);
-      
+
       const npcMessageEl = document.createElement('div');
       npcMessageEl.className = 'message npc-message p-3 rounded-lg mb-2 bg-gray-100 mr-8';
       npcMessageEl.textContent = response;
       dom.placementChatContainer.appendChild(npcMessageEl);
-      
+
       dom.placementChatContainer.scrollTop = dom.placementChatContainer.scrollHeight;
     } catch (error) {
       console.error('Error in placement chat:', error);
@@ -586,13 +604,13 @@ export function initializeApp() {
   dom.loginBtn.addEventListener('click', handleLogin);
   dom.signupBtn.addEventListener('click', handleSignup);
   dom.logoutBtn.addEventListener('click', handleLogout);
-  
+
   dom.backToQuestsBtn.addEventListener('click', () => showView('main-app-view'));
   dom.sendBtn.addEventListener('click', sendChatMessage);
   dom.chatInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') sendChatMessage();
   });
-  
+
   dom.placementSendBtn.addEventListener('click', handlePlacementSend);
   dom.placementChatInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') handlePlacementSend();
@@ -602,7 +620,7 @@ export function initializeApp() {
   dom.settingsBtn.addEventListener('click', () => {
     dom.settingsModal.classList.remove('hidden');
   });
-  
+
   dom.closeSettingsBtn.addEventListener('click', () => {
     dom.settingsModal.classList.add('hidden');
   });
@@ -616,12 +634,16 @@ export function initializeApp() {
     if (currentUser) {
       userSettings.dialect = dom.dialectSelect.value;
       userSettings.formality = dom.formalitySelect.value;
-      
+
       try {
-        await setDoc(doc(db, 'users', currentUser.uid), {
-          settings: userSettings
-        }, { merge: true });
-        
+        await setDoc(
+          doc(db, 'users', currentUser.uid),
+          {
+            settings: userSettings,
+          },
+          { merge: true }
+        );
+
         dom.settingsModal.classList.add('hidden');
         alert('Settings saved successfully!');
       } catch (error) {
@@ -633,21 +655,21 @@ export function initializeApp() {
 
   // Auth state listener
   if (auth) {
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, async user => {
       if (user) {
         currentUser = user;
         dom.userDisplayName.textContent = user.displayName || 'User';
-        
+
         // Load user data
         const userData = await loadUserData(user);
-        
+
         // Check if placement test is needed
         if (!userData || !userData.placementCompleted) {
           showView('placement-view');
         } else {
           showView('main-app-view');
         }
-        
+
         dom.authContainer.style.display = 'none';
         document.querySelector('.main-content').style.display = 'block';
       } else {
@@ -665,14 +687,14 @@ export function initializeApp() {
 
   // Initialize quest list
   renderQuests();
-  
+
   console.log('[ConvoQuest] Application initialized successfully');
 }
 
 // Function to display detailed Firebase configuration error
 function showFirebaseConfigurationError() {
   const configStatus = getFirebaseConfigStatus();
-  
+
   let errorContent = `
     <div style="max-width: 800px; margin: 50px auto; padding: 30px; font-family: system-ui, -apple-system, sans-serif; line-height: 1.6;">
       <div style="background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 30px;">

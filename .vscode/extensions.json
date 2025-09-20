@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "bradlc.vscode-tailwindcss",
+    "ecmel.vscode-html-css",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ritwickdey.liveserver",
+    "jsayol.firebase-explorer",
+    "vercel.vercel-vscode"
+  ]
+}

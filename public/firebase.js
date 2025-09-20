@@ -10,29 +10,35 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Validate Firebase configuration
 const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'appId'];
-const missingConfig = requiredConfig.filter(key => !firebaseConfig[key] || firebaseConfig[key] === 'undefined');
+const missingConfig = requiredConfig.filter(
+  key => !firebaseConfig[key] || firebaseConfig[key] === 'undefined'
+);
 
 let app, auth, db;
 let configurationError = null;
 
 if (missingConfig.length > 0) {
-  const missingVars = missingConfig.map(key => `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
+  const missingVars = missingConfig.map(
+    key => `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`
+  );
   configurationError = {
     type: 'missing_variables',
     missingFields: missingConfig,
     missingEnvVars: missingVars,
-    message: `Missing Firebase configuration: ${missingConfig.join(', ')}`
+    message: `Missing Firebase configuration: ${missingConfig.join(', ')}`,
   };
-  
+
   console.error('[ConvoQuest] Missing Firebase configuration:', missingConfig);
   console.error('[ConvoQuest] Missing environment variables:', missingVars);
-  console.error('[ConvoQuest] Please check your environment variables and ensure they are properly set.');
-  
+  console.error(
+    '[ConvoQuest] Please check your environment variables and ensure they are properly set.'
+  );
+
   // Export null instances to indicate configuration failure
   app = null;
   auth = null;
@@ -43,15 +49,15 @@ if (missingConfig.length > 0) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
-    
+
     console.log('[ConvoQuest] Firebase initialized successfully');
   } catch (error) {
     configurationError = {
       type: 'initialization_failed',
       error: error.message,
-      message: `Firebase initialization failed: ${error.message}`
+      message: `Firebase initialization failed: ${error.message}`,
     };
-    
+
     console.error('[ConvoQuest] Firebase initialization failed:', error);
     app = null;
     auth = null;
@@ -78,11 +84,11 @@ export function getFirebaseConfigStatus() {
         projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
         storageBucket: firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing',
         messagingSenderId: firebaseConfig.messagingSenderId ? '✓ Set' : '✗ Missing',
-        appId: firebaseConfig.appId ? '✓ Set' : '✗ Missing'
-      }
+        appId: firebaseConfig.appId ? '✓ Set' : '✗ Missing',
+      },
     };
   }
-  
+
   return {
     configured: true,
     config: {
@@ -91,7 +97,7 @@ export function getFirebaseConfigStatus() {
       projectId: '✓ Set',
       storageBucket: '✓ Set',
       messagingSenderId: '✓ Set',
-      appId: '✓ Set'
-    }
+      appId: '✓ Set',
+    },
   };
 }
