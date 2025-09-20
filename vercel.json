@@ -10,6 +10,14 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/debug-config.html",
+      "dest": "/debug-config.html"
+    },
+    {
+      "src": "/debug-config.js",
+      "dest": "/debug-config.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
