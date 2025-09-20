@@ -21,3 +21,7 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# VS Code
+.vscode/settings.json
+# Keep extensions.json and tasks.json in repo for team setup
