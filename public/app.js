@@ -14,8 +14,8 @@ function initializeUIWithoutFirebase() {
   console.log('[ConvoQuest] Initializing UI without Firebase...');
 
   // Application variables
-  let currentUser = null;
-  let userSettings = {};
+  const currentUser = null;
+  const userSettings = {};
 
   // DOM elements (same as in full initialization)
   const dom = {
@@ -170,14 +170,14 @@ function showFirebaseErrorBanner(configStatus) {
         <div style="font-size: 14px; color: #991b1b; margin-bottom: 8px; font-weight: 600;">Missing Environment Variables:</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;">
           ${missingVars
-            .map(
-              envVar => `
+    .map(
+      envVar => `
             <div style="background: rgba(185, 28, 28, 0.1); padding: 6px 10px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #dc2626;">
               ${envVar}
             </div>
           `
-            )
-            .join('')}
+    )
+    .join('')}
         </div>
         <div style="margin-top: 8px; font-size: 12px; color: #991b1b;">
           Copy <code style="background: rgba(185, 28, 28, 0.1); padding: 2px 4px; border-radius: 2px;">.env.example</code> to 
@@ -231,7 +231,7 @@ export function initializeApp() {
   let currentQuest = null;
   let currentStage = null;
   let messages = [];
-  let placementMessages = [];
+  const placementMessages = [];
 
   // DOM elements
   const dom = {
@@ -317,7 +317,7 @@ export function initializeApp() {
           return result.candidates[0].content.parts[0].text;
         } else {
           console.warn('API returned no candidates. Full response:', result);
-          return "I'm sorry, I couldn't generate a response for that. Please try something else.";
+          return 'I\'m sorry, I couldn\'t generate a response for that. Please try something else.';
         }
       } catch (error) {
         console.error('Fetch Error:', error);
@@ -336,16 +336,16 @@ export function initializeApp() {
   const quests = {
     'missing-guitar': {
       title: 'The Missing Guitar',
-      objective: "A famous musician's guitar is missing. Find it before his show!",
+      objective: 'A famous musician\'s guitar is missing. Find it before his show!',
       mapImage:
         'https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop',
       stages: {
         1: {
           characterName: 'Mateo, the Concierge',
           vignette_en:
-            "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen.",
+            'You\'re in a hotel lobby. Your goal: Find out who the musician is and where he was last seen.',
           systemPrompt: 'You are Mateo, a professional but worried hotel concierge in Bogotá.',
-          reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
+          reward: { clue: 'Musician \'Carlos\' was last seen at the plaza.', xp: 50 },
           nextStages: ['2a', '2b'],
           initialMessage: 'Good morning. How can I help you today?',
         },
@@ -556,7 +556,7 @@ export function initializeApp() {
       addMessage('npc', response);
     } catch (error) {
       console.error('Error sending message:', error);
-      addMessage('npc', "Sorry, I couldn't understand that. Could you try again?");
+      addMessage('npc', 'Sorry, I couldn\'t understand that. Could you try again?');
     } finally {
       dom.sendBtn.disabled = false;
       dom.sendBtn.textContent = 'Send';
@@ -579,7 +579,7 @@ export function initializeApp() {
 
     try {
       const systemInstruction =
-        "You are a Spanish language assessment tutor. Evaluate the user's Spanish level and provide appropriate responses.";
+        'You are a Spanish language assessment tutor. Evaluate the user\'s Spanish level and provide appropriate responses.';
       const response = await AIManager.callAPI(systemInstruction, [
         { role: 'user', parts: [{ text: message }] },
       ]);
@@ -596,6 +596,40 @@ export function initializeApp() {
       dom.placementSendBtn.disabled = false;
       dom.placementSendBtn.textContent = 'Send';
     }
+  }
+
+  // Handle quiz submission - transition from quiz to chat
+  function handleSubmitQuiz() {
+    // Check if a quiz option is selected
+    const selectedOption = document.querySelector('input[name="quiz"]:checked');
+    if (!selectedOption) {
+      alert('Please select an answer before continuing.');
+      return;
+    }
+
+    // Hide quiz view and show chat view
+    dom.placementQuizView.style.display = 'none';
+    dom.placementChatView.style.display = 'flex';
+    
+    // Add an initial AI message to start the conversation
+    const welcomeMessage = document.createElement('div');
+    welcomeMessage.className = 'message npc-message p-3 rounded-lg mb-2 bg-gray-100 mr-8';
+    welcomeMessage.textContent = 'Hello! I saw you answered the quiz question. Now let\'s have a conversation to better assess your Spanish level. You can respond in Spanish or English - whatever feels comfortable!';
+    dom.placementChatContainer.appendChild(welcomeMessage);
+  }
+
+  // Handle retake placement test - go back to quiz
+  function handleRetakePlacement() {
+    // Clear chat container
+    dom.placementChatContainer.innerHTML = '';
+    
+    // Clear any selected quiz options
+    const quizOptions = document.querySelectorAll('input[name="quiz"]');
+    quizOptions.forEach(option => option.checked = false);
+    
+    // Show quiz view and hide chat view
+    dom.placementChatView.style.display = 'none';
+    dom.placementQuizView.style.display = 'flex';
   }
 
   // Event listeners
@@ -615,6 +649,12 @@ export function initializeApp() {
   dom.placementChatInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') handlePlacementSend();
   });
+
+  // Submit quiz button to move from quiz to chat
+  dom.submitQuizBtn.addEventListener('click', handleSubmitQuiz);
+  
+  // Retake placement test button
+  dom.retakePlacementBtn.addEventListener('click', handleRetakePlacement);
 
   // Settings modal
   dom.settingsBtn.addEventListener('click', () => {
