@@ -1,0 +1,23 @@
+{
+  "name": "Recovery App Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
+  "postCreateCommand": "curl -fsSL https://claude.ai/install.sh | bash",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 5000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js App"
+    }
+  }
+}
