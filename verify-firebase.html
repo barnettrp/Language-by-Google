@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Configuration Checker - ConvoQuest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">🔥 Firebase Configuration Checker</h1>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-3">Step 1: Enter Your Firebase Config</h2>
+      <p class="text-sm text-gray-600 mb-4">Paste your Firebase configuration values below (from Firebase Console > Project Settings > Your apps)</p>
+
+      <div class="space-y-3">
+        <input type="text" id="apiKey" placeholder="API Key (AIza...)" class="w-full p-3 border rounded-md">
+        <input type="text" id="authDomain" placeholder="Auth Domain (yourproject.firebaseapp.com)" class="w-full p-3 border rounded-md">
+        <input type="text" id="projectId" placeholder="Project ID" class="w-full p-3 border rounded-md">
+        <input type="text" id="storageBucket" placeholder="Storage Bucket (yourproject.appspot.com)" class="w-full p-3 border rounded-md">
+        <input type="text" id="messagingSenderId" placeholder="Messaging Sender ID" class="w-full p-3 border rounded-md">
+        <input type="text" id="appId" placeholder="App ID (1:...)" class="w-full p-3 border rounded-md">
+      </div>
+
+      <button onclick="testConnection()" class="mt-4 w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700">
+        Test Firebase Connection
+      </button>
+    </div>
+
+    <div id="results" class="hidden">
+      <h2 class="text-xl font-semibold mb-3 mt-8">Configuration Test Results:</h2>
+      <div id="resultsList" class="space-y-3"></div>
+
+      <div id="envFile" class="hidden mt-6 bg-gray-50 p-4 rounded-md">
+        <h3 class="font-semibold mb-2">✅ Copy this to your .env file:</h3>
+        <pre id="envContent" class="bg-gray-800 text-green-400 p-4 rounded text-sm overflow-x-auto"></pre>
+        <button onclick="copyEnv()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+          Copy to Clipboard
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-8 border-t pt-6">
+      <h2 class="text-xl font-semibold mb-3">Required Firebase Services Checklist:</h2>
+      <div class="space-y-2">
+        <div class="flex items-start space-x-3">
+          <input type="checkbox" id="check1" class="mt-1">
+          <label for="check1" class="text-sm">
+            <strong>Authentication enabled</strong> - Go to Firebase Console > Build > Authentication > Sign-in method > Enable "Email/Password"
+          </label>
+        </div>
+        <div class="flex items-start space-x-3">
+          <input type="checkbox" id="check2" class="mt-1">
+          <label for="check2" class="text-sm">
+            <strong>Firestore Database created</strong> - Go to Firebase Console > Build > Firestore Database > Create database (test mode for development)
+          </label>
+        </div>
+        <div class="flex items-start space-x-3">
+          <input type="checkbox" id="check3" class="mt-1">
+          <label for="check3" class="text-sm">
+            <strong>Web app registered</strong> - Go to Firebase Console > Project Settings > Your apps > Web app added
+          </label>
+        </div>
+        <div class="flex items-start space-x-3">
+          <input type="checkbox" id="check4" class="mt-1">
+          <label for="check4" class="text-sm">
+            <strong>Gemini API key obtained</strong> - Get from <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-blue-600 underline">Google AI Studio</a>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    window.testConnection = async function() {
+      const config = {
+        apiKey: document.getElementById('apiKey').value.trim(),
+        authDomain: document.getElementById('authDomain').value.trim(),
+        projectId: document.getElementById('projectId').value.trim(),
+        storageBucket: document.getElementById('storageBucket').value.trim(),
+        messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+        appId: document.getElementById('appId').value.trim()
+      };
+
+      const results = document.getElementById('results');
+      const resultsList = document.getElementById('resultsList');
+      const envFile = document.getElementById('envFile');
+
+      resultsList.innerHTML = '<div class="text-blue-600">Testing connection...</div>';
+      results.classList.remove('hidden');
+
+      const checks = [];
+
+      // Test 1: Initialize Firebase
+      try {
+        const app = initializeApp(config, 'test-app-' + Date.now());
+        checks.push({ name: 'Firebase Initialization', status: 'success', message: 'Successfully connected to Firebase' });
+
+        // Test 2: Check Auth
+        try {
+          const auth = getAuth(app);
+
+          // Try to create a test user
+          const testEmail = `test-${Date.now()}@convoquest-test.com`;
+          const testPassword = 'TestPass123!';
+
+          try {
+            const userCred = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
+            checks.push({ name: 'Authentication Service', status: 'success', message: 'Email/Password authentication is working' });
+
+            // Test 3: Check Firestore
+            try {
+              const db = getFirestore(app);
+              const testDocRef = doc(db, 'test-collection', 'test-doc-' + Date.now());
+
+              await setDoc(testDocRef, { test: true, timestamp: new Date() });
+              const docSnap = await getDoc(testDocRef);
+
+              if (docSnap.exists()) {
+                checks.push({ name: 'Firestore Database', status: 'success', message: 'Can read and write to Firestore' });
+
+                // Clean up test document
+                await deleteDoc(testDocRef);
+              } else {
+                checks.push({ name: 'Firestore Database', status: 'warning', message: 'Could write but not read from Firestore' });
+              }
+            } catch (firestoreError) {
+              checks.push({ name: 'Firestore Database', status: 'error', message: `Firestore error: ${firestoreError.message}` });
+            }
+
+            // Clean up test user
+            await deleteUser(userCred.user);
+
+          } catch (authError) {
+            if (authError.code === 'auth/email-already-in-use') {
+              checks.push({ name: 'Authentication Service', status: 'success', message: 'Authentication is configured (email already exists)' });
+            } else {
+              checks.push({ name: 'Authentication Service', status: 'error', message: `Auth error: ${authError.message}` });
+            }
+          }
+
+        } catch (authInitError) {
+          checks.push({ name: 'Authentication Service', status: 'error', message: `Cannot initialize Auth: ${authInitError.message}` });
+        }
+
+      } catch (initError) {
+        checks.push({ name: 'Firebase Initialization', status: 'error', message: `Failed to connect: ${initError.message}` });
+      }
+
+      // Display results
+      resultsList.innerHTML = checks.map(check => {
+        const colors = {
+          success: 'bg-green-100 border-green-500 text-green-800',
+          warning: 'bg-yellow-100 border-yellow-500 text-yellow-800',
+          error: 'bg-red-100 border-red-500 text-red-800'
+        };
+        const icons = {
+          success: '✅',
+          warning: '⚠️',
+          error: '❌'
+        };
+
+        return `
+          <div class="border-l-4 p-4 ${colors[check.status]}">
+            <div class="font-semibold">${icons[check.status]} ${check.name}</div>
+            <div class="text-sm mt-1">${check.message}</div>
+          </div>
+        `;
+      }).join('');
+
+      // If all tests passed, show .env content
+      const allPassed = checks.every(c => c.status === 'success');
+      if (allPassed) {
+        const envContent = `VITE_FIREBASE_API_KEY=${config.apiKey}
+VITE_FIREBASE_AUTH_DOMAIN=${config.authDomain}
+VITE_FIREBASE_PROJECT_ID=${config.projectId}
+VITE_FIREBASE_STORAGE_BUCKET=${config.storageBucket}
+VITE_FIREBASE_MESSAGING_SENDER_ID=${config.messagingSenderId}
+VITE_FIREBASE_APP_ID=${config.appId}
+
+# Don't forget to add your Gemini API key:
+GEMINI_API_KEY=your-gemini-api-key-here`;
+
+        document.getElementById('envContent').textContent = envContent;
+        envFile.classList.remove('hidden');
+      }
+    };
+
+    window.copyEnv = function() {
+      const content = document.getElementById('envContent').textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        alert('✅ Copied to clipboard! Paste this into your .env file');
+      });
+    };
+  </script>
+</body>
+</html>

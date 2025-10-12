@@ -1,0 +1,26 @@
+
+> language-by-google@0.0.0 dev
+> node dev-server.js --host 127.0.0.1 --port 5175
+
+WebSocket server error: Port 24678 is already in use
+node:events:496
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::5173
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Function.listen (/workspaces/Language-by-Google/node_modules/express/lib/application.js:635:24)
+    at file:///workspaces/Language-by-Google/dev-server.js:74:5
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 5173
+}
+
+Node.js v22.17.0

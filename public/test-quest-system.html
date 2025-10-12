@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quest System Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .test-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .pass { color: #10b981; font-weight: bold; }
+    .fail { color: #ef4444; font-weight: bold; }
+    .test-result { padding: 8px; margin: 4px 0; border-radius: 6px; }
+    .test-result.pass { background: #d1fae5; border-left: 4px solid #10b981; }
+    .test-result.fail { background: #fee2e2; border-left: 4px solid #ef4444; }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-white text-center mb-8">🧪 Quest System Test Suite</h1>
+
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">Test Results</h2>
+      <div id="test-results"></div>
+      <div class="mt-4 p-4 bg-gray-100 rounded">
+        <strong>Summary:</strong>
+        <div id="test-summary" class="mt-2"></div>
+      </div>
+    </div>
+
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">Quest Data Inspector</h2>
+      <div id="quest-inspector"></div>
+    </div>
+
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">Visual Quest Cards</h2>
+      <div id="quest-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">Stage Viewer</h2>
+      <select id="quest-selector" class="w-full p-2 border rounded mb-4">
+        <option value="">Select a quest...</option>
+      </select>
+      <div id="stage-viewer"></div>
+    </div>
+  </div>
+
+  <!-- Load quest data -->
+  <script src="/quest-data.js"></script>
+
+  <!-- Test suite -->
+  <script>
+    const results = [];
+
+    function runTest(name, testFn) {
+      try {
+        const result = testFn();
+        results.push({ name, pass: result, error: null });
+        return result;
+      } catch (error) {
+        results.push({ name, pass: false, error: error.message });
+        return false;
+      }
+    }
+
+    function displayResults() {
+      const container = document.getElementById('test-results');
+      const summaryContainer = document.getElementById('test-summary');
+
+      let html = '';
+      let passCount = 0;
+
+      results.forEach(result => {
+        const className = result.pass ? 'pass' : 'fail';
+        const icon = result.pass ? '✅' : '❌';
+        html += `<div class="test-result ${className}">
+          ${icon} <strong>${result.name}</strong>
+          ${result.error ? `<br><span class="text-sm text-gray-600">Error: ${result.error}</span>` : ''}
+        </div>`;
+        if (result.pass) passCount++;
+      });
+
+      container.innerHTML = html;
+
+      const totalTests = results.length;
+      const passRate = ((passCount / totalTests) * 100).toFixed(0);
+      summaryContainer.innerHTML = `
+        <div class="text-lg">
+          <span class="${passCount === totalTests ? 'pass' : 'fail'}">${passCount}/${totalTests} tests passed (${passRate}%)</span>
+        </div>
+      `;
+    }
+
+    // Run tests
+    console.log('🧪 Running Quest System Tests...');
+
+    // Test 1: Quest data file loads
+    runTest('Quest data file loads', () => {
+      return typeof window.QUEST_DATABASE !== 'undefined';
+    });
+
+    // Test 2: Quest database has quests property
+    runTest('QUEST_DATABASE has quests property', () => {
+      return window.QUEST_DATABASE && typeof window.QUEST_DATABASE.quests === 'object';
+    });
+
+    // Test 3: At least 2 quests exist
+    runTest('At least 2 quests exist', () => {
+      const questCount = Object.keys(window.QUEST_DATABASE.quests).length;
+      console.log(`Found ${questCount} quests`);
+      return questCount >= 2;
+    });
+
+    // Test 4: Missing Guitar quest exists
+    runTest('"missing-guitar" quest exists', () => {
+      return 'missing-guitar' in window.QUEST_DATABASE.quests;
+    });
+
+    // Test 5: Market Day quest exists
+    runTest('"market-day" quest exists', () => {
+      return 'market-day' in window.QUEST_DATABASE.quests;
+    });
+
+    // Test 6: Quest has required properties
+    runTest('Quests have required properties', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      const requiredProps = ['id', 'title', 'objective', 'difficulty', 'stages'];
+      return requiredProps.every(prop => prop in quest);
+    });
+
+    // Test 7: Stages have enhanced structure
+    runTest('Stages have enhanced structure', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      const stage = quest.stages['1'];
+      const requiredProps = ['characterName', 'location', 'vignette', 'objectives'];
+      return requiredProps.every(prop => prop in stage);
+    });
+
+    // Test 8: Vignettes are bilingual
+    runTest('Vignettes support bilingual format', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      const stage = quest.stages['1'];
+      return typeof stage.vignette === 'object' && 'en' in stage.vignette && 'es' in stage.vignette;
+    });
+
+    // Test 9: Objectives array exists
+    runTest('Stages have objectives array', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      const stage = quest.stages['1'];
+      return Array.isArray(stage.objectives) && stage.objectives.length > 0;
+    });
+
+    // Test 10: Difficulty modifiers exist
+    runTest('Stages have difficulty modifiers', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      const stage = quest.stages['1'];
+      return typeof stage.difficultyModifiers === 'object' && 'A1' in stage.difficultyModifiers;
+    });
+
+    // Test 11: Categories exported
+    runTest('QUEST_CATEGORIES exported', () => {
+      return typeof window.QUEST_CATEGORIES === 'object' && 'mystery' in window.QUEST_CATEGORIES;
+    });
+
+    // Test 12: Difficulty levels exported
+    runTest('DIFFICULTY_LEVELS exported', () => {
+      return typeof window.DIFFICULTY_LEVELS === 'object' && 'beginner' in window.DIFFICULTY_LEVELS;
+    });
+
+    // Test 13: All stages have next stages or are terminal
+    runTest('Stage flow is properly defined', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      let allValid = true;
+      Object.keys(quest.stages).forEach(stageId => {
+        const stage = quest.stages[stageId];
+        if (stage.nextStages) {
+          if (!Array.isArray(stage.nextStages)) allValid = false;
+          if (stage.nextStages.length === 0) allValid = false;
+        }
+      });
+      return allValid;
+    });
+
+    // Test 14: Market Day has 2 stages
+    runTest('Market Day quest has 2 stages', () => {
+      const quest = window.QUEST_DATABASE.quests['market-day'];
+      return Object.keys(quest.stages).length === 2;
+    });
+
+    // Test 15: Missing Guitar has 3 stages
+    runTest('Missing Guitar quest has 3 stages', () => {
+      const quest = window.QUEST_DATABASE.quests['missing-guitar'];
+      return Object.keys(quest.stages).length === 3;
+    });
+
+    // Display results
+    displayResults();
+
+    // Quest Inspector
+    const inspectorContainer = document.getElementById('quest-inspector');
+    let inspectorHTML = '<div class="space-y-2">';
+    Object.keys(window.QUEST_DATABASE.quests).forEach(questId => {
+      const quest = window.QUEST_DATABASE.quests[questId];
+      inspectorHTML += `
+        <div class="border p-3 rounded">
+          <h3 class="font-bold">${quest.title}</h3>
+          <p class="text-sm text-gray-600">${quest.objective}</p>
+          <div class="mt-2 flex gap-2 flex-wrap">
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+              ${quest.difficulty}
+            </span>
+            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+              ${quest.category}
+            </span>
+            <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
+              ${Object.keys(quest.stages).length} stages
+            </span>
+            <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">
+              ${quest.requiredLevel}
+            </span>
+          </div>
+        </div>
+      `;
+    });
+    inspectorHTML += '</div>';
+    inspectorContainer.innerHTML = inspectorHTML;
+
+    // Visual Quest Cards
+    const cardsContainer = document.getElementById('quest-cards');
+    let cardsHTML = '';
+    Object.keys(window.QUEST_DATABASE.quests).forEach(questId => {
+      const quest = window.QUEST_DATABASE.quests[questId];
+      const category = window.QUEST_CATEGORIES[quest.category];
+      cardsHTML += `
+        <div class="border-2 rounded-lg overflow-hidden hover:shadow-lg transition">
+          <img src="${quest.thumbnailImage}" alt="${quest.title}" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">${category.icon}</span>
+              <h3 class="font-bold text-lg">${quest.title}</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-3">${quest.objective}</p>
+            <div class="flex gap-2 text-xs">
+              <span class="px-2 py-1 bg-gray-100 rounded">${quest.estimatedDuration} min</span>
+              <span class="px-2 py-1 bg-gray-100 rounded">${quest.difficulty}</span>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-1">
+              ${quest.tags.map(tag => `<span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs">${tag}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    cardsContainer.innerHTML = cardsHTML;
+
+    // Stage Viewer
+    const questSelector = document.getElementById('quest-selector');
+    const stageViewer = document.getElementById('stage-viewer');
+
+    Object.keys(window.QUEST_DATABASE.quests).forEach(questId => {
+      const quest = window.QUEST_DATABASE.quests[questId];
+      const option = document.createElement('option');
+      option.value = questId;
+      option.textContent = quest.title;
+      questSelector.appendChild(option);
+    });
+
+    questSelector.addEventListener('change', (e) => {
+      const questId = e.target.value;
+      if (!questId) {
+        stageViewer.innerHTML = '';
+        return;
+      }
+
+      const quest = window.QUEST_DATABASE.quests[questId];
+      let html = '<div class="space-y-4">';
+
+      Object.keys(quest.stages).forEach(stageId => {
+        const stage = quest.stages[stageId];
+        html += `
+          <div class="border-2 border-gray-300 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">${stage.characterAvatar || '👤'}</span>
+              <div>
+                <h4 class="font-bold">${stage.characterName}</h4>
+                <p class="text-sm text-gray-500">${stage.location}</p>
+              </div>
+            </div>
+
+            <div class="mt-3 p-3 bg-blue-50 rounded">
+              <p class="font-semibold text-sm mb-1">🇬🇧 English:</p>
+              <p class="text-sm">${stage.vignette.en}</p>
+            </div>
+
+            <div class="mt-2 p-3 bg-green-50 rounded">
+              <p class="font-semibold text-sm mb-1">🇪🇸 Spanish:</p>
+              <p class="text-sm">${stage.vignette.es}</p>
+            </div>
+
+            ${stage.objectives ? `
+              <div class="mt-3">
+                <p class="font-semibold text-sm mb-2">📝 Learning Objectives:</p>
+                <ul class="list-disc list-inside text-sm space-y-1">
+                  ${stage.objectives.map(obj => `<li>${obj.description}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+
+            <div class="mt-3 flex gap-2 text-xs">
+              <span class="px-2 py-1 bg-yellow-100 rounded">⭐ +${stage.reward.xp} XP</span>
+              <span class="px-2 py-1 bg-purple-100 rounded">${stage.stageType}</span>
+              ${stage.nextStages.length > 0 ?
+                `<span class="px-2 py-1 bg-blue-100 rounded">→ ${stage.nextStages.length} next stage(s)</span>` :
+                `<span class="px-2 py-1 bg-green-100 rounded">✓ Final stage</span>`
+              }
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      stageViewer.innerHTML = html;
+    });
+
+    console.log('✅ All tests complete!');
+  </script>
+</body>
+</html>

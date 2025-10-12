@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Quest Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 30px 0;
+            border: 2px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+        }
+        img {
+            max-width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #c8e6c9;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .error {
+            background: #ffcdd2;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quest Images Test</h1>
+
+    <div class="test-section">
+        <h2>Image Generation Test</h2>
+        <div id="test-output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Stage 1: Fruit Stand (8 apples, 12 oranges, 6 bananas, 15 strawberries, 3 watermelons)</h2>
+        <div id="stage1-container"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Stage 2: Colorful Fruits</h2>
+        <div id="stage2-container"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Quest Data Check</h2>
+        <div id="quest-data-check"></div>
+    </div>
+
+    <!-- Load scripts -->
+    <script src="/quest-images.js"></script>
+    <script src="/quest-data.js"></script>
+
+    <script>
+        const testOutput = document.getElementById('test-output');
+        const stage1Container = document.getElementById('stage1-container');
+        const stage2Container = document.getElementById('stage2-container');
+        const questDataCheck = document.getElementById('quest-data-check');
+
+        // Test 1: Check if QUEST_IMAGES loaded
+        if (window.QUEST_IMAGES) {
+            testOutput.innerHTML += '<div class="success">✅ QUEST_IMAGES loaded successfully</div>';
+
+            // Test 2: Generate stage 1 image
+            try {
+                const stage1Image = window.QUEST_IMAGES.marketDay_stage1_fruitStand();
+                testOutput.innerHTML += '<div class="success">✅ Stage 1 image generated</div>';
+                testOutput.innerHTML += `<div class="info">Data URI length: ${stage1Image.length} characters</div>`;
+
+                const img1 = document.createElement('img');
+                img1.src = stage1Image;
+                img1.alt = 'Stage 1 Fruit Stand';
+                img1.onload = () => {
+                    testOutput.innerHTML += '<div class="success">✅ Stage 1 image loaded in browser</div>';
+                };
+                img1.onerror = () => {
+                    testOutput.innerHTML += '<div class="error">❌ Stage 1 image failed to load</div>';
+                };
+                stage1Container.appendChild(img1);
+            } catch (err) {
+                testOutput.innerHTML += `<div class="error">❌ Error generating stage 1 image: ${err.message}</div>`;
+            }
+
+            // Test 3: Generate stage 2 image
+            try {
+                const stage2Image = window.QUEST_IMAGES.marketDay_stage2_colorfulFruits();
+                testOutput.innerHTML += '<div class="success">✅ Stage 2 image generated</div>';
+                testOutput.innerHTML += `<div class="info">Data URI length: ${stage2Image.length} characters</div>`;
+
+                const img2 = document.createElement('img');
+                img2.src = stage2Image;
+                img2.alt = 'Stage 2 Colorful Fruits';
+                img2.onload = () => {
+                    testOutput.innerHTML += '<div class="success">✅ Stage 2 image loaded in browser</div>';
+                };
+                img2.onerror = () => {
+                    testOutput.innerHTML += '<div class="error">❌ Stage 2 image failed to load</div>';
+                };
+                stage2Container.appendChild(img2);
+            } catch (err) {
+                testOutput.innerHTML += `<div class="error">❌ Error generating stage 2 image: ${err.message}</div>`;
+            }
+        } else {
+            testOutput.innerHTML += '<div class="error">❌ QUEST_IMAGES not loaded</div>';
+        }
+
+        // Test 4: Check if QUEST_DATABASE loaded and images initialized
+        setTimeout(() => {
+            if (window.QUEST_DATABASE) {
+                questDataCheck.innerHTML += '<div class="success">✅ QUEST_DATABASE loaded</div>';
+
+                const stage1 = window.QUEST_DATABASE.quests["market-day"]?.stages?.["1"];
+                const stage2 = window.QUEST_DATABASE.quests["market-day"]?.stages?.["2"];
+
+                if (stage1?.stageImage) {
+                    questDataCheck.innerHTML += '<div class="success">✅ Stage 1 stageImage initialized in QUEST_DATABASE</div>';
+                    questDataCheck.innerHTML += `<div class="info">Image data starts with: ${stage1.stageImage.substring(0, 50)}...</div>`;
+                } else {
+                    questDataCheck.innerHTML += '<div class="error">❌ Stage 1 stageImage NOT initialized</div>';
+                }
+
+                if (stage2?.stageImage) {
+                    questDataCheck.innerHTML += '<div class="success">✅ Stage 2 stageImage initialized in QUEST_DATABASE</div>';
+                    questDataCheck.innerHTML += `<div class="info">Image data starts with: ${stage2.stageImage.substring(0, 50)}...</div>`;
+                } else {
+                    questDataCheck.innerHTML += '<div class="error">❌ Stage 2 stageImage NOT initialized</div>';
+                }
+            } else {
+                questDataCheck.innerHTML += '<div class="error">❌ QUEST_DATABASE not loaded</div>';
+            }
+        }, 500);
+    </script>
+</body>
+</html>

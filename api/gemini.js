@@ -18,21 +18,33 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Missing "contents" in request body.' });
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent`;
 
   try {
+    // Build request body following official Gemini API format
+    const requestBody = { contents };
+
+    if (systemInstruction) {
+      requestBody.system_instruction = {
+        parts: [{ text: systemInstruction }]
+      };
+    }
+
     const geminiResponse = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-goog-api-key': geminiApiKey
       },
-      body: JSON.stringify({ contents, systemInstruction }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!geminiResponse.ok) {
       const errorBody = await geminiResponse.json();
       console.error('Gemini API Error:', errorBody);
-      return response.status(geminiResponse.status).json({ error: `Gemini API error: ${errorBody.error.message}` });
+      return response.status(geminiResponse.status).json({
+        error: `Gemini API error: ${errorBody.error?.message || 'Unknown error'}`
+      });
     }
 
     const data = await geminiResponse.json();

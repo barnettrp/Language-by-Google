@@ -1,1 +1,1 @@
-{"name":"language-by-google","private":true,"version":"0.0.0","scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},"devDependencies":{"vite":"^5.0.0"}}
+{"name":"language-by-google","private":true,"version":"0.0.0","type":"module","scripts":{"dev":"node dev-server.js","dev:vite":"vite","build":"vite build","preview":"vite preview"},"devDependencies":{"vite":"^7.1.6"},"dependencies":{"@anthropic-ai/claude-code":"^2.0.14","dotenv":"^16.4.7","express":"^4.21.2","firebase":"^12.2.1"}}

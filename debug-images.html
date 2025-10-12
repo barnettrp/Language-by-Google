@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Quest Images</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .success { background: #1a3a1a; border-color: #4caf50; }
+        .error { background: #3a1a1a; border-color: #f44336; }
+        .info { background: #1a2a3a; border-color: #2196f3; }
+        h2 { margin-top: 0; }
+        pre { background: #2d2d2d; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        img { max-width: 100%; border: 2px solid #666; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Quest Images Debug Console</h1>
+    <div id="output"></div>
+
+    <!-- Load scripts -->
+    <script src="/quest-images.js"></script>
+    <script src="/quest-data.js"></script>
+
+    <script>
+        const output = document.getElementById('output');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test ${type}`;
+            div.innerHTML = message;
+            output.appendChild(div);
+        }
+
+        // Test 1: Check QUEST_IMAGES
+        log('<h2>Test 1: QUEST_IMAGES Object</h2>', 'info');
+        if (window.QUEST_IMAGES) {
+            log('✅ window.QUEST_IMAGES exists', 'success');
+            log(`<pre>${JSON.stringify(Object.keys(window.QUEST_IMAGES), null, 2)}</pre>`, 'info');
+
+            // Test function call
+            try {
+                const img1 = window.QUEST_IMAGES.marketDay_stage1_fruitStand();
+                log(`✅ marketDay_stage1_fruitStand() executed<br>Length: ${img1.length} chars<br>Starts: ${img1.substring(0, 80)}...`, 'success');
+
+                // Try to render it
+                const imgEl = document.createElement('img');
+                imgEl.src = img1;
+                imgEl.alt = 'Stage 1';
+                imgEl.onload = () => log('✅ Stage 1 image loaded successfully!', 'success');
+                imgEl.onerror = (e) => log(`❌ Stage 1 image failed to load: ${e}`, 'error');
+                output.appendChild(imgEl);
+            } catch (err) {
+                log(`❌ Error calling marketDay_stage1_fruitStand(): ${err.message}`, 'error');
+            }
+        } else {
+            log('❌ window.QUEST_IMAGES is undefined', 'error');
+        }
+
+        // Test 2: Check QUEST_DATABASE
+        setTimeout(() => {
+            log('<h2>Test 2: QUEST_DATABASE Initialization</h2>', 'info');
+
+            if (window.QUEST_DATABASE) {
+                log('✅ window.QUEST_DATABASE exists', 'success');
+
+                const marketDay = window.QUEST_DATABASE.quests['market-day'];
+                if (marketDay) {
+                    log('✅ Market Day quest found', 'success');
+
+                    const stage1 = marketDay.stages['1'];
+                    const stage2 = marketDay.stages['2'];
+
+                    // Check Stage 1
+                    log('<h3>Stage 1 Check:</h3>', 'info');
+                    log(`<pre>stageImage type: ${typeof stage1?.stageImage}\nstageImage value: ${stage1?.stageImage ? stage1.stageImage.substring(0, 80) + '...' : 'null/undefined'}</pre>`,
+                        stage1?.stageImage ? 'success' : 'error');
+
+                    if (stage1?.stageImage) {
+                        const imgEl2 = document.createElement('img');
+                        imgEl2.src = stage1.stageImage;
+                        imgEl2.alt = 'Stage 1 from QUEST_DATABASE';
+                        imgEl2.onload = () => log('✅ Stage 1 from QUEST_DATABASE loaded!', 'success');
+                        imgEl2.onerror = () => log('❌ Stage 1 from QUEST_DATABASE failed to load', 'error');
+                        output.appendChild(imgEl2);
+                    } else {
+                        log('❌ stage1.stageImage is null or undefined', 'error');
+                    }
+
+                    // Check Stage 2
+                    log('<h3>Stage 2 Check:</h3>', 'info');
+                    log(`<pre>stageImage type: ${typeof stage2?.stageImage}\nstageImage value: ${stage2?.stageImage ? stage2.stageImage.substring(0, 80) + '...' : 'null/undefined'}</pre>`,
+                        stage2?.stageImage ? 'success' : 'error');
+
+                } else {
+                    log('❌ Market Day quest not found', 'error');
+                }
+            } else {
+                log('❌ window.QUEST_DATABASE is undefined', 'error');
+            }
+        }, 1000);
+
+        // Test 3: Check console for initialization message
+        log('<h2>Test 3: Console Messages</h2>', 'info');
+        log('Check browser console (F12) for "✅ Quest images initialized" message', 'info');
+    </script>
+</body>
+</html>

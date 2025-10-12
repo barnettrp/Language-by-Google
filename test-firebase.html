@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Test</title>
+</head>
+<body>
+  <h1>Firebase Connection Test</h1>
+  <div id="status"></div>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const status = document.getElementById('status');
+    status.innerHTML = 'Loading Firebase...<br>';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+      authDomain: "spanish-ai-project.firebaseapp.com",
+      projectId: "spanish-ai-project",
+      storageBucket: "spanish-ai-project.firebasestorage.app",
+      messagingSenderId: "788393465858",
+      appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
+    };
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+      status.innerHTML += '✅ Firebase initialized!<br>';
+
+      const auth = firebase.auth();
+      status.innerHTML += '✅ Auth ready!<br>';
+
+      const db = firebase.firestore();
+      status.innerHTML += '✅ Firestore ready!<br>';
+
+      status.innerHTML += '<br><strong>SUCCESS! Firebase is working with compat SDK.</strong>';
+    } catch (error) {
+      status.innerHTML += '❌ Error: ' + error.message;
+    }
+  </script>
+</body>
+</html>
