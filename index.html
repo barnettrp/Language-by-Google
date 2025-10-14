@@ -412,6 +412,12 @@
 
     function main() {
         debugLog('🚀 App starting...');
+        debugLog(`📦 QUEST_DATABASE loaded: ${!!window.QUEST_DATABASE}`);
+        debugLog(`📦 QUEST_IMAGES loaded: ${!!window.QUEST_IMAGES}`);
+        debugLog(`📦 PLACEMENT_QUESTIONS loaded: ${!!window.PLACEMENT_QUESTIONS}`);
+        if (window.QUEST_DATABASE) {
+            debugLog(`📊 QUEST_DATABASE has ${Object.keys(window.QUEST_DATABASE.quests || {}).length} quests`);
+        }
 
         if (!window.firebaseInstances) {
             debugLog('❌ Firebase did not initialize');
@@ -653,7 +659,17 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
         };
 
         // Load quests from the external quest database
-        const quests = window.QUEST_DATABASE ? window.QUEST_DATABASE.quests : {};
+        // Use a getter function to ensure we get the latest value
+        function getQuests() {
+            debugLog(`🔍 getQuests called - QUEST_DATABASE exists: ${!!window.QUEST_DATABASE}`);
+            if (window.QUEST_DATABASE) {
+                debugLog(`✅ QUEST_DATABASE.quests keys: ${Object.keys(window.QUEST_DATABASE.quests || {}).join(', ')}`);
+            }
+            return window.QUEST_DATABASE ? window.QUEST_DATABASE.quests : {};
+        }
+
+        // For backward compatibility, keep quests as a reference
+        let quests = getQuests();
 
         /* ---------------- Placement Test Logic ------------------- */
         const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -907,6 +923,8 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
 
         function renderQuests() {
             debugLog('🎮 renderQuests called');
+            // Refresh quests from QUEST_DATABASE in case it loaded after initial page load
+            quests = getQuests();
             const list = dom.questView.querySelector('.space-y-3');
             debugLog(`Quest container found: ${!!list}`);
             debugLog(`Number of quests: ${Object.keys(quests).length}`);

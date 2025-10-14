@@ -12,6 +12,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recent Changes
 
+### October 2025 - Quest Descriptions Not Showing (Vercel Routing Fix)
+**Status**: ✅ Fixed
+
+**Problem**: Quest descriptions weren't appearing on the main quest selection page when deployed to Vercel. Debug logs showed `Number of quests: 0`.
+
+**Root Cause**: The Vercel routing configuration had a catch-all route that was intercepting JavaScript file requests:
+```json
+{ "src": "/(.*)", "dest": "/index.html" }
+```
+This meant requests like `/quest-data.js` were returning the HTML file instead of the JavaScript file, causing `window.QUEST_DATABASE` to be undefined.
+
+**Solution**: Added a specific route for JavaScript files BEFORE the catch-all route in `vercel.json`:
+```json
+{
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*\\.js)$", "dest": "/$1" },  // NEW: Serve JS files correctly
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
+```
+
+**Additional Improvements**:
+1. Added debug logging to track when `QUEST_DATABASE`, `QUEST_IMAGES`, and `PLACEMENT_QUESTIONS` load
+2. Modified quest loading to use a `getQuests()` function that refreshes from `window.QUEST_DATABASE` on each call
+3. Updated `renderQuests()` to refresh the quests variable before rendering
+
+**Files Modified**:
+- `/vercel.json` - Added JS file route
+- `/public/index.html` (lines 415-420, 657-672, 921) - Added debug logging and dynamic quest loading
+- `/index.html` (same lines) - Synced changes
+
+**Testing**: Build and deploy to Vercel, then check browser console for debug logs showing quest data loads correctly.
+
 ### January 2025 - Spanish-Only Dialogue with Click-to-Translate
 **Status**: ✅ Complete and ready for testing
 
