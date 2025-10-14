@@ -28,6 +28,27 @@
     .map-location { cursor: pointer; transition: transform 0.2s; }
     .map-location:hover { transform: scale(1.1); }
 
+    /* Translation popover styling */
+    #translation-popover {
+      max-width: 300px;
+      background: rgba(31, 41, 55, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+      user-select: none;
+    }
+    #translation-popover.loading {
+      opacity: 0.7;
+    }
+
+    /* Translatable text styling */
+    .chat-bubble-ai {
+      cursor: help;
+    }
+    .chat-bubble-ai:hover {
+      background-color: #d1d5db;
+    }
+
     /* App container sizing */
     #app-container {
       width: 100%;
@@ -525,28 +546,96 @@
             },
             async getResponse(history, stage, settings) {
                 const level = getUserLevel();
-                const spanishOnly = prefersSpanishOnly();
-                const languageGuidance = spanishOnly
-                    ? "Respond entirely in Spanish appropriate for a " + level + " learner. Do not switch to English unless absolutely required by safety policies."
-                    : "Respond primarily in Spanish for a " + level + " learner, but you may add short English explanations when the learner seems confused.";
-                const supportTone = spanishOnly
-                    ? "Use natural conversational Spanish, recycle vocabulary from the scenario, and reinforce correct phrases."
-                    : "Keep Spanish sentences simple, recycle key vocabulary, and pair challenging phrases with quick English glosses when helpful.";
-                const systemInstruction = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". The user's target language dialect is ${settings.dialect}. The learner's CEFR level is ${level}. ${languageGuidance} ${supportTone} Stay in character and keep each response concise (1-2 sentences).`;
+                // ALWAYS use Spanish for dialogue, with scaffolding based on level
+                const scaffoldingGuidance = {
+                    'A1': 'Use very simple Spanish with basic vocabulary. Speak slowly (short sentences). When introducing new words, use cognates when possible. Repeat key phrases.',
+                    'A2': 'Use simple Spanish with common vocabulary. Keep sentences clear and direct. Use present tense primarily. Introduce basic past tense gradually.',
+                    'B1': 'Use natural conversational Spanish with some complexity. Include common idioms. Use varied tenses. Speak at a normal pace.',
+                    'B2': 'Use natural Spanish with nuanced expressions. Include cultural references and idioms. Use all tenses fluidly.',
+                    'C1': 'Use sophisticated Spanish with advanced vocabulary. Include subtle cultural nuances and complex grammatical structures.',
+                    'C2': 'Use native-level Spanish with literary expressions, regional variations, and complex discourse.'
+                }[level] || 'Use simple Spanish appropriate for beginners.';
+
+                const systemInstruction = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". The user's target language dialect is ${settings.dialect}. The learner's CEFR level is ${level}.
+
+CRITICAL: You MUST respond ONLY in Spanish. Never use English in your responses. The user has access to a click-to-translate feature if they need help understanding.
+
+Scaffolding for ${level} learners: ${scaffoldingGuidance}
+
+Provide natural corrections by modeling correct usage in your responses (don't explicitly say "you should say X"). Stay in character and keep responses concise (1-3 sentences).`;
                 const contents = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
                 return this.callAPI(systemInstruction, contents);
             },
             async getCorrection(text) {
                 const level = getUserLevel();
-                const spanishOnly = prefersSpanishOnly();
-                const correctionGuidance = spanishOnly
-                    ? "Provide the correction and explanation entirely in Spanish appropriate for a " + level + " learner."
-                    : "Provide the correction in Spanish, followed by a brief English explanation suitable for a " + level + " learner.";
-                const systemInstruction = `You are a helpful language correction tool. Analyze the user's Spanish text and provide a correction if needed. If it's correct, say so. ${correctionGuidance} Format your response as 'Corrected: [corrected text]' or 'This is correct.'`;
+                const systemInstruction = `You are a helpful language correction tool for Spanish learners at ${level} level. Analyze the user's Spanish text and provide a correction if needed.
+
+CRITICAL: Respond ONLY in Spanish.
+
+If the text is correct, respond: "¡Correcto!"
+If it needs correction, respond: "Corrección: [corrected text]"
+
+Then add a brief explanation in simple Spanish about what was wrong. Keep it concise and educational.`;
                 const contents = [{ role: "user", parts: [{ text }] }];
                 return this.callAPI(systemInstruction, contents);
             },
             // ... other AI manager functions can be updated similarly
+        };
+
+        /* ---------------- Translation Manager ------------------- */
+        const TranslationManager = {
+            async translate(text) {
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: text,
+                            sourceLang: 'es',
+                            targetLang: 'en'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        console.error("Translation API Error");
+                        return null;
+                    }
+
+                    const result = await response.json();
+                    return result.translatedText;
+                } catch (error) {
+                    console.error("Translation Error:", error);
+                    return null;
+                }
+            },
+
+            async showTranslation(text, x, y) {
+                const popover = dom.translationPopover;
+                if (!popover) return;
+
+                // Show loading state
+                popover.textContent = 'Translating...';
+                popover.classList.add('loading');
+                popover.classList.remove('hidden');
+                popover.style.left = `${x}px`;
+                popover.style.top = `${y}px`;
+
+                // Get translation
+                const translation = await this.translate(text);
+
+                if (translation) {
+                    popover.classList.remove('loading');
+                    popover.textContent = translation;
+                } else {
+                    popover.textContent = 'Translation unavailable';
+                }
+            },
+
+            hideTranslation() {
+                if (dom.translationPopover) {
+                    dom.translationPopover.classList.add('hidden');
+                }
+            }
         };
 
         // Load quests from the external quest database
@@ -987,6 +1076,38 @@
             const bubble = document.createElement('div');
             bubble.className = 'chat-bubble p-3 rounded-lg w-fit ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai');
             bubble.textContent = text;
+
+            // Add click-to-translate for AI messages
+            if (!isUser) {
+                bubble.style.userSelect = 'text';
+                bubble.addEventListener('click', async (e) => {
+                    const selection = window.getSelection();
+                    const selectedText = selection.toString().trim();
+
+                    // If there's a selection, translate that
+                    if (selectedText) {
+                        const range = selection.getRangeAt(0);
+                        const rect = range.getBoundingClientRect();
+                        const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                        // Position popover above selection
+                        const x = rect.left - containerRect.left;
+                        const y = rect.top - containerRect.top - 40;
+
+                        await TranslationManager.showTranslation(selectedText, x, y);
+                    } else {
+                        // If no selection, translate the entire message
+                        const rect = bubble.getBoundingClientRect();
+                        const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                        const x = rect.left - containerRect.left;
+                        const y = rect.top - containerRect.top - 40;
+
+                        await TranslationManager.showTranslation(text, x, y);
+                    }
+                });
+            }
+
             wrapper.appendChild(bubble);
             if (isUser) {
                 const btn = document.createElement('button');
@@ -1705,6 +1826,20 @@
         dom.endSessionBtn.addEventListener('click', endStage);
         // Placement test event listener
         dom.submitQuizBtn.addEventListener('click', handlePlacementAnswer);
+
+        // Global click handler to hide translation popover
+        document.addEventListener('click', (e) => {
+            // Don't hide if clicking inside a chat bubble (handled by bubble's own click handler)
+            if (!e.target.closest('.chat-bubble-ai')) {
+                TranslationManager.hideTranslation();
+            }
+        });
+
+        // Hide translation on scroll
+        dom.chatContainer?.addEventListener('scroll', () => {
+            TranslationManager.hideTranslation();
+        });
+
         renderQuests();
         debugLog('✅ All event listeners registered');
         debugLog('🎉 App initialization complete!');
