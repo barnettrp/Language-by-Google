@@ -203,6 +203,11 @@
           </div>
         </div>
         <div class="p-4 space-y-3 overflow-y-auto"></div>
+        <!-- Temporary Debug Panel -->
+        <div id="debug-panel" style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; font-family: monospace; font-size: 12px; max-height: 150px; overflow-y: auto; z-index: 10000;">
+          <div style="color: yellow; font-weight: bold;">🔍 DEBUG INFO:</div>
+          <div id="debug-output"></div>
+        </div>
       </div>
       <div id="chat-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
@@ -393,6 +398,15 @@
             const timestamp = new Date().toLocaleTimeString();
             debugConsole.innerHTML += `[${timestamp}] ${msg}<br>`;
             debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+
+        // TEMPORARY: Log to visible debug panel
+        const debugOutput = document.getElementById('debug-output');
+        if (debugOutput) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugOutput.innerHTML += `[${timestamp}] ${msg}<br>`;
+            const panel = document.getElementById('debug-panel');
+            if (panel) panel.scrollTop = panel.scrollHeight;
         }
     }
 
@@ -892,8 +906,17 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
         }
 
         function renderQuests() {
+            debugLog('🎮 renderQuests called');
             const list = dom.questView.querySelector('.space-y-3');
-            list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+            debugLog(`Quest container found: ${!!list}`);
+            debugLog(`Number of quests: ${Object.keys(quests).length}`);
+            debugLog(`Quests object: ${JSON.stringify(Object.keys(quests))}`);
+            if (list) {
+                list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+                debugLog(`✅ Quest cards rendered: ${list.children.length}`);
+            } else {
+                debugLog('❌ Quest container (.space-y-3) not found!');
+            }
         }
 
         function showMapView(questId) {
