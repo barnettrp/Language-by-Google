@@ -12,6 +12,68 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recent Changes
 
+### January 2025 - Spanish-Only Dialogue with Click-to-Translate
+**Status**: ✅ Complete and ready for testing
+
+**What Changed**:
+- Modified AI prompts to enforce Spanish-only dialogue across ALL proficiency levels
+- Added level-based scaffolding where the AI adjusts vocabulary complexity, sentence length, and grammar usage based on user's CEFR level (A1-C2)
+- Implemented click-to-translate feature using Google Translate API for instant translations
+- Created non-obtrusive translation popup that appears when users click on Spanish text
+- Users can select individual words, phrases, or entire sentences for translation
+- Translation popup automatically hides when clicking elsewhere or scrolling
+
+**Why This Improves Learning**:
+- Immersive Spanish-only environment accelerates language acquisition
+- Level-appropriate scaffolding keeps content challenging but not overwhelming
+- On-demand translation provides safety net without interrupting flow
+- Encourages users to try understanding Spanish first before translating
+
+**How It Works**:
+1. **AI Dialogue**: All AI responses are exclusively in Spanish, with difficulty automatically adjusted:
+   - **A1**: Very simple vocabulary, short sentences, present tense focus
+   - **A2**: Common vocabulary, clear sentences, basic past tense introduction
+   - **B1**: Natural conversational Spanish with some idioms
+   - **B2**: Nuanced expressions, cultural references, all tenses
+   - **C1/C2**: Sophisticated vocabulary, literary expressions, complex structures
+
+2. **Click-to-Translate**: Users click any AI message to get instant English translation:
+   - Click without selection → translates entire message
+   - Select text then click → translates only selection
+   - Translation appears in sleek dark popover above clicked text
+   - Works on words, phrases, or full sentences
+
+**Files Modified**:
+1. `/public/index.html` (lines 526-560) - Updated `AIManager.getResponse()` with Spanish-only prompts and level-based scaffolding
+2. `/public/index.html` (lines 548-560) - Updated `AIManager.getCorrection()` to provide corrections in Spanish
+3. `/public/index.html` (lines 585-639) - NEW: `TranslationManager` for handling Google Translate API calls
+4. `/public/index.html` (lines 1071-1119) - Updated `addMessage()` to add click handlers to AI messages
+5. `/public/index.html` (lines 1830-1841) - Added global click and scroll handlers to hide translation popup
+6. `/public/index.html` (lines 31-50) - Added CSS styling for translation popover and chat bubble hover states
+7. `/api/translate.js` - NEW: Serverless function for Google Translate API proxy
+
+**Technical Implementation**:
+- `TranslationManager.translate(text)`: Calls `/api/translate` endpoint with Spanish text
+- `/api/translate` serverless function proxies request to Google Translate API
+- API key stored securely in environment variable `GOOGLE_TRANSLATE_API_KEY`
+- Translation popover positioned dynamically based on selection coordinates
+- Loading state shown while translation is being fetched
+- Fallback to "Translation unavailable" if API fails
+
+**Environment Variable Required**:
+Add to `.env` and Vercel:
+```
+GOOGLE_TRANSLATE_API_KEY=your_google_translate_api_key_here
+```
+Note: The same Google API key used for Gemini can also enable Google Translate API.
+
+**User Experience**:
+- AI chat bubbles have subtle hover effect (darker background) indicating they're clickable
+- Cursor changes to "help" icon when hovering over AI messages
+- Translation popover has semi-transparent dark background with white text
+- Smooth animation when popover appears
+- Automatically dismisses when user interacts with other parts of the app
+
 ### January 2025 - Quest Story Arc Expansion
 **Status**: 🚧 In progress (playable but expect future iterations)
 
