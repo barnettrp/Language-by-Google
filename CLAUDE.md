@@ -12,6 +12,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recent Changes
 
+### October 2025 - Enhanced Debug Logging for AI API Issues
+**Status**: ✅ Complete
+
+**Problem**: Users reported that chat wasn't reaching the AI API and dialogue was in English instead of Spanish.
+
+**Investigation**:
+- Spanish-only dialogue IS implemented correctly in the code (lines 585-588 in both index.html files)
+- The issue is likely missing environment variables on Vercel
+
+**Solution**: Added comprehensive debug logging to diagnose issues:
+1. **API call logging**: Shows when `/api/gemini` is called, response status, and error details
+2. **Spanish instruction logging**: Confirms Spanish-only system instruction is prepared
+3. **User level tracking**: Shows the user's CEFR level for scaffolding
+
+**Debug logs to watch for**:
+```
+🔌 Calling /api/gemini...
+📝 System instruction length: 650
+📡 API Response status: 200
+🌍 User level: A1, Getting AI response...
+🇪🇸 Spanish-only system instruction prepared
+```
+
+**Files Modified**:
+- `/public/index.html` (lines 539-540, 547, 551, 573, 591) - Added debug logging
+- `/index.html` (same lines) - Synced changes
+- `/VERCEL_SETUP.md` - NEW: Complete guide for configuring Vercel environment variables
+
+**Action Required**:
+See `VERCEL_SETUP.md` for instructions on configuring `GEMINI_API_KEY` and `GOOGLE_TRANSLATE_API_KEY` in Vercel dashboard.
+
 ### October 2025 - Quest Descriptions Not Showing (Vercel Routing Fix)
 **Status**: ✅ Fixed
 

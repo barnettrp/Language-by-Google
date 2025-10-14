@@ -536,15 +536,19 @@
         const AIManager = {
             async callAPI(systemInstruction, contents) {
                 try {
+                    debugLog('🔌 Calling /api/gemini...');
+                    debugLog(`📝 System instruction length: ${systemInstruction?.length || 0}`);
                     const response = await fetch('/api/gemini', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ systemInstruction, contents })
                     });
 
+                    debugLog(`📡 API Response status: ${response.status}`);
                     if (!response.ok) {
                         const errorBody = await response.json();
                         console.error("API Error:", errorBody);
+                        debugLog(`❌ API Error: ${JSON.stringify(errorBody)}`);
                         return `Error: ${errorBody.error || 'Unknown API error'}`;
                     }
 
@@ -566,6 +570,7 @@
             },
             async getResponse(history, stage, settings) {
                 const level = getUserLevel();
+                debugLog(`🌍 User level: ${level}, Getting AI response...`);
                 // ALWAYS use Spanish for dialogue, with scaffolding based on level
                 const scaffoldingGuidance = {
                     'A1': 'Use very simple Spanish with basic vocabulary. Speak slowly (short sentences). When introducing new words, use cognates when possible. Repeat key phrases.',
@@ -583,6 +588,7 @@ CRITICAL: You MUST respond ONLY in Spanish. Never use English in your responses.
 Scaffolding for ${level} learners: ${scaffoldingGuidance}
 
 Provide natural corrections by modeling correct usage in your responses (don't explicitly say "you should say X"). Stay in character and keep responses concise (1-3 sentences).`;
+                debugLog('🇪🇸 Spanish-only system instruction prepared');
                 const contents = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
                 return this.callAPI(systemInstruction, contents);
             },
