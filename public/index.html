@@ -87,7 +87,7 @@
       <!-- AUTH CONTAINER -->
       <div id="auth-container" class="flex items-center justify-center h-full">
         <!-- LOGIN VIEW -->
-        <div id="login-view" class="main-view w-full max-w-sm p-6">
+        <div id="login-view" class="main-view active w-full max-w-sm p-6" style="display: flex;">
           <div class="bg-white p-6 rounded-lg shadow-md">
             <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Welcome Back</h1>
             <div class="space-y-4">
@@ -116,6 +116,10 @@
             >
               Need an account? Sign up
             </button>
+          </div>
+          <!-- Debug Console -->
+          <div id="debug-console-login" class="mt-4 bg-gray-900 text-green-400 p-3 rounded-lg text-xs font-mono max-h-60 overflow-y-auto">
+            <div class="text-gray-500 mb-2">Debug Console:</div>
           </div>
         </div>
 
@@ -155,6 +159,10 @@
             >
               Already have an account? Login
             </button>
+          </div>
+          <!-- Debug Console -->
+          <div id="debug-console-signup" class="mt-4 bg-gray-900 text-green-400 p-3 rounded-lg text-xs font-mono max-h-60 overflow-y-auto">
+            <div class="text-gray-500 mb-2">Debug Console:</div>
           </div>
         </div>
       </div>

@@ -9,6 +9,80 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
+// Debug Console Display
+const debugConsoleLines = [];
+const MAX_DEBUG_LINES = 50;
+
+function addDebugLog(message, type = 'log') {
+  const timestamp = new Date().toLocaleTimeString();
+  const color = type === 'error' ? 'text-red-400' : type === 'warn' ? 'text-yellow-400' : 'text-green-400';
+  debugConsoleLines.push({ timestamp, message, color });
+
+  // Keep only last MAX_DEBUG_LINES
+  if (debugConsoleLines.length > MAX_DEBUG_LINES) {
+    debugConsoleLines.shift();
+  }
+
+  // Update both debug consoles
+  updateDebugConsoles();
+}
+
+function updateDebugConsoles() {
+  const loginConsole = document.getElementById('debug-console-login');
+  const signupConsole = document.getElementById('debug-console-signup');
+
+  const content = debugConsoleLines.map(line =>
+    `<div class="${line.color}">[${line.timestamp}] ${line.message}</div>`
+  ).join('');
+
+  if (loginConsole) {
+    loginConsole.innerHTML = '<div class="text-gray-500 mb-2">Debug Console:</div>' + content;
+    loginConsole.scrollTop = loginConsole.scrollHeight;
+  }
+  if (signupConsole) {
+    signupConsole.innerHTML = '<div class="text-gray-500 mb-2">Debug Console:</div>' + content;
+    signupConsole.scrollTop = signupConsole.scrollHeight;
+  }
+}
+
+// Override console methods to capture logs
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
+console.log = function(...args) {
+  originalConsoleLog.apply(console, args);
+  const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+  if (message.includes('[ConvoQuest]')) {
+    addDebugLog(message, 'log');
+  }
+};
+
+console.error = function(...args) {
+  originalConsoleError.apply(console, args);
+  const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+  if (message.includes('[ConvoQuest]')) {
+    addDebugLog(message, 'error');
+  }
+};
+
+console.warn = function(...args) {
+  originalConsoleWarn.apply(console, args);
+  const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+  if (message.includes('[ConvoQuest]')) {
+    addDebugLog(message, 'warn');
+  }
+};
+
+// Add initial Firebase status to debug console
+function logFirebaseStatus() {
+  const configStatus = getFirebaseConfigStatus();
+  console.log('[ConvoQuest] Firebase Configuration Status:', configStatus.configured ? 'CONFIGURED' : 'NOT CONFIGURED');
+  if (!configStatus.configured && configStatus.error) {
+    console.error('[ConvoQuest] Firebase Error:', configStatus.error.message);
+  }
+}
+
 // Helper function to initialize UI without Firebase functionality
 function initializeUIWithoutFirebase() {
   console.log('[ConvoQuest] Initializing UI without Firebase...');
@@ -45,8 +119,16 @@ function initializeUIWithoutFirebase() {
 
   // Utility functions
   function showView(viewId) {
+    console.log('[ConvoQuest] showView called with viewId:', viewId);
     document.querySelectorAll('.main-view').forEach(view => {
-      view.style.display = view.id === viewId ? 'flex' : 'none';
+      if (view.id === viewId) {
+        view.style.display = 'flex';
+        view.classList.add('active');
+        console.log('[ConvoQuest] Showing view:', viewId);
+      } else {
+        view.style.display = 'none';
+        view.classList.remove('active');
+      }
     });
   }
 
@@ -209,6 +291,9 @@ function showFirebaseErrorBanner(configStatus) {
 
 // Initialize the application
 export function initializeApp() {
+  // Log Firebase status to debug console
+  logFirebaseStatus();
+
   // Check Firebase configuration status first
   const configStatus = getFirebaseConfigStatus();
   if (!configStatus.configured) {
@@ -363,21 +448,34 @@ export function initializeApp() {
 
   // Utility functions
   function showView(viewId) {
+    console.log('[ConvoQuest] showView called with viewId:', viewId);
     document.querySelectorAll('.main-view').forEach(view => {
-      view.style.display = view.id === viewId ? 'flex' : 'none';
+      if (view.id === viewId) {
+        view.style.display = 'flex';
+        view.classList.add('active');
+        console.log('[ConvoQuest] Showing view:', viewId);
+      } else {
+        view.style.display = 'none';
+        view.classList.remove('active');
+      }
     });
   }
 
   // Authentication functions
   async function handleLogin() {
+    console.log('[ConvoQuest] handleLogin called');
+
     // Check if Firebase auth is available
     if (!auth) {
+      console.error('[ConvoQuest] Auth is not available:', auth);
       alert('Firebase is not configured. Please check your environment variables.');
       return;
     }
 
     const email = dom.loginEmailInput.value.trim();
     const password = dom.loginPasswordInput.value;
+
+    console.log('[ConvoQuest] Attempting login with email:', email);
 
     if (!email || !password) {
       alert('Please fill in all fields');
@@ -388,10 +486,14 @@ export function initializeApp() {
       dom.loginBtn.disabled = true;
       dom.loginBtn.textContent = 'Signing In...';
 
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log('[ConvoQuest] Calling signInWithEmailAndPassword...');
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log('[ConvoQuest] Login successful:', result.user.email);
       // onAuthStateChanged will handle the UI update
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[ConvoQuest] Login error:', error);
+      console.error('[ConvoQuest] Error code:', error.code);
+      console.error('[ConvoQuest] Error message:', error.message);
       alert('Login failed: ' + error.message);
     } finally {
       dom.loginBtn.disabled = false;
@@ -462,16 +564,22 @@ export function initializeApp() {
 
   // Load user data from Firestore
   async function loadUserData(user) {
+    console.log('[ConvoQuest] loadUserData called for user:', user.uid);
+
     // Check if Firestore db is available
     if (!db) {
-      console.error('Firestore is not configured. Cannot load user data.');
+      console.error('[ConvoQuest] Firestore is not configured. Cannot load user data.');
       return null;
     }
 
     try {
+      console.log('[ConvoQuest] Fetching user document from Firestore...');
       const userDoc = await getDoc(doc(db, 'users', user.uid));
+      console.log('[ConvoQuest] User document fetched. Exists:', userDoc.exists());
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        console.log('[ConvoQuest] User data retrieved:', userData);
         userSettings = userData.settings || { dialect: 'Mexico', formality: 'Casual' };
 
         // Update UI with user settings
@@ -479,10 +587,14 @@ export function initializeApp() {
         dom.formalitySelect.value = userSettings.formality;
 
         return userData;
+      } else {
+        console.log('[ConvoQuest] User document does not exist in Firestore');
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('[ConvoQuest] Error loading user data:', error);
+      console.error('[ConvoQuest] Error details:', error.message, error.code);
     }
+    console.log('[ConvoQuest] loadUserData returning null');
     return null;
   }
 
@@ -695,24 +807,66 @@ export function initializeApp() {
 
   // Auth state listener
   if (auth) {
+    console.log('[ConvoQuest] Setting up onAuthStateChanged listener');
     onAuthStateChanged(auth, async user => {
+      console.log('[ConvoQuest] onAuthStateChanged triggered. User:', user ? user.email : 'null');
       if (user) {
         currentUser = user;
         dom.userDisplayName.textContent = user.displayName || 'User';
 
-        // Load user data
-        const userData = await loadUserData(user);
+        console.log('[ConvoQuest] User logged in:', user.email);
+        console.log('[ConvoQuest] Loading user data...');
+
+        // Load user data with timeout
+        let userData = null;
+        try {
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          );
+          userData = await Promise.race([loadUserData(user), timeoutPromise]);
+        } catch (error) {
+          console.error('[ConvoQuest] Failed to load user data:', error.message);
+          console.log('[ConvoQuest] Continuing without user data...');
+        }
+
+        console.log('[ConvoQuest] User data loaded:', userData);
 
         // Check if placement test is needed
-        if (!userData || !userData.placementCompleted) {
+        // Use localStorage as backup if Firestore is unavailable
+        const placementCompleted = userData?.placementCompleted ||
+                                   localStorage.getItem('placementCompleted') === 'true';
+
+        console.log('[ConvoQuest] Placement completed:', placementCompleted);
+
+        if (!placementCompleted) {
+          console.log('[ConvoQuest] Showing placement view');
           showView('placement-view');
         } else {
+          console.log('[ConvoQuest] Showing main app view');
           showView('main-app-view');
         }
 
-        dom.authContainer.style.display = 'none';
-        document.querySelector('.main-content').style.display = 'block';
+        console.log('[ConvoQuest] Hiding auth container, showing main content');
+        try {
+          if (dom.authContainer) {
+            dom.authContainer.style.display = 'none';
+            console.log('[ConvoQuest] Auth container hidden');
+          } else {
+            console.error('[ConvoQuest] dom.authContainer not found!');
+          }
+
+          const mainContent = document.querySelector('.main-content');
+          if (mainContent) {
+            mainContent.style.display = 'block';
+            console.log('[ConvoQuest] Main content displayed');
+          } else {
+            console.error('[ConvoQuest] .main-content element not found!');
+          }
+        } catch (error) {
+          console.error('[ConvoQuest] Error updating UI:', error);
+        }
       } else {
+        console.log('[ConvoQuest] No user logged in, showing login view');
         currentUser = null;
         dom.authContainer.style.display = 'flex';
         document.querySelector('.main-content').style.display = 'none';
