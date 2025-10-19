@@ -31,7 +31,19 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Missing "contents" in request body.' });
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`;
+
+  // Prepend system instruction as the first user message
+  let finalContents = contents;
+  if (systemInstruction) {
+    finalContents = [
+      { role: 'user', parts: [{ text: systemInstruction }] },
+      { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] },
+      ...contents
+    ];
+  }
+
+  const requestBody = { contents: finalContents };
 
   try {
     const geminiResponse = await fetch(url, {
@@ -39,7 +51,7 @@ export default async function handler(request, response) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ contents, systemInstruction }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!geminiResponse.ok) {

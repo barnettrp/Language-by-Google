@@ -53,12 +53,19 @@ async function handleApiRequest(req, res) {
         return;
       }
 
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`;
 
-      const requestBody = { contents };
+      // Prepend system instruction as the first user message
+      let finalContents = contents;
       if (systemInstruction) {
-        requestBody.systemInstruction = systemInstruction;
+        finalContents = [
+          { role: 'user', parts: [{ text: systemInstruction }] },
+          { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] },
+          ...contents
+        ];
       }
+
+      const requestBody = { contents: finalContents };
 
       const geminiResponse = await fetch(url, {
         method: 'POST',

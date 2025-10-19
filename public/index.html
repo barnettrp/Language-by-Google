@@ -551,7 +551,10 @@
                         const errorBody = await response.json();
                         console.error("API Error:", errorBody);
                         debugLog(`❌ API Error: ${JSON.stringify(errorBody)}`);
-                        return `Error: ${errorBody.error || 'Unknown API error'}`;
+                        const errorMessage = typeof errorBody.error === 'string'
+                            ? errorBody.error
+                            : (errorBody.error?.message || errorBody.message || JSON.stringify(errorBody));
+                        return `Error: ${errorMessage}`;
                     }
 
                     const result = await response.json();
@@ -567,7 +570,8 @@
 
                 } catch (error) {
                     console.error("Fetch Error:", error);
-                    return "Sorry, I couldn't connect to the AI service.";
+                    debugLog(`❌ Fetch Error: ${error.message || error}`);
+                    return `Sorry, I couldn't connect to the AI service. ${error.message || ''}`;
                 }
             },
             async getResponse(history, stage, settings) {
