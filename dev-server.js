@@ -53,7 +53,8 @@ async function handleApiRequest(req, res) {
         return;
       }
 
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`;
+      // Use gemini-pro (classic stable model)
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
 
       // Prepend system instruction as the first user message
       let finalContents = contents;
