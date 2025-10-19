@@ -4,6 +4,7 @@ import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { config } from 'dotenv';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Load environment variables
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -53,32 +54,38 @@ async function handleApiRequest(req, res) {
         return;
       }
 
-      // Use gemini-pro (classic stable model)
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+      // Use Google Generative AI SDK with gemini-pro (older but accessible model)
+      const genAI = new GoogleGenerativeAI(geminiApiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-      // Prepend system instruction as the first user message
-      let finalContents = contents;
+      // Prepend system instruction as the first user message if provided
+      let chat;
       if (systemInstruction) {
-        finalContents = [
+        const history = [
           { role: 'user', parts: [{ text: systemInstruction }] },
-          { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] },
-          ...contents
+          { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] }
         ];
+        chat = model.startChat({ history });
+      } else {
+        chat = model.startChat({});
       }
 
-      const requestBody = { contents: finalContents };
+      // Send the actual user message
+      const userMessage = contents[contents.length - 1].parts[0].text;
+      const result = await chat.sendMessage(userMessage);
+      const response = await result.response;
 
-      const geminiResponse = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // Format response to match expected structure
+      const data = {
+        candidates: [{
+          content: {
+            parts: [{ text: response.text() }],
+            role: 'model'
+          }
+        }]
+      };
 
-      const data = await geminiResponse.json();
-
-      res.writeHead(geminiResponse.ok ? 200 : geminiResponse.status, {
+      res.writeHead(200, {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       });
