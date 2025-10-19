@@ -290,3 +290,76 @@ async function handleCompletePlacement() {
 ✅ Deployed to production
 
 **Latest Production URL:** https://language-by-google-n3x6wixum-richard-barnetts-projects.vercel.app
+
+---
+
+## Date: 2025-10-19 (Later)
+
+### Restoration: CEFR Adaptive Placement Test
+
+**Problem:**
+- On October 19, commit `4ae3e88` accidentally replaced the sophisticated CEFR adaptive placement test with a simplified 3-question quiz + chat system
+- The original test had 180 questions (30 per CEFR level), Wilson score confidence intervals, and adaptive level adjustment
+- Users lost access to the statistically-rigorous placement testing
+
+**Root Cause Analysis:**
+- Timeline of placement test:
+  - **Oct 12, 2025** (`cf36ca8`): Full CEFR adaptive test created with 180-question bank and confidence interval algorithm
+  - **Oct 14, 2025** (`cd74c3a`): Test still intact with all features working
+  - **Oct 19, 2025** (`4ae3e88`): Entire system accidentally replaced while trying to add a "Complete" button
+
+**The Divergence:**
+- What should have happened: Add a simple "Complete Placement Test" button to allow users to exit
+- What actually happened: 1,861 lines deleted, 1,374 lines added - entire adaptive test replaced with minimal version
+
+**Solution - Restoration:**
+
+1. **Created backups** of current simplified version:
+   - `public/index.html.backup-before-restore`
+   - `public/app.js.backup-before-restore`
+
+2. **Restored from commit `cd74c3a`** (Oct 14, before divergence):
+   - `public/index.html` - Full adaptive test implementation (1902 lines)
+   - `public/app.js` - Firebase integration (451 lines)
+
+3. **Copied missing question bank:**
+   - `dist/placement-questions.js` → `public/placement-questions.js` (180 questions, all CEFR levels)
+
+4. **Added the intended completion feature** (what should have been done originally):
+   - Added "Complete Placement Test" button to HTML
+   - Added `completePlacementBtn` to DOM references
+   - Created `handleCompletePlacement()` function with:
+     - Firestore save (`placementCompleted: true`)
+     - localStorage backup
+     - Transition to main app
+   - Added event listener for completion button
+   - Used Firebase compat API for consistency
+
+**Files Modified:**
+- `public/index.html` - Restored + added completion button
+- `public/app.js` - Restored original version
+- `public/placement-questions.js` - Copied from dist/
+
+**Restored Features:**
+✅ 180-question bank (30 per CEFR level: A1, A2, B1, B2, C1, C2)
+✅ Adaptive level adjustment (67% up, 33% down based on last 3 answers)
+✅ Wilson Score confidence interval calculation (95% CI)
+✅ Smart termination (10-15 questions, stops at 85% confidence)
+✅ Progress bar with current question and estimated level
+✅ Statistical final level determination (highest level with ≥60% accuracy)
+✅ Complete Placement Test button for manual exit
+
+**Key Functions Restored:**
+- `initPlacementTest()` - Initializes adaptive test
+- `loadNextQuestion()` - Selects random question from current level
+- `handlePlacementAnswer()` - Processes answer and adjusts level
+- `calculateConfidence()` - Wilson score interval calculation
+- `finishPlacementTest()` - Determines final CEFR level
+- `handleCompletePlacement()` - NEW: Manual completion option
+
+**Result:**
+✅ Full CEFR adaptive placement test restored
+✅ Users can complete test via statistical confidence OR manual button
+✅ All 180 questions available across 6 CEFR levels
+✅ Sophisticated placement algorithm working again
+

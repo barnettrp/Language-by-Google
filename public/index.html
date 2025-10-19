@@ -1,394 +1,1930 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ConvoQuest</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        background: #a7c5ad; /* Fallback */
-        background-image: linear-gradient(to top, #a7c5ad 0%, #a7c5ad 1%, #e4e6e9 100%);
-        min-height: 100vh;
-      }
-      .contained-area {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-      }
-      .auth-input,
-      #chat-input,
-      #placement-chat-input {
-        font-size: 16px;
-      }
-      @keyframes pop-in {
-        0% {
-          transform: scale(0.95);
-          opacity: 0;
-        }
-        100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-      }
-      .modal-content,
-      .hint-popover,
-      #translation-popover {
-        animation: pop-in 0.3s ease-out forwards;
-      }
-      .chat-bubble {
-        max-width: 75%;
-        animation: pop-in 0.3s ease-out forwards;
-      }
-      .chat-bubble-user {
-        background-color: #dbeafe;
-      }
-      .chat-bubble-ai {
-        background-color: #e5e7eb;
-      }
-      .modal-bg {
-        background-color: rgba(0, 0, 0, 0.5);
-      }
-      .mic-active {
-        color: #ef4444;
-      }
-      .map-location {
-        cursor: pointer;
-        transition: transform 0.2s;
-      }
-      .map-location:hover {
-        transform: scale(1.1);
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConvoQuest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { 
+      background: #a7c5ad; /* Fallback */
+      background-image: linear-gradient(to top, #a7c5ad 0%, #a7c5ad 1%, #e4e6e9 100%);
+      min-height: 100vh;
+    }
+    .contained-area {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .auth-input, #chat-input, #placement-chat-input { font-size: 16px; }
+    @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
+    .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
+    .chat-bubble-user { background-color: #dbeafe; }
+    .chat-bubble-ai { background-color: #e5e7eb; }
+    .modal-bg { background-color: rgba(0, 0, 0, 0.5); }
+    .mic-active { color: #ef4444; }
+    .map-location { cursor: pointer; transition: transform 0.2s; }
+    .map-location:hover { transform: scale(1.1); }
 
-      /* App container sizing */
+    /* Translation popover styling */
+    #translation-popover {
+      max-width: 300px;
+      background: rgba(31, 41, 55, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+      user-select: none;
+    }
+    #translation-popover.loading {
+      opacity: 0.7;
+    }
+
+    /* Translatable text styling */
+    .chat-bubble-ai {
+      cursor: help;
+    }
+    .chat-bubble-ai:hover {
+      background-color: #d1d5db;
+    }
+
+    /* App container sizing */
+    #app-container {
+      width: 100%;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @media (min-width: 768px) {
       #app-container {
-        width: 100%;
-        max-width: 450px;
-        margin-left: auto;
-        margin-right: auto;
+        height: 90vh;
+        max-height: 800px;
       }
-      @media (min-width: 768px) {
-        #app-container {
-          height: 90vh;
-          max-height: 800px;
+    }
+    .main-view { display: none; }
+    .main-view.active { display: flex; }
+  </style>
+</head>
+<body class="flex items-start justify-center p-2 md:p-4">
+
+  <!-- UI FIX: Removed mt-10 from this container -->
+  <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden relative">
+    <!-- Debug Console (disabled by default) -->
+    <!-- To enable: Uncomment the line below -->
+    <!-- <div id="debug-console" style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; max-height: 100px; overflow-y: auto; font-size: 10px; font-family: monospace; z-index: 9999; opacity: 0.8;"></div> -->
+
+    <!-- AUTH VIEW -->
+    <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
+      <div id="email-verification-view" class="hidden">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Verify Your Email</h1>
+        <div class="text-center mb-6">
+          <div class="text-6xl mb-4">📧</div>
+          <p class="text-gray-600 mb-2">We've sent a verification link to:</p>
+          <p id="verification-email" class="font-semibold text-gray-800 mb-4"></p>
+          <p class="text-sm text-gray-500">Please check your email and click the verification link to continue.</p>
+        </div>
+        <p id="verification-error" class="text-red-500 text-sm mb-2 text-center h-4"></p>
+        <p id="verification-success" class="text-green-600 text-sm mb-2 text-center h-4"></p>
+        <div class="space-y-2">
+          <button id="resend-verification-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Resend Verification Email</button>
+          <button id="check-verification-btn" class="w-full bg-gray-600 text-white p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">I've Verified - Refresh</button>
+          <button id="verification-logout-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline pt-2">Logout</button>
+        </div>
+      </div>
+      <div id="login-view">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
+        <div class="space-y-4">
+          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="login-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Login</button>
+          <button id="forgot-password-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline">Forgot Password?</button>
+          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+        </div>
+      </div>
+      <div id="signup-view" class="hidden">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
+        <div class="space-y-4">
+          <!-- Avatar Selection -->
+          <div class="flex flex-col items-center mb-4">
+            <button type="button" id="select-avatar-btn" class="flex flex-col items-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
+              <div id="selected-avatar-display" class="text-5xl">👤</div>
+              <span class="text-sm text-gray-600">Click to choose avatar</span>
+            </button>
+          </div>
+          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="signup-password-input" placeholder="Password (min. 8 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="text-xs space-y-1">
+            <p class="text-gray-600 font-medium">Password must contain:</p>
+            <ul class="space-y-1 pl-2">
+              <li id="req-length" class="text-gray-500 flex items-center">
+                <span class="mr-2">○</span>At least 8 characters
+              </li>
+              <li id="req-uppercase" class="text-gray-500 flex items-center">
+                <span class="mr-2">○</span>One uppercase letter
+              </li>
+              <li id="req-number-symbol" class="text-gray-500 flex items-center">
+                <span class="mr-2">○</span>One number or symbol
+              </li>
+            </ul>
+          </div>
+          <input type="password" id="signup-password-confirm-input" placeholder="Confirm Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="signup-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Sign Up</button>
+          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLACEMENT VIEW -->
+    <div id="placement-view" class="main-view flex-col h-full">
+      <div id="placement-quiz-view" class="flex flex-col h-full p-6 overflow-y-auto">
+        <div class="max-w-2xl mx-auto w-full">
+          <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">Placement Test</h1>
+          <p class="text-gray-600 text-center mb-4">Answer 10-15 questions to determine your level.</p>
+
+          <!-- Progress Bar -->
+          <div class="mb-6">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Question <span id="current-question-num">1</span> of <span id="total-questions">15</span></span>
+              <span id="estimated-level" class="font-semibold text-blue-600"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div id="placement-progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Question Container -->
+          <div id="quiz-question-container" class="bg-white rounded-lg shadow-sm border p-6 mb-4">
+            <p id="question-text" class="text-lg font-semibold mb-4 text-gray-800"></p>
+            <div id="quiz-options" class="space-y-3">
+              <!-- Options will be populated here -->
+            </div>
+          </div>
+
+          <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next Question</button>
+          <button id="complete-placement-btn" class="w-full mt-3 bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition-colors">Complete Placement Test</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP VIEW -->
+    <div id="main-app-view" class="main-view flex-col h-full">
+      <div id="quest-view" class="flex flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
+          <div>
+            <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
+            <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
+          </div>
+        </header>
+        <!-- Daily Progress Tracker -->
+        <div id="daily-tracker" class="hidden p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🔥</span>
+              <div>
+                <p class="text-xs font-medium text-gray-600">Daily Goal</p>
+                <p class="text-sm font-bold text-gray-800"><span id="current-minutes">0</span> / <span id="goal-minutes">15</span> min</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-xs font-medium text-gray-600">Streak</p>
+              <p class="text-sm font-bold text-orange-600"><span id="streak-count">0</span> days</p>
+            </div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="p-4 space-y-3 overflow-y-auto"></div>
+        <!-- Temporary Debug Panel -->
+        <div id="debug-panel" style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; font-family: monospace; font-size: 12px; max-height: 150px; overflow-y: auto; z-index: 10000;">
+          <div style="color: yellow; font-weight: bold;">🔍 DEBUG INFO:</div>
+          <div id="debug-output"></div>
+        </div>
+      </div>
+      <div id="chat-view" class="hidden flex-col h-full">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+          <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
+        </header>
+        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto" style="min-height: 0;"></div>
+        <div class="p-2 border-t bg-white/50 flex-shrink-0" style="margin-bottom: 110px;">
+          <div class="flex items-center space-x-2">
+            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
+            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="mic-btn" title="Use microphone" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
+            <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- MODALS & POPOVERS -->
+    <div id="avatar-selector-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Choose Your Avatar</h2>
+                <button id="close-avatar-selector-btn" class="text-gray-400 hover:text-gray-600 transition-colors" title="Close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Select an avatar to represent you in ConvoQuest!</p>
+            <div id="avatar-grid" class="grid grid-cols-4 gap-3 mb-4">
+                <!-- Avatars will be populated here -->
+            </div>
+            <div class="flex gap-2">
+                <button id="cancel-avatar-btn" class="flex-1 bg-gray-200 text-gray-800 p-3 rounded-md font-semibold hover:bg-gray-300 transition-colors">Cancel</button>
+                <button id="confirm-avatar-btn" class="flex-1 bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="forgot-password-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Reset Password</h2>
+                <button id="close-forgot-password-btn" class="font-bold text-2xl">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Enter your email address and create a new password.</p>
+            <div class="space-y-4">
+                <input type="email" id="reset-email-input" placeholder="Email" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="reset-password-input" placeholder="New Password (min. 8 characters)" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="text-xs space-y-1">
+                    <p class="text-gray-600 font-medium">Password must contain:</p>
+                    <ul class="space-y-1 pl-2">
+                        <li id="reset-req-length" class="text-gray-500 flex items-center">
+                            <span class="mr-2">○</span>At least 8 characters
+                        </li>
+                        <li id="reset-req-uppercase" class="text-gray-500 flex items-center">
+                            <span class="mr-2">○</span>One uppercase letter
+                        </li>
+                        <li id="reset-req-number-symbol" class="text-gray-500 flex items-center">
+                            <span class="mr-2">○</span>One number or symbol
+                        </li>
+                    </ul>
+                </div>
+                <input type="password" id="reset-password-confirm-input" placeholder="Confirm New Password" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <p id="reset-error" class="text-red-500 text-sm mt-2 h-4"></p>
+            <p id="reset-success" class="text-green-600 text-sm mt-2 h-4"></p>
+            <button id="send-reset-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors mt-4">Reset Password</button>
+        </div>
+    </div>
+    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
+            <div class="space-y-4">
+                <!-- Avatar Display -->
+                <div class="text-center pb-4 border-b">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Your Avatar</p>
+                    <div id="settings-avatar-display" class="text-6xl mb-2">👤</div>
+                    <button id="change-avatar-btn" class="text-sm text-blue-600 hover:underline">Change Avatar</button>
+                </div>
+
+                <!-- Daily Goal Setting -->
+                <div>
+                    <label for="daily-goal-input" class="block text-sm font-medium text-gray-700 mb-1">Daily Goal (minutes)</label>
+                    <input type="number" id="daily-goal-input" min="5" max="240" step="5" placeholder="15" class="block w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Set how many minutes you want to practice each day</p>
+                </div>
+
+                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
+                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
+                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
+            </div>
+        </div>
+    </div>
+    <div id="vignette-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 id="vignette-title" class="text-2xl font-bold mb-2"></h2>
+            <p id="vignette-text" class="text-gray-600 mb-6"></p>
+            <button id="start-stage-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Start Stage</button>
+        </div>
+    </div>
+    <div id="map-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <h2 id="map-title" class="text-2xl font-bold mb-1"></h2>
+            <p id="map-objective" class="text-gray-600 mb-4"></p>
+            <div id="map-container" class="relative rounded-lg overflow-hidden">
+                <img id="map-image" src="https://placehold.co/600x400/a7c5ad/4f46e5?text=Quest+Map" alt="Quest Map" class="w-full h-auto">
+            </div>
+        </div>
+    </div>
+    <div id="stage-complete-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold text-green-600 mb-2">Stage Complete! 🎉</h2>
+            <p class="text-gray-700">New clue unlocked:</p>
+            <p id="clue-text" class="bg-yellow-100 p-3 rounded-md my-4 font-semibold"></p>
+            <p id="xp-gain-text" class="text-lg font-bold text-blue-600 mb-6"></p>
+            <button id="continue-quest-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold">Continue Quest</button>
+        </div>
+    </div>
+     <div id="correction-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Correction</h2><button id="close-correction-btn" class="font-bold text-2xl">&times;</button></div>
+            <div id="correction-loading" class="hidden text-center p-8">Loading...</div>
+            <div id="correction-content">
+                <p class="text-sm text-gray-500">Original:</p>
+                <p id="original-sentence-el" class="italic text-red-600 bg-red-50 p-2 rounded-md mb-3"></p>
+                <p class="text-sm text-gray-500">Suggested:</p>
+                <p id="corrected-sentence-el" class="italic text-green-600 bg-green-50 p-2 rounded-md mb-4"></p>
+                <button id="explain-rule-btn" class="w-full bg-gray-200 text-gray-800 p-2 rounded-md text-sm font-semibold hover:bg-gray-300">Explain this rule 💡</button>
+                <div id="explanation-container" class="hidden mt-4 p-3 bg-blue-50 rounded-md border-l-4 border-blue-400">
+                    <p id="explanation-text" class="text-sm text-gray-700"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
+    <div id="hint-popover" class="hidden hint-popover absolute bg-white border rounded-md p-3 z-50 shadow-lg w-48 cursor-pointer bottom-16 left-4">
+        <p class="text-sm text-gray-700">Click to use this hint</p>
+    </div>
+  </div>
+
+  <!-- Placement Test Questions -->
+  <script src="/placement-questions.js"></script>
+
+  <!-- Quest Images (must load before quest-data) -->
+  <script src="/quest-images.js"></script>
+
+  <!-- Quest Data -->
+  <script src="/quest-data.js"></script>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase init -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxVns7LxAG2WMkuUu8JOfgx7bE-6MycBY",
+      authDomain: "spanish-ai-project.firebaseapp.com",
+      projectId: "spanish-ai-project",
+      storageBucket: "spanish-ai-project.firebasestorage.app",
+      messagingSenderId: "788393465858",
+      appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Make available globally for the app
+    window.firebaseInstances = { app: firebase.app(), auth, db };
+  </script>
+  
+  <!-- Main app logic -->
+  <script>
+    // Debug logging helper
+    // Logs to browser console (always) and optional on-screen debug console
+    // To enable on-screen console: uncomment the debug-console div in HTML above
+    function debugLog(msg) {
+        // Log to browser console (F12 Developer Tools)
+        console.log(msg);
+
+        // Log to on-screen debug console (if enabled)
+        const debugConsole = document.getElementById('debug-console');
+        if (debugConsole) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugConsole.innerHTML += `[${timestamp}] ${msg}<br>`;
+            debugConsole.scrollTop = debugConsole.scrollHeight;
         }
-      }
-      .main-view {
-        display: none;
-      }
-      .main-view.active {
-        display: flex;
-      }
-    </style>
-  </head>
-  <body class="flex items-start justify-center p-2 md:p-4">
-    <div id="app-container" class="contained-area rounded-2xl overflow-hidden shadow-xl">
-      <!-- AUTH CONTAINER -->
-      <div id="auth-container" class="flex items-center justify-center h-full">
-        <!-- LOGIN VIEW -->
-        <div id="login-view" class="main-view active w-full max-w-sm p-6" style="display: flex;">
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Welcome Back</h1>
-            <div class="space-y-4">
-              <input
-                id="login-email-input"
-                type="email"
-                placeholder="Email"
-                class="auth-input w-full p-3 border rounded-lg"
-              />
-              <input
-                id="login-password-input"
-                type="password"
-                placeholder="Password"
-                class="auth-input w-full p-3 border rounded-lg"
-              />
-              <button
-                id="login-btn"
-                class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
-              >
-                Login
-              </button>
-            </div>
-            <button
-              id="show-signup-btn"
-              class="w-full text-center text-sm text-blue-600 hover:underline mt-4"
-            >
-              Need an account? Sign up
-            </button>
-          </div>
-          <!-- Debug Console -->
-          <div id="debug-console-login" class="mt-4 bg-gray-900 text-green-400 p-3 rounded-lg text-xs font-mono max-h-60 overflow-y-auto">
-            <div class="text-gray-500 mb-2">Debug Console:</div>
-          </div>
-        </div>
 
-        <!-- SIGNUP VIEW -->
-        <div id="signup-view" class="main-view w-full max-w-sm p-6">
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Create Account</h1>
-            <div class="space-y-4">
-              <input
-                id="signup-display-name-input"
-                type="text"
-                placeholder="Full Name"
-                class="auth-input w-full p-3 border rounded-lg"
-              />
-              <input
-                id="signup-email-input"
-                type="email"
-                placeholder="Email"
-                class="auth-input w-full p-3 border rounded-lg"
-              />
-              <input
-                id="signup-password-input"
-                type="password"
-                placeholder="Password"
-                class="auth-input w-full p-3 border rounded-lg"
-              />
-              <button
-                id="signup-btn"
-                class="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700"
-              >
-                Sign Up
-              </button>
-            </div>
-            <button
-              id="show-login-btn"
-              class="w-full text-center text-sm text-blue-600 hover:underline mt-4"
-            >
-              Already have an account? Login
-            </button>
-          </div>
-          <!-- Debug Console -->
-          <div id="debug-console-signup" class="mt-4 bg-gray-900 text-green-400 p-3 rounded-lg text-xs font-mono max-h-60 overflow-y-auto">
-            <div class="text-gray-500 mb-2">Debug Console:</div>
-          </div>
-        </div>
-      </div>
+        // TEMPORARY: Log to visible debug panel
+        const debugOutput = document.getElementById('debug-output');
+        if (debugOutput) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugOutput.innerHTML += `[${timestamp}] ${msg}<br>`;
+            const panel = document.getElementById('debug-panel');
+            if (panel) panel.scrollTop = panel.scrollHeight;
+        }
+    }
 
-      <!-- MAIN CONTENT (hidden initially) -->
-      <div class="main-content" style="display: none">
-        <!-- PLACEMENT VIEW -->
-        <div id="placement-view" class="main-view flex-col h-full">
-          <div id="placement-quiz-view" class="flex flex-col h-full p-6 justify-center text-center">
-            <h1 class="text-2xl font-bold text-gray-800">Placement Test</h1>
-            <p class="text-gray-600 mt-2 mb-6">Let's find the right starting point for you.</p>
-            <div id="quiz-question-container">
-              <p class="text-left font-semibold mb-2">Where is María going?</p>
-              <div id="quiz-options" class="space-y-2 text-left">
-                <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  ><input type="radio" name="quiz" value="a" class="mr-2" /> The park</label
-                >
-                <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  ><input type="radio" name="quiz" value="b" class="mr-2" /> The library</label
-                >
-                <label class="block p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  ><input type="radio" name="quiz" value="c" class="mr-2" /> The store</label
-                >
-              </div>
-            </div>
-            <button
-              id="submit-quiz-btn"
-              class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Continue to Chat
-            </button>
-          </div>
+    function main() {
+        debugLog('🚀 App starting...');
+        debugLog(`📦 QUEST_DATABASE loaded: ${!!window.QUEST_DATABASE}`);
+        debugLog(`📦 QUEST_IMAGES loaded: ${!!window.QUEST_IMAGES}`);
+        debugLog(`📦 PLACEMENT_QUESTIONS loaded: ${!!window.PLACEMENT_QUESTIONS}`);
+        if (window.QUEST_DATABASE) {
+            debugLog(`📊 QUEST_DATABASE has ${Object.keys(window.QUEST_DATABASE.quests || {}).length} quests`);
+        }
 
-          <div id="placement-chat-view" class="flex flex-col h-full">
-            <div class="bg-blue-600 text-white p-4 text-center">
-              <h2 class="text-lg font-semibold">Placement Conversation</h2>
-              <p class="text-sm">Chat with our AI tutor to assess your level</p>
-            </div>
-            <div id="placement-chat-container" class="flex-1 p-4 overflow-y-auto space-y-2"></div>
-            <div class="p-4 border-t bg-gray-50">
-              <div class="flex space-x-2">
-                <input
-                  id="placement-chat-input"
-                  type="text"
-                  placeholder="Type your message..."
-                  class="flex-1 p-2 border rounded-lg"
-                />
-                <button
-                  id="placement-send-btn"
-                  class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Send
-                </button>
-              </div>
-              <div class="flex justify-between items-center mt-2">
-                <button id="retake-placement-btn" class="text-sm text-blue-600 hover:underline">
-                  Retake placement test
-                </button>
-                <button id="complete-placement-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                  Complete Placement Test
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        if (!window.firebaseInstances) {
+            debugLog('❌ Firebase did not initialize');
+            document.body.innerHTML = '<div style="color: red; text-align: center; margin-top: 50px;">Critical Error: App could not load. Firebase is not configured correctly.</div>';
+            return;
+        }
 
-        <!-- MAIN APP VIEW -->
-        <div id="main-app-view" class="main-view flex-col h-full">
-          <div class="bg-blue-600 text-white p-4 flex justify-between items-center">
-            <div>
-              <h1 class="text-lg font-semibold">ConvoQuest</h1>
-              <p class="text-sm">Welcome, <span id="user-display-name">User</span></p>
-            </div>
-            <div class="flex space-x-2">
-              <button id="settings-btn" class="text-white hover:bg-blue-700 p-2 rounded">⚙️</button>
-              <button id="logout-btn" class="text-white hover:bg-blue-700 p-2 rounded">
-                Logout
-              </button>
-            </div>
-          </div>
+        debugLog('✅ Firebase instances loaded');
+        const { auth, db } = window.firebaseInstances;
+        debugLog('✅ Auth and DB extracted');
 
-          <div class="flex-1 p-4 overflow-y-auto">
-            <h2 class="text-xl font-bold mb-4">Choose Your Quest</h2>
-            <div id="quest-list" class="space-y-3"></div>
-          </div>
-        </div>
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let currentUser = null;
+        let userSettings = {};
+        let currentQuest = null;
+        let currentStage = null;
+        let messages = [];
+        let selectedAvatar = '👤'; // Default avatar
+        let sessionStartTime = null; // Track when user starts a stage
 
-        <!-- QUEST VIEW -->
-        <div id="quest-view" class="main-view flex-col h-full">
-          <div class="bg-gray-800 text-white p-4">
-            <div class="flex justify-between items-center mb-2">
-              <button id="back-to-quests-btn" class="text-white hover:bg-gray-700 p-1 rounded">
-                ← Back
-              </button>
-              <h1 id="quest-title" class="text-lg font-semibold">Quest Title</h1>
-              <div></div>
-            </div>
-            <p id="quest-objective" class="text-sm">Quest objective...</p>
-          </div>
+        // Available avatars - safe, emoji-based options
+        const avatarOptions = [
+            '😊', '😎', '🤓', '😇', '🥳', '🤠', '🧐', '🤗',
+            '😺', '🐶', '🐼', '🦊', '🐨', '🐸', '🦁', '🐯',
+            '🌟', '🌈', '🔥', '⚡', '🎨', '🎭', '🎪', '🎮',
+            '🚀', '🌍', '🏆', '⚽', '🎸', '📚', '🎓', '💡'
+        ];
 
-          <div class="relative">
-            <img id="quest-map-image" src="" alt="Quest Map" class="w-full h-32 object-cover" />
-            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-              <div class="text-white text-center">
-                <h2 id="character-name" class="font-bold">Character Name</h2>
-                <p id="vignette" class="text-sm mt-1">Stage description...</p>
-              </div>
-            </div>
-          </div>
+        const CEFR_LEVELS_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-          <div id="chat-container" class="flex-1 p-4 overflow-y-auto space-y-2"></div>
+        function getUserLevel() {
+            return userSettings?.proficiencyLevel || 'A1';
+        }
 
-          <div class="p-4 border-t bg-gray-50">
-            <div class="flex space-x-2">
-              <input
-                id="chat-input"
-                type="text"
-                placeholder="Type your message..."
-                class="flex-1 p-2 border rounded-lg"
-              />
-              <button
-                id="send-btn"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Send
-              </button>
-            </div>
-            <div class="flex justify-between mt-2">
-              <button id="hint-btn" class="text-sm text-blue-600 hover:underline">💡 Hint</button>
-              <button id="submit-sentence-btn" class="text-sm text-green-600 hover:underline">
-                Submit for correction
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        function isLevelAtLeast(level) {
+            const current = getUserLevel();
+            const currentIdx = CEFR_LEVELS_ORDER.indexOf(current);
+            const targetIdx = CEFR_LEVELS_ORDER.indexOf(level);
+            if (currentIdx === -1) return false;
+            if (targetIdx === -1) return false;
+            return currentIdx >= targetIdx;
+        }
 
-      <!-- SETTINGS MODAL -->
-      <div
-        id="settings-modal"
-        class="hidden fixed inset-0 modal-bg flex items-center justify-center z-50"
-      >
-        <div class="modal-content bg-white rounded-lg p-6 w-80 max-w-sm mx-4">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">Settings</h2>
-            <button id="close-settings-btn" class="font-bold text-2xl">&times;</button>
-          </div>
-          <div class="space-y-4">
-            <div>
-              <label for="dialect-select" class="block text-sm font-medium text-gray-700"
-                >Dialect</label
-              >
-              <select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md">
-                <option>Mexico</option>
-                <option>Spain</option>
-                <option>Argentina</option>
-              </select>
-            </div>
-            <div>
-              <label for="formality-select" class="block text-sm font-medium text-gray-700"
-                >Formality</label
-              >
-              <select id="formality-select" class="mt-1 block w-full p-2 border rounded-md">
-                <option>Casual</option>
-                <option>Formal</option>
-              </select>
-            </div>
-            <button
-              id="save-settings-btn"
-              class="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
-            >
-              Save Settings
-            </button>
-          </div>
-        </div>
-      </div>
+        function prefersSpanishOnly() {
+            return isLevelAtLeast('B1');
+        }
 
-      <!-- CORRECTION MODAL -->
-      <div
-        id="correction-modal"
-        class="hidden fixed inset-0 modal-bg flex items-center justify-center z-50"
-      >
-        <div class="modal-content bg-white rounded-lg p-6 w-96 max-w-sm mx-4">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Grammar Correction</h2>
-            <button id="close-correction-btn" class="font-bold text-2xl">&times;</button>
-          </div>
-          <div id="correction-loading" class="hidden text-center py-4">
-            <p>Analyzing your sentence...</p>
-          </div>
-          <div class="space-y-4">
-            <div>
-              <h3 class="font-semibold text-red-600">Original:</h3>
-              <p id="original-sentence-el" class="text-gray-700 italic"></p>
-            </div>
-            <div>
-              <h3 class="font-semibold text-green-600">Corrected:</h3>
-              <p id="corrected-sentence-el" class="text-gray-700 font-medium"></p>
-            </div>
-            <button id="explain-rule-btn" class="text-blue-600 hover:underline">
-              Explain the grammar rule
-            </button>
-            <div
-              id="explanation-container"
-              class="hidden mt-4 p-3 bg-blue-50 rounded-md border-l-4 border-blue-400"
-            >
-              <p id="explanation-text" class="text-sm text-gray-700"></p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        function getPreferredNarrativeLangKey() {
+            if (prefersSpanishOnly()) return 'es';
+            const explicitPreference = userSettings?.vignetteLanguage;
+            if (explicitPreference === 'Spanish') return 'es';
+            if (explicitPreference === 'English') return 'en';
+            return 'en';
+        }
 
-    <!-- Translation and Hint Popovers -->
-    <div
-      id="translation-popover"
-      class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"
-    ></div>
-    <div
-      id="hint-popover"
-      class="hidden hint-popover absolute bg-white border rounded-md p-3 z-50 shadow-lg w-48 cursor-pointer bottom-16 left-4"
-    >
-      <p class="text-sm text-gray-700">Click to use this hint</p>
-    </div>
+        const dom = {
+            authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
+            placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
+            signupView: document.getElementById('signup-view'), emailVerificationView: document.getElementById('email-verification-view'),
+            verificationEmail: document.getElementById('verification-email'), resendVerificationBtn: document.getElementById('resend-verification-btn'),
+            checkVerificationBtn: document.getElementById('check-verification-btn'), verificationLogoutBtn: document.getElementById('verification-logout-btn'),
+            verificationError: document.getElementById('verification-error'), verificationSuccess: document.getElementById('verification-success'),
+            loginEmailInput: document.getElementById('login-email-input'),
+            loginPasswordInput: document.getElementById('login-password-input'), loginBtn: document.getElementById('login-btn'),
+            showSignupBtn: document.getElementById('show-signup-btn'), loginError: document.getElementById('login-error'),
+            forgotPasswordBtn: document.getElementById('forgot-password-btn'), forgotPasswordModal: document.getElementById('forgot-password-modal'),
+            closeForgotPasswordBtn: document.getElementById('close-forgot-password-btn'), resetEmailInput: document.getElementById('reset-email-input'),
+            resetPasswordInput: document.getElementById('reset-password-input'), resetPasswordConfirmInput: document.getElementById('reset-password-confirm-input'),
+            resetReqLength: document.getElementById('reset-req-length'), resetReqUppercase: document.getElementById('reset-req-uppercase'),
+            resetReqNumberSymbol: document.getElementById('reset-req-number-symbol'),
+            sendResetBtn: document.getElementById('send-reset-btn'), resetError: document.getElementById('reset-error'),
+            resetSuccess: document.getElementById('reset-success'),
+            selectAvatarBtn: document.getElementById('select-avatar-btn'), selectedAvatarDisplay: document.getElementById('selected-avatar-display'),
+            avatarSelectorModal: document.getElementById('avatar-selector-modal'), closeAvatarSelectorBtn: document.getElementById('close-avatar-selector-btn'),
+            cancelAvatarBtn: document.getElementById('cancel-avatar-btn'),
+            avatarGrid: document.getElementById('avatar-grid'), confirmAvatarBtn: document.getElementById('confirm-avatar-btn'),
+            signupNameInput: document.getElementById('signup-name-input'), signupEmailInput: document.getElementById('signup-email-input'),
+            signupPasswordInput: document.getElementById('signup-password-input'), signupPasswordConfirmInput: document.getElementById('signup-password-confirm-input'),
+            reqLength: document.getElementById('req-length'), reqUppercase: document.getElementById('req-uppercase'),
+            reqNumberSymbol: document.getElementById('req-number-symbol'),
+            signupBtn: document.getElementById('signup-btn'),
+            showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
+            logoutBtn: document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
+            questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
+            chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
+            sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
+            settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
+            closeSettingsBtn: document.getElementById('close-settings-btn'), dialectSelect: document.getElementById('dialect-select'),
+            formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
+            settingsAvatarDisplay: document.getElementById('settings-avatar-display'), changeAvatarBtn: document.getElementById('change-avatar-btn'),
+            dailyGoalInput: document.getElementById('daily-goal-input'),
+            dailyTracker: document.getElementById('daily-tracker'), currentMinutes: document.getElementById('current-minutes'),
+            goalMinutes: document.getElementById('goal-minutes'), streakCount: document.getElementById('streak-count'),
+            progressBar: document.getElementById('progress-bar'),
+            micBtn: document.getElementById('mic-btn'), endSessionBtn: document.getElementById('end-session-btn'),
+            translationPopover: document.getElementById('translation-popover'), vignetteModal: document.getElementById('vignette-modal'),
+            vignetteTitle: document.getElementById('vignette-title'), vignetteText: document.getElementById('vignette-text'),
+            startStageBtn: document.getElementById('start-stage-btn'), mapModal: document.getElementById('map-modal'),
+            mapTitle: document.getElementById('map-title'), mapObjective: document.getElementById('map-objective'),
+            mapContainer: document.getElementById('map-container'), mapImage: document.getElementById('map-image'),
+            stageCompleteModal: document.getElementById('stage-complete-modal'), clueText: document.getElementById('clue-text'),
+            xpGainText: document.getElementById('xp-gain-text'), continueQuestBtn: document.getElementById('continue-quest-btn'),
+            hintBtn: document.getElementById('hint-btn'), hintPopover: document.getElementById('hint-popover'),
+            correctionModal: document.getElementById('correction-modal'), closeCorrectionBtn: document.getElementById('close-correction-btn'),
+            originalSentenceEl: document.getElementById('original-sentence-el'), correctedSentenceEl: document.getElementById('corrected-sentence-el'),
+            explanationContainer: document.getElementById('explanation-container'), explanationText: document.getElementById('explanation-text'),
+            explainRuleBtn: document.getElementById('explain-rule-btn'), correctionLoading: document.getElementById('correction-loading'),
+            placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
+            questionText: document.getElementById('question-text'), quizOptions: document.getElementById('quiz-options'),
+            currentQuestionNum: document.getElementById('current-question-num'), totalQuestions: document.getElementById('total-questions'),
+            estimatedLevel: document.getElementById('estimated-level'), placementProgressBar: document.getElementById('placement-progress-bar'),
+            retakePlacementBtn: document.getElementById('retake-placement-btn'),
+            completePlacementBtn: document.getElementById('complete-placement-btn'),
+        };
 
-    <!-- Initialize the ConvoQuest application -->
-    <script type="module" src="./app.js"></script>
-  </body>
+        /* ---------------- AIManager (Secure Backend) ------------------- */
+        const AIManager = {
+            async callAPI(systemInstruction, contents) {
+                try {
+                    debugLog('🔌 Calling /api/gemini...');
+                    debugLog(`📝 System instruction length: ${systemInstruction?.length || 0}`);
+                    const response = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ systemInstruction, contents })
+                    });
+
+                    debugLog(`📡 API Response status: ${response.status}`);
+                    if (!response.ok) {
+                        const errorBody = await response.json();
+                        console.error("API Error:", errorBody);
+                        debugLog(`❌ API Error: ${JSON.stringify(errorBody)}`);
+                        return `Error: ${errorBody.error || 'Unknown API error'}`;
+                    }
+
+                    const result = await response.json();
+
+                    // CHAT FIX: Safely access the response text
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        // Handle cases where the API returns a response with no candidates (e.g., due to safety filters)
+                        console.warn("API returned no candidates. Full response:", result);
+                        return "I'm sorry, I couldn't generate a response for that. Please try something else.";
+                    }
+
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    return "Sorry, I couldn't connect to the AI service.";
+                }
+            },
+            async getResponse(history, stage, settings) {
+                const level = getUserLevel();
+                debugLog(`🌍 User level: ${level}, Getting AI response...`);
+                // ALWAYS use Spanish for dialogue, with scaffolding based on level
+                const scaffoldingGuidance = {
+                    'A1': 'Use very simple Spanish with basic vocabulary. Speak slowly (short sentences). When introducing new words, use cognates when possible. Repeat key phrases.',
+                    'A2': 'Use simple Spanish with common vocabulary. Keep sentences clear and direct. Use present tense primarily. Introduce basic past tense gradually.',
+                    'B1': 'Use natural conversational Spanish with some complexity. Include common idioms. Use varied tenses. Speak at a normal pace.',
+                    'B2': 'Use natural Spanish with nuanced expressions. Include cultural references and idioms. Use all tenses fluidly.',
+                    'C1': 'Use sophisticated Spanish with advanced vocabulary. Include subtle cultural nuances and complex grammatical structures.',
+                    'C2': 'Use native-level Spanish with literary expressions, regional variations, and complex discourse.'
+                }[level] || 'Use simple Spanish appropriate for beginners.';
+
+                const systemInstruction = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". The user's target language dialect is ${settings.dialect}. The learner's CEFR level is ${level}.
+
+CRITICAL: You MUST respond ONLY in Spanish. Never use English in your responses. The user has access to a click-to-translate feature if they need help understanding.
+
+Scaffolding for ${level} learners: ${scaffoldingGuidance}
+
+Provide natural corrections by modeling correct usage in your responses (don't explicitly say "you should say X"). Stay in character and keep responses concise (1-3 sentences).`;
+                debugLog('🇪🇸 Spanish-only system instruction prepared');
+                const contents = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
+                return this.callAPI(systemInstruction, contents);
+            },
+            async getCorrection(text) {
+                const level = getUserLevel();
+                const systemInstruction = `You are a helpful language correction tool for Spanish learners at ${level} level. Analyze the user's Spanish text and provide a correction if needed.
+
+CRITICAL: Respond ONLY in Spanish.
+
+If the text is correct, respond: "¡Correcto!"
+If it needs correction, respond: "Corrección: [corrected text]"
+
+Then add a brief explanation in simple Spanish about what was wrong. Keep it concise and educational.`;
+                const contents = [{ role: "user", parts: [{ text }] }];
+                return this.callAPI(systemInstruction, contents);
+            },
+            // ... other AI manager functions can be updated similarly
+        };
+
+        /* ---------------- Translation Manager ------------------- */
+        const TranslationManager = {
+            async translate(text) {
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: text,
+                            sourceLang: 'es',
+                            targetLang: 'en'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        console.error("Translation API Error");
+                        return null;
+                    }
+
+                    const result = await response.json();
+                    return result.translatedText;
+                } catch (error) {
+                    console.error("Translation Error:", error);
+                    return null;
+                }
+            },
+
+            async showTranslation(text, x, y) {
+                const popover = dom.translationPopover;
+                if (!popover) return;
+
+                // Show loading state
+                popover.textContent = 'Translating...';
+                popover.classList.add('loading');
+                popover.classList.remove('hidden');
+                popover.style.left = `${x}px`;
+                popover.style.top = `${y}px`;
+
+                // Get translation
+                const translation = await this.translate(text);
+
+                if (translation) {
+                    popover.classList.remove('loading');
+                    popover.textContent = translation;
+                } else {
+                    popover.textContent = 'Translation unavailable';
+                }
+            },
+
+            hideTranslation() {
+                if (dom.translationPopover) {
+                    dom.translationPopover.classList.add('hidden');
+                }
+            }
+        };
+
+        // Load quests from the external quest database
+        // Use a getter function to ensure we get the latest value
+        function getQuests() {
+            debugLog(`🔍 getQuests called - QUEST_DATABASE exists: ${!!window.QUEST_DATABASE}`);
+            if (window.QUEST_DATABASE) {
+                debugLog(`✅ QUEST_DATABASE.quests keys: ${Object.keys(window.QUEST_DATABASE.quests || {}).join(', ')}`);
+            }
+            return window.QUEST_DATABASE ? window.QUEST_DATABASE.quests : {};
+        }
+
+        // For backward compatibility, keep quests as a reference
+        let quests = getQuests();
+
+        /* ---------------- Placement Test Logic ------------------- */
+        const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+        let placementTest = {
+            currentQuestionIndex: 0,
+            currentLevel: 'A2',
+            answers: [],
+            questionPool: [],
+            maxQuestions: 15,
+            minQuestions: 10,
+            confidenceThreshold: 0.85
+        };
+
+        function initPlacementTest() {
+            debugLog('📝 Initializing placement test');
+            placementTest = {
+                currentQuestionIndex: 0,
+                currentLevel: 'A2', // Start at A2 (middle-beginner)
+                answers: [],
+                questionPool: [],
+                maxQuestions: 15,
+                minQuestions: 10,
+                confidenceThreshold: 0.85
+            };
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            debugLog(`🔍 Loading next question from level: ${placementTest.currentLevel}`);
+            const levelQuestions = PLACEMENT_QUESTIONS[placementTest.currentLevel];
+
+            // Get a random question from current level that hasn't been asked
+            const availableQuestions = levelQuestions.filter((q, idx) =>
+                !placementTest.questionPool.some(pq => pq.level === placementTest.currentLevel && pq.index === idx)
+            );
+
+            if (availableQuestions.length === 0) {
+                debugLog('⚠️ No more questions at this level, finishing test');
+                finishPlacementTest();
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            const question = availableQuestions[randomIndex];
+            const originalIndex = levelQuestions.indexOf(question);
+
+            placementTest.questionPool.push({
+                level: placementTest.currentLevel,
+                index: originalIndex,
+                question: question
+            });
+
+            displayQuestion(question);
+            updatePlacementUI();
+        }
+
+        function displayQuestion(questionData) {
+            debugLog(`📋 Displaying question: ${questionData.q}`);
+            dom.questionText.textContent = questionData.q;
+            dom.quizOptions.innerHTML = '';
+
+            questionData.opts.forEach((option, index) => {
+                const label = document.createElement('label');
+                label.className = 'block p-3 border-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border-gray-200';
+                label.innerHTML = `
+                    <input type="radio" name="placement-option" value="${index}" class="mr-3">
+                    <span class="text-gray-800">${option}</span>
+                `;
+                dom.quizOptions.appendChild(label);
+
+                // Add click handler to label for better UX
+                label.addEventListener('click', () => {
+                    // Enable submit button when option selected
+                    dom.submitQuizBtn.disabled = false;
+                });
+            });
+
+            // Disable submit button until option selected
+            dom.submitQuizBtn.disabled = true;
+        }
+
+        function updatePlacementUI() {
+            const progress = (placementTest.currentQuestionIndex / placementTest.maxQuestions) * 100;
+            dom.placementProgressBar.style.width = `${progress}%`;
+            dom.currentQuestionNum.textContent = placementTest.currentQuestionIndex + 1;
+            dom.totalQuestions.textContent = placementTest.maxQuestions;
+            dom.estimatedLevel.textContent = placementTest.currentLevel ? `Estimated: ${placementTest.currentLevel}` : '';
+            debugLog(`📊 UI updated: Question ${placementTest.currentQuestionIndex + 1}/${placementTest.maxQuestions}, Level: ${placementTest.currentLevel}`);
+        }
+
+        async function handlePlacementAnswer() {
+            const selected = document.querySelector('input[name="placement-option"]:checked');
+            if (!selected) return;
+
+            const selectedIndex = parseInt(selected.value);
+            const currentQuestion = placementTest.questionPool[placementTest.currentQuestionIndex];
+            const isCorrect = selectedIndex === currentQuestion.question.ans;
+
+            debugLog(`${isCorrect ? '✅' : '❌'} Answer: ${isCorrect ? 'Correct' : 'Incorrect'}`);
+
+            // Record answer
+            placementTest.answers.push({
+                level: placementTest.currentLevel,
+                correct: isCorrect
+            });
+
+            placementTest.currentQuestionIndex++;
+
+            // Adaptive logic: adjust level based on performance
+            const recentAnswers = placementTest.answers.slice(-3); // Last 3 answers
+            const recentCorrect = recentAnswers.filter(a => a.correct).length;
+            const recentAccuracy = recentCorrect / recentAnswers.length;
+
+            if (recentAnswers.length >= 3) {
+                if (recentAccuracy >= 0.67 && canLevelUp()) {
+                    // Move up a level
+                    const oldLevel = placementTest.currentLevel;
+                    placementTest.currentLevel = getNextLevel(placementTest.currentLevel);
+                    debugLog(`📈 Level up! ${oldLevel} → ${placementTest.currentLevel}`);
+                } else if (recentAccuracy <= 0.33 && canLevelDown()) {
+                    // Move down a level
+                    const oldLevel = placementTest.currentLevel;
+                    placementTest.currentLevel = getPreviousLevel(placementTest.currentLevel);
+                    debugLog(`📉 Level down! ${oldLevel} → ${placementTest.currentLevel}`);
+                }
+            }
+
+            // Check if we should finish
+            if (placementTest.currentQuestionIndex >= placementTest.maxQuestions) {
+                debugLog('✅ Max questions reached, finishing test');
+                finishPlacementTest();
+                return;
+            }
+
+            // Check if we have high confidence and minimum questions met
+            if (placementTest.currentQuestionIndex >= placementTest.minQuestions) {
+                const confidence = calculateConfidence();
+                if (confidence >= placementTest.confidenceThreshold) {
+                    debugLog(`✅ High confidence (${confidence.toFixed(2)}) reached, finishing test`);
+                    finishPlacementTest();
+                    return;
+                }
+            }
+
+            // Load next question
+            loadNextQuestion();
+        }
+
+        function calculateConfidence() {
+            const levelAnswers = placementTest.answers.filter(a => a.level === placementTest.currentLevel);
+            if (levelAnswers.length < 3) return 0;
+
+            const correct = levelAnswers.filter(a => a.correct).length;
+            const accuracy = correct / levelAnswers.length;
+            const n = levelAnswers.length;
+
+            // Wilson score interval for binomial proportion
+            const z = 1.96; // 95% confidence
+            const denominator = 1 + z * z / n;
+            const centre = (accuracy + z * z / (2 * n)) / denominator;
+            const margin = (z / denominator) * Math.sqrt((accuracy * (1 - accuracy) / n) + (z * z / (4 * n * n)));
+
+            const lowerBound = centre - margin;
+            const upperBound = centre + margin;
+
+            // High confidence if the interval is narrow
+            return 1 - (upperBound - lowerBound);
+        }
+
+        function getNextLevel(current) {
+            const index = LEVELS.indexOf(current);
+            return index < LEVELS.length - 1 ? LEVELS[index + 1] : current;
+        }
+
+        function getPreviousLevel(current) {
+            const index = LEVELS.indexOf(current);
+            return index > 0 ? LEVELS[index - 1] : current;
+        }
+
+        function canLevelUp() {
+            return LEVELS.indexOf(placementTest.currentLevel) < LEVELS.length - 1;
+        }
+
+        function canLevelDown() {
+            return LEVELS.indexOf(placementTest.currentLevel) > 0;
+        }
+
+        async function finishPlacementTest() {
+            debugLog('🎯 Finishing placement test...');
+
+            // Determine final level based on highest level with >60% accuracy
+            const levelScores = {};
+            LEVELS.forEach(level => {
+                const levelAnswers = placementTest.answers.filter(a => a.level === level);
+                if (levelAnswers.length > 0) {
+                    const correct = levelAnswers.filter(a => a.correct).length;
+                    levelScores[level] = correct / levelAnswers.length;
+                }
+            });
+
+            // Find highest level with >= 60% accuracy
+            let finalLevel = 'A1';
+            for (let i = LEVELS.length - 1; i >= 0; i--) {
+                const level = LEVELS[i];
+                if (levelScores[level] && levelScores[level] >= 0.6) {
+                    finalLevel = level;
+                    break;
+                }
+            }
+
+            debugLog(`🎯 Final level determined: ${finalLevel}`);
+            debugLog(`Level scores: ${JSON.stringify(levelScores)}`);
+
+            // Save to database
+            await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel });
+            userSettings.proficiencyLevel = finalLevel;
+            if (dom.vignetteLangSelect) {
+                const autoKey = getPreferredNarrativeLangKey();
+                dom.vignetteLangSelect.value = autoKey === 'es' ? 'Spanish' : 'English';
+                dom.vignetteLangSelect.disabled = prefersSpanishOnly();
+                if (prefersSpanishOnly()) {
+                    userSettings.vignetteLanguage = 'Spanish';
+                }
+                if (!prefersSpanishOnly()) {
+                    userSettings.vignetteLanguage = dom.vignetteLangSelect.value;
+                }
+            }
+
+            // Show result
+            alert(`Placement complete! Your level: ${finalLevel}`);
+            showView('main-app-view');
+        }
+
+        async function handleCompletePlacement() {
+            debugLog('🎯 User manually completing placement test...');
+
+            try {
+                // Save placement completion to Firestore if user is logged in
+                if (currentUser && db) {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        placementCompleted: true,
+                    });
+                    debugLog('✅ Placement completion saved to Firestore');
+                }
+
+                // Also save to localStorage as backup
+                localStorage.setItem('placementCompleted', 'true');
+                debugLog('✅ Placement completion saved to localStorage');
+
+                // Show main app view
+                showView('main-app-view');
+            } catch (error) {
+                debugLog(`❌ Error completing placement test: ${error.message}`);
+                console.error('[ConvoQuest] Error completing placement test:', error);
+                alert('Error saving placement test completion. Please try again.');
+            }
+        }
+
+        function showView(viewId) {
+            debugLog(`🔄 showView called with: ${viewId}`);
+            const allViews = document.querySelectorAll('.main-view');
+            debugLog(`Found ${allViews.length} views to manage`);
+            allViews.forEach(v => {
+                v.classList.remove('active');
+                debugLog(`Removed active from: ${v.id}`);
+            });
+            const view = document.getElementById(viewId);
+            if (view) {
+                view.classList.add('active');
+                debugLog(`✅ Added active class to: ${viewId}`);
+            } else {
+                debugLog(`❌ View not found: ${viewId}`);
+            }
+        }
+
+        function renderQuests() {
+            debugLog('🎮 renderQuests called');
+            // Refresh quests from QUEST_DATABASE in case it loaded after initial page load
+            quests = getQuests();
+            const list = dom.questView.querySelector('.space-y-3');
+            debugLog(`Quest container found: ${!!list}`);
+            debugLog(`Number of quests: ${Object.keys(quests).length}`);
+            debugLog(`Quests object: ${JSON.stringify(Object.keys(quests))}`);
+            if (list) {
+                list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
+                debugLog(`✅ Quest cards rendered: ${list.children.length}`);
+            } else {
+                debugLog('❌ Quest container (.space-y-3) not found!');
+            }
+        }
+
+        function showMapView(questId) {
+            currentQuest = { ...quests[questId], id: questId };
+            dom.mapTitle.textContent = currentQuest.title;
+            dom.mapObjective.textContent = currentQuest.objective;
+            dom.mapImage.src = currentQuest.mapImage;
+            dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
+            // Handle both old format (array of strings) and new format (array of objects with id/label)
+            let nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
+
+            // Normalize to array of IDs
+            if (nextStageIds.length > 0 && typeof nextStageIds[0] === 'object') {
+                nextStageIds = nextStageIds.map(s => s.id);
+            }
+
+            nextStageIds.forEach((stageId, index) => {
+                const location = document.createElement('div');
+                location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
+                location.style.left = `${20 + index * 40}%`;
+                location.style.top = `${40 + (index % 2 * 15)}%`;
+                location.innerHTML = '<span>📍</span>';
+                location.dataset.questId = questId;
+                location.dataset.stageId = stageId;
+                dom.mapContainer.appendChild(location);
+            });
+            dom.mapModal.classList.remove('hidden');
+        }
+        
+        function showVignette(questId, stageId) {
+            currentQuest = { ...quests[questId], id: questId };
+            currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
+            dom.vignetteTitle.textContent = currentStage.characterName;
+
+            // Select language automatically based on proficiency (Spanish for B1+, English otherwise)
+            const langKey = getPreferredNarrativeLangKey();
+            const fallbackLang = langKey === 'es' ? 'en' : 'es';
+            if (currentStage.vignette && typeof currentStage.vignette === 'object') {
+                dom.vignetteText.textContent =
+                    currentStage.vignette[langKey] ||
+                    currentStage.vignette[fallbackLang] ||
+                    currentStage.vignette.en ||
+                    '';
+            } else {
+                // Old format: fallback to vignette_en
+                dom.vignetteText.textContent = currentStage.vignette_en || currentStage.vignette || '';
+            }
+
+            dom.vignetteModal.classList.remove('hidden');
+        }
+
+        function getQuestStage(questId, stageId) {
+            return quests?.[questId]?.stages?.[stageId] || null;
+        }
+
+        function decodeSvgFromDataUri(dataUri) {
+            if (typeof dataUri !== 'string') return null;
+            const commaIndex = dataUri.indexOf(',');
+            if (commaIndex === -1) return null;
+            const meta = dataUri.slice(0, commaIndex);
+            const payload = dataUri.slice(commaIndex + 1);
+
+            try {
+                if (meta.includes(';base64')) {
+                    const decoded = atob(payload);
+                    if (typeof TextDecoder !== 'undefined') {
+                        return new TextDecoder().decode(Uint8Array.from(decoded, c => c.charCodeAt(0)));
+                    }
+                    return decodeURIComponent(escape(decoded));
+                }
+                return decodeURIComponent(payload);
+            } catch (err) {
+                console.warn('Failed to decode stage image data URI', err);
+                return null;
+            }
+        }
+
+        function renderStageImage(imageSrc) {
+            if (!imageSrc) return;
+            if (dom.chatContainer.querySelector('[data-stage-image="true"]')) return;
+
+            const imageWrapper = document.createElement('div');
+            imageWrapper.dataset.stageImage = 'true';
+            imageWrapper.className = 'w-full flex justify-center mb-4';
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.alt = 'Stage scene';
+            img.className = 'rounded-lg shadow-md max-w-full h-auto';
+            img.style.maxHeight = '300px';
+            img.loading = 'lazy';
+            img.addEventListener('error', () => {
+                const inlineSvg = decodeSvgFromDataUri(imageSrc);
+                if (inlineSvg) {
+                    debugLog('⚠️ Stage image failed to load as <img>; injecting inline SVG fallback');
+                    const svgContainer = document.createElement('div');
+                    svgContainer.innerHTML = inlineSvg;
+                    svgContainer.firstElementChild?.setAttribute('class', 'rounded-lg shadow-md max-w-full h-auto');
+                    imageWrapper.innerHTML = '';
+                    imageWrapper.appendChild(svgContainer);
+                } else {
+                    debugLog('⚠️ Stage image failed to load and fallback could not decode SVG');
+                }
+            }, { once: true });
+            img.addEventListener('load', () => {
+                debugLog('✅ Stage image loaded successfully');
+            }, { once: true });
+            imageWrapper.appendChild(img);
+            dom.chatContainer.insertBefore(imageWrapper, dom.chatContainer.firstChild);
+            debugLog('🖼️ Stage image displayed');
+        }
+
+        function ensureStageImageForCurrentStage() {
+            if (!currentStage) return;
+
+            const questStage = getQuestStage(currentStage.questId, currentStage.id);
+            if (!questStage) return;
+
+            if (questStage.stageImage) {
+                const preview = questStage.stageImage.slice(0, 60);
+                debugLog(`🎯 Found stage image for ${currentStage.questId} stage ${currentStage.id}: ${preview}...`);
+                currentStage.stageImage = questStage.stageImage;
+                renderStageImage(currentStage.stageImage);
+                return;
+            }
+
+            if (typeof window.initializeQuestImages === 'function') {
+                debugLog('🔁 Attempting to initialize quest images on demand');
+                window.initializeQuestImages();
+            }
+
+            const refreshedStage = getQuestStage(currentStage.questId, currentStage.id);
+            if (refreshedStage?.stageImage) {
+                debugLog(`✅ Stage image ready after refresh for ${currentStage.questId} stage ${currentStage.id}`);
+                currentStage.stageImage = refreshedStage.stageImage;
+                renderStageImage(currentStage.stageImage);
+                return;
+            }
+
+            if (window.questImagesReady === false) {
+                const stageKey = { questId: currentStage.questId, stageId: currentStage.id };
+                const onReady = () => {
+                    if (!currentStage || currentStage.questId !== stageKey.questId || currentStage.id !== stageKey.stageId) {
+                        return;
+                    }
+                    const readyStage = getQuestStage(stageKey.questId, stageKey.stageId);
+                    if (readyStage?.stageImage) {
+                        debugLog(`📦 Stage image delivered via quest-images-ready event for ${stageKey.questId} stage ${stageKey.stageId}`);
+                        currentStage.stageImage = readyStage.stageImage;
+                        renderStageImage(currentStage.stageImage);
+                    }
+                };
+                window.addEventListener('quest-images-ready', onReady, { once: true });
+            }
+        }
+
+        function startStage() {
+            if (!currentStage) return;
+            messages = [];
+            dom.chatTitle.textContent = currentStage.characterName;
+            dom.chatContainer.innerHTML = '';
+
+            ensureStageImageForCurrentStage();
+
+            addMessage(currentStage.initialMessage, 'ai');
+            dom.vignetteModal.classList.add('hidden');
+            dom.questView.style.display = 'none';
+            dom.chatView.classList.remove('hidden');
+            dom.chatView.classList.add('flex');
+
+            // Start tracking session time
+            sessionStartTime = Date.now();
+            debugLog('⏱️ Session timer started');
+        }
+        
+        function addMessage(text, role, container = dom.chatContainer) {
+            messages.push({ role: role, parts: [{ text: text }] });
+            const isUser = role === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full flex flex-col ' + (isUser ? 'items-end' : 'items-start');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble p-3 rounded-lg w-fit ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai');
+            bubble.textContent = text;
+
+            // Add click-to-translate for AI messages
+            if (!isUser) {
+                bubble.style.userSelect = 'text';
+                bubble.addEventListener('click', async (e) => {
+                    const selection = window.getSelection();
+                    const selectedText = selection.toString().trim();
+
+                    // If there's a selection, translate that
+                    if (selectedText) {
+                        const range = selection.getRangeAt(0);
+                        const rect = range.getBoundingClientRect();
+                        const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                        // Position popover above selection
+                        const x = rect.left - containerRect.left;
+                        const y = rect.top - containerRect.top - 40;
+
+                        await TranslationManager.showTranslation(selectedText, x, y);
+                    } else {
+                        // If no selection, translate the entire message
+                        const rect = bubble.getBoundingClientRect();
+                        const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                        const x = rect.left - containerRect.left;
+                        const y = rect.top - containerRect.top - 40;
+
+                        await TranslationManager.showTranslation(text, x, y);
+                    }
+                });
+            }
+
+            wrapper.appendChild(bubble);
+            if (isUser) {
+                const btn = document.createElement('button');
+                btn.className = 'correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1';
+                btn.textContent = 'Correct me ✨';
+                wrapper.appendChild(btn);
+            }
+            container.insertBefore(wrapper, container.firstChild);
+        }
+
+        async function handleSendMessage() {
+            const userInput = dom.chatInput.value.trim();
+            if (!userInput) return;
+            addMessage(userInput, 'user');
+            dom.chatInput.value = '';
+            const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
+            addMessage(response, 'ai');
+        }
+        
+        async function endStage() {
+             // Calculate session duration
+             if (sessionStartTime) {
+                 const sessionDuration = Date.now() - sessionStartTime;
+                 const minutes = Math.ceil(sessionDuration / 60000); // Convert to minutes, round up
+                 debugLog(`⏱️ Session ended. Duration: ${minutes} minutes`);
+
+                 // Track the time
+                 await trackSessionTime(minutes);
+                 sessionStartTime = null;
+             }
+
+             dom.clueText.textContent = "A clue appears!";
+             dom.xpGainText.textContent = `+50 XP`;
+             dom.stageCompleteModal.classList.remove('hidden');
+        }
+
+        function getUserDocRef(userId) {
+            if (!userId) return null;
+            return db.collection('users').doc(userId);
+        }
+
+        async function saveUserSettings(userId, settings) {
+            debugLog(`💾 Attempting to save settings for user: ${userId}`);
+            const userDocRef = getUserDocRef(userId);
+            if (!userDocRef) {
+                debugLog('❌ No user doc ref');
+                return;
+            }
+            try {
+                await userDocRef.set(settings, { merge: true });
+                debugLog('✅ Settings saved to Firestore successfully!');
+            } catch (error) {
+                debugLog(`❌ Failed to save settings: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function setupNewUser(user, name) {
+            debugLog('👤 Setting up new user profile');
+            await user.updateProfile({ displayName: name });
+            const initialSettings = {
+                name,
+                email: user.email,
+                avatar: selectedAvatar,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                xp: 0,
+                completedStages: {},
+                proficiencyLevel: null,
+                dailyGoal: 15, // Default 15 minutes
+                dailyProgress: {
+                    date: new Date().toISOString().split('T')[0], // Today's date
+                    minutes: 0,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                streak: 0,
+                lastActiveDate: new Date().toISOString().split('T')[0]
+            };
+            await saveUserSettings(user.uid, initialSettings);
+
+            // Send verification email
+            debugLog('📧 Sending verification email');
+            await user.sendEmailVerification();
+            debugLog('✅ Verification email sent');
+        }
+
+        function populateAvatarGrid() {
+            debugLog('🎨 Populating avatar grid');
+            dom.avatarGrid.innerHTML = '';
+            avatarOptions.forEach(avatar => {
+                const avatarBtn = document.createElement('button');
+                avatarBtn.type = 'button';
+                avatarBtn.className = 'text-4xl p-3 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
+                avatarBtn.textContent = avatar;
+                avatarBtn.dataset.avatar = avatar;
+
+                // Highlight if currently selected
+                if (avatar === selectedAvatar) {
+                    avatarBtn.className = 'text-4xl p-3 border-2 border-blue-500 bg-blue-100 rounded-lg';
+                }
+
+                avatarBtn.addEventListener('click', () => {
+                    // Remove selection from all
+                    dom.avatarGrid.querySelectorAll('button').forEach(btn => {
+                        btn.className = 'text-4xl p-3 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
+                    });
+                    // Add selection to clicked
+                    avatarBtn.className = 'text-4xl p-3 border-2 border-blue-500 bg-blue-100 rounded-lg';
+                    selectedAvatar = avatar;
+                    debugLog(`🎨 Avatar selected: ${avatar}`);
+                });
+
+                dom.avatarGrid.appendChild(avatarBtn);
+            });
+        }
+
+        function showVerificationScreen(user) {
+            debugLog('📧 Showing email verification screen');
+            dom.verificationEmail.textContent = user.email;
+            dom.loginView.classList.add('hidden');
+            dom.signupView.classList.add('hidden');
+            dom.emailVerificationView.classList.remove('hidden');
+            dom.verificationError.textContent = '';
+            dom.verificationSuccess.textContent = '';
+        }
+
+        function validatePasswordStrength(password) {
+            const minLength = 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+            if (password.length < minLength) {
+                return { valid: false, message: `Password must be at least ${minLength} characters long.` };
+            }
+            if (!hasUpperCase) {
+                return { valid: false, message: 'Password must contain at least one uppercase letter.' };
+            }
+            if (!hasNumberOrSymbol) {
+                return { valid: false, message: 'Password must contain at least one number or symbol.' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        function updatePasswordRequirements(password) {
+            const minLength = 8;
+            const hasLength = password.length >= minLength;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+            // Update length requirement
+            if (hasLength) {
+                dom.reqLength.className = 'text-green-600 flex items-center font-medium';
+                dom.reqLength.querySelector('span').textContent = '✓';
+            } else {
+                dom.reqLength.className = 'text-gray-500 flex items-center';
+                dom.reqLength.querySelector('span').textContent = '○';
+            }
+
+            // Update uppercase requirement
+            if (hasUpperCase) {
+                dom.reqUppercase.className = 'text-green-600 flex items-center font-medium';
+                dom.reqUppercase.querySelector('span').textContent = '✓';
+            } else {
+                dom.reqUppercase.className = 'text-gray-500 flex items-center';
+                dom.reqUppercase.querySelector('span').textContent = '○';
+            }
+
+            // Update number/symbol requirement
+            if (hasNumberOrSymbol) {
+                dom.reqNumberSymbol.className = 'text-green-600 flex items-center font-medium';
+                dom.reqNumberSymbol.querySelector('span').textContent = '✓';
+            } else {
+                dom.reqNumberSymbol.className = 'text-gray-500 flex items-center';
+                dom.reqNumberSymbol.querySelector('span').textContent = '○';
+            }
+        }
+
+        function updateResetPasswordRequirements(password) {
+            const minLength = 8;
+            const hasLength = password.length >= minLength;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+            // Update length requirement
+            if (hasLength) {
+                dom.resetReqLength.className = 'text-green-600 flex items-center font-medium';
+                dom.resetReqLength.querySelector('span').textContent = '✓';
+            } else {
+                dom.resetReqLength.className = 'text-gray-500 flex items-center';
+                dom.resetReqLength.querySelector('span').textContent = '○';
+            }
+
+            // Update uppercase requirement
+            if (hasUpperCase) {
+                dom.resetReqUppercase.className = 'text-green-600 flex items-center font-medium';
+                dom.resetReqUppercase.querySelector('span').textContent = '✓';
+            } else {
+                dom.resetReqUppercase.className = 'text-gray-500 flex items-center';
+                dom.resetReqUppercase.querySelector('span').textContent = '○';
+            }
+
+            // Update number/symbol requirement
+            if (hasNumberOrSymbol) {
+                dom.resetReqNumberSymbol.className = 'text-green-600 flex items-center font-medium';
+                dom.resetReqNumberSymbol.querySelector('span').textContent = '✓';
+            } else {
+                dom.resetReqNumberSymbol.className = 'text-gray-500 flex items-center';
+                dom.resetReqNumberSymbol.querySelector('span').textContent = '○';
+            }
+        }
+
+        async function loadUserSettings(userId) {
+            debugLog(`📂 Loading settings for user: ${userId}`);
+            const userDocRef = getUserDocRef(userId);
+            if (!userDocRef) {
+                debugLog('❌ Could not get user doc ref');
+                return;
+            }
+            debugLog('🔄 Fetching user document from Firestore...');
+            try {
+                // Add timeout to prevent infinite hang
+                const timeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Firestore timeout - database may not be created')), 10000)
+                );
+                const snap = await Promise.race([userDocRef.get(), timeout]);
+                debugLog(`📄 Document exists: ${snap.exists}`);
+                if (snap.exists && snap.data()) {
+                    userSettings = { ...userSettings, ...snap.data() };
+                    debugLog(`✅ Loaded settings: ${JSON.stringify(userSettings)}`);
+                } else {
+                    debugLog('⚠️ No user settings document found, creating one for existing user.');
+                    const initialSettings = {
+                        name: currentUser.displayName || 'User',
+                        email: currentUser.email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        xp: 0,
+                        completedStages: {},
+                        proficiencyLevel: null,
+                        dialect: 'Mexico',
+                        formality: 'Casual',
+                        vignetteLanguage: 'English',
+                        avatar: '👤',
+                        dailyGoal: 15,
+                        dailyProgress: {
+                            date: new Date().toISOString().split('T')[0],
+                            minutes: 0,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        },
+                        streak: 0,
+                        lastActiveDate: new Date().toISOString().split('T')[0]
+                    };
+                    try {
+                        debugLog('💾 Saving initial settings...');
+                        await saveUserSettings(userId, initialSettings);
+                        userSettings = { ...userSettings, ...initialSettings };
+                        debugLog('✅ Initial settings saved');
+                    } catch (e) {
+                        debugLog(`❌ Failed to create user settings: ${e.message}`);
+                    }
+                }
+                // Update UI with loaded settings
+                dom.dialectSelect.value = userSettings.dialect || 'Mexico';
+                dom.formalitySelect.value = userSettings.formality || 'Casual';
+                const autoLangKey = getPreferredNarrativeLangKey();
+                const autoLangLabel = autoLangKey === 'es' ? 'Spanish' : 'English';
+                dom.vignetteLangSelect.value = autoLangLabel;
+                dom.vignetteLangSelect.disabled = prefersSpanishOnly();
+                if (prefersSpanishOnly()) {
+                    userSettings.vignetteLanguage = 'Spanish';
+                }
+                if (!prefersSpanishOnly()) {
+                    userSettings.vignetteLanguage = dom.vignetteLangSelect.value;
+                }
+                dom.settingsAvatarDisplay.textContent = userSettings.avatar || '👤';
+                dom.dailyGoalInput.value = userSettings.dailyGoal || 15;
+
+                // Update daily tracker
+                updateDailyTracker();
+                debugLog('✅ loadUserSettings complete');
+            } catch (error) {
+                debugLog(`❌ Firestore error: ${error.message}`);
+                debugLog(`Error code: ${error.code}`);
+                debugLog('⚠️ Creating default settings without Firestore...');
+                // If Firestore fails, use default settings so app can continue
+                userSettings = {
+                    name: currentUser.displayName || 'User',
+                    email: currentUser.email,
+                    xp: 0,
+                    completedStages: {},
+                    proficiencyLevel: null,
+                    dialect: 'Mexico',
+                    formality: 'Casual',
+                    vignetteLanguage: 'English'
+                };
+                debugLog('✅ Using default settings');
+            }
+        }
+
+        function updateDailyTracker() {
+            debugLog('📊 Updating daily tracker display');
+            const today = new Date().toISOString().split('T')[0];
+            const dailyProgress = userSettings.dailyProgress || { date: today, minutes: 0 };
+            const dailyGoal = userSettings.dailyGoal || 15;
+            const streak = userSettings.streak || 0;
+
+            // Reset progress if it's a new day
+            if (dailyProgress.date !== today) {
+                debugLog('🆕 New day detected, resetting progress');
+                dailyProgress.date = today;
+                dailyProgress.minutes = 0;
+            }
+
+            // Update UI
+            dom.currentMinutes.textContent = dailyProgress.minutes || 0;
+            dom.goalMinutes.textContent = dailyGoal;
+            dom.streakCount.textContent = streak;
+
+            // Calculate and update progress bar
+            const progressPercent = Math.min((dailyProgress.minutes / dailyGoal) * 100, 100);
+            dom.progressBar.style.width = `${progressPercent}%`;
+
+            // Show tracker if goal is set
+            if (dailyGoal > 0) {
+                dom.dailyTracker.classList.remove('hidden');
+            }
+
+            debugLog(`✅ Tracker updated: ${dailyProgress.minutes}/${dailyGoal} min, ${streak} day streak`);
+        }
+
+        async function trackSessionTime(minutes) {
+            debugLog(`⏱️ Tracking ${minutes} minutes of practice`);
+            if (!currentUser) return;
+
+            const today = new Date().toISOString().split('T')[0];
+            let dailyProgress = userSettings.dailyProgress || { date: today, minutes: 0 };
+            const lastActiveDate = userSettings.lastActiveDate || today;
+
+            // Reset if new day
+            if (dailyProgress.date !== today) {
+                // Check if streak should continue (user was active yesterday)
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                if (lastActiveDate === yesterdayStr && dailyProgress.minutes >= userSettings.dailyGoal) {
+                    // Streak continues!
+                    userSettings.streak = (userSettings.streak || 0) + 1;
+                } else if (lastActiveDate !== today) {
+                    // Streak broken
+                    userSettings.streak = 0;
+                }
+
+                dailyProgress = { date: today, minutes: 0 };
+            }
+
+            // Add new minutes
+            dailyProgress.minutes += minutes;
+            userSettings.dailyProgress = dailyProgress;
+            userSettings.lastActiveDate = today;
+
+            // Save to Firestore
+            await saveUserSettings(currentUser.uid, {
+                dailyProgress: {
+                    date: dailyProgress.date,
+                    minutes: dailyProgress.minutes,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                streak: userSettings.streak,
+                lastActiveDate: today
+            });
+
+            // Update display
+            updateDailyTracker();
+            debugLog('✅ Session time tracked and saved');
+        }
+
+        async function handleUserSignIn(user) {
+            debugLog(`👤 Handling user sign in: ${user.email}`);
+            if (!user) return;
+
+            // Check email verification
+            debugLog(`📧 Email verified: ${user.emailVerified}`);
+            if (!user.emailVerified) {
+                debugLog('⚠️ Email not verified, showing verification screen');
+                showVerificationScreen(user);
+                return;
+            }
+
+            currentUser = user;
+            debugLog('📥 Loading user settings...');
+            await loadUserSettings(user.uid);
+            debugLog(`⚙️ User settings loaded. Proficiency: ${userSettings.proficiencyLevel}`);
+            dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
+            if (!userSettings.proficiencyLevel) {
+                debugLog('📝 No proficiency level, showing placement view');
+                showView('placement-view');
+                // Initialize placement test
+                initPlacementTest();
+            } else {
+                debugLog('🎮 Showing main app view');
+                showView('main-app-view');
+            }
+        }
+
+        auth.onAuthStateChanged((user) => {
+            debugLog(`🔐 Auth state changed. User: ${user ? user.email : 'null'}`);
+            if (user) {
+                handleUserSignIn(user);
+            } else {
+                currentUser = null;
+                debugLog('🚪 Showing auth container');
+                showView('auth-container');
+            }
+        });
+
+        // Avatar Selection Event Listeners
+        dom.selectAvatarBtn.addEventListener('click', () => {
+            populateAvatarGrid();
+            dom.avatarSelectorModal.classList.remove('hidden');
+        });
+        dom.changeAvatarBtn.addEventListener('click', () => {
+            populateAvatarGrid();
+            dom.avatarSelectorModal.classList.remove('hidden');
+        });
+        dom.closeAvatarSelectorBtn.addEventListener('click', () => {
+            dom.avatarSelectorModal.classList.add('hidden');
+        });
+        dom.cancelAvatarBtn.addEventListener('click', () => {
+            dom.avatarSelectorModal.classList.add('hidden');
+        });
+        dom.confirmAvatarBtn.addEventListener('click', async () => {
+            debugLog(`✅ Avatar confirmed: ${selectedAvatar}`);
+            dom.selectedAvatarDisplay.textContent = selectedAvatar;
+            dom.settingsAvatarDisplay.textContent = selectedAvatar;
+            dom.avatarSelectorModal.classList.add('hidden');
+
+            // Save to database if user is signed in
+            if (currentUser) {
+                await saveUserSettings(currentUser.uid, { avatar: selectedAvatar });
+                userSettings.avatar = selectedAvatar;
+            }
+        });
+
+        // Daily Goal Event Listener
+        dom.dailyGoalInput.addEventListener('change', async (e) => {
+            const newGoal = parseInt(e.target.value) || 15;
+            debugLog(`⚙️ Daily goal changed to: ${newGoal} minutes`);
+            userSettings.dailyGoal = newGoal;
+            await saveUserSettings(currentUser.uid, { dailyGoal: newGoal });
+            updateDailyTracker();
+        });
+
+        // Event Listeners
+        dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
+        dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
+
+        // Password strength indicator - update as user types
+        dom.signupPasswordInput.addEventListener('input', (e) => {
+            updatePasswordRequirements(e.target.value);
+        });
+
+        // Email Verification
+        dom.resendVerificationBtn.addEventListener('click', async () => {
+            debugLog('📧 Resend verification button clicked');
+            dom.verificationError.textContent = '';
+            dom.verificationSuccess.textContent = '';
+            try {
+                const user = auth.currentUser;
+                if (user && !user.emailVerified) {
+                    await user.sendEmailVerification();
+                    debugLog('✅ Verification email resent');
+                    dom.verificationSuccess.textContent = 'Verification email sent! Check your inbox.';
+                } else {
+                    dom.verificationError.textContent = 'No user found or already verified.';
+                }
+            } catch (error) {
+                debugLog(`❌ Resend verification error: ${error.message}`);
+                dom.verificationError.textContent = error.message;
+            }
+        });
+
+        dom.checkVerificationBtn.addEventListener('click', async () => {
+            debugLog('🔄 Check verification button clicked');
+            dom.verificationError.textContent = '';
+            dom.verificationSuccess.textContent = '';
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    await user.reload();
+                    debugLog(`📧 Email verified status: ${user.emailVerified}`);
+                    if (user.emailVerified) {
+                        debugLog('✅ Email verified! Showing success message');
+                        dom.verificationSuccess.textContent = 'Your email has been verified! You can now sign in with your new account.';
+
+                        // Auto-redirect to login after 5 seconds
+                        setTimeout(() => {
+                            debugLog('🔄 Redirecting to login screen');
+                            dom.emailVerificationView.classList.add('hidden');
+                            dom.loginView.classList.remove('hidden');
+                            auth.signOut(); // Sign out so user can log in with verified account
+                        }, 5000);
+                    } else {
+                        debugLog('⚠️ Email still not verified');
+                        dom.verificationError.textContent = 'Email not yet verified. Please check your inbox and click the verification link.';
+                    }
+                }
+            } catch (error) {
+                debugLog(`❌ Check verification error: ${error.message}`);
+                dom.verificationError.textContent = error.message;
+            }
+        });
+
+        dom.verificationLogoutBtn.addEventListener('click', () => {
+            debugLog('🚪 Logout from verification screen');
+            auth.signOut();
+        });
+
+        // Forgot Password
+        dom.forgotPasswordBtn.addEventListener('click', () => {
+            debugLog('🔐 Opening forgot password modal');
+            dom.forgotPasswordModal.classList.remove('hidden');
+            dom.resetError.textContent = '';
+            dom.resetSuccess.textContent = '';
+            dom.resetEmailInput.value = '';
+            dom.resetPasswordInput.value = '';
+            dom.resetPasswordConfirmInput.value = '';
+            // Reset password requirement indicators
+            dom.resetReqLength.className = 'text-gray-500 flex items-center';
+            dom.resetReqLength.querySelector('span').textContent = '○';
+            dom.resetReqUppercase.className = 'text-gray-500 flex items-center';
+            dom.resetReqUppercase.querySelector('span').textContent = '○';
+            dom.resetReqNumberSymbol.className = 'text-gray-500 flex items-center';
+            dom.resetReqNumberSymbol.querySelector('span').textContent = '○';
+        });
+        dom.closeForgotPasswordBtn.addEventListener('click', () => {
+            dom.forgotPasswordModal.classList.add('hidden');
+        });
+
+        // Password strength indicator for reset password - update as user types
+        dom.resetPasswordInput.addEventListener('input', (e) => {
+            updateResetPasswordRequirements(e.target.value);
+        });
+
+        dom.sendResetBtn.addEventListener('click', async () => {
+            debugLog('🔐 Reset password button clicked');
+            dom.resetError.textContent = '';
+            dom.resetSuccess.textContent = '';
+            const email = dom.resetEmailInput.value.trim();
+            const newPassword = dom.resetPasswordInput.value.trim();
+            const confirmPassword = dom.resetPasswordConfirmInput.value.trim();
+
+            if (!email) {
+                dom.resetError.textContent = 'Please enter your email address.';
+                debugLog('⚠️ No email provided');
+                return;
+            }
+
+            if (!newPassword || !confirmPassword) {
+                dom.resetError.textContent = 'Please fill in both password fields.';
+                debugLog('⚠️ Password fields empty');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                dom.resetError.textContent = 'Passwords do not match. Please try again.';
+                debugLog('⚠️ Passwords do not match');
+                return;
+            }
+
+            // Validate password strength
+            const passwordValidation = validatePasswordStrength(newPassword);
+            if (!passwordValidation.valid) {
+                dom.resetError.textContent = passwordValidation.message;
+                debugLog(`⚠️ Password validation failed: ${passwordValidation.message}`);
+                return;
+            }
+
+            try {
+                debugLog(`🔄 Attempting password reset for: ${email}`);
+                // First send password reset email
+                await auth.sendPasswordResetEmail(email);
+                debugLog('✅ Password reset email sent');
+                dom.resetSuccess.textContent = 'Password reset link sent! Please check your email and follow the instructions to complete the reset.';
+                dom.resetEmailInput.value = '';
+                dom.resetPasswordInput.value = '';
+                dom.resetPasswordConfirmInput.value = '';
+                // Auto-close after 3 seconds
+                setTimeout(() => {
+                    dom.forgotPasswordModal.classList.add('hidden');
+                }, 3000);
+            } catch (error) {
+                debugLog(`❌ Password reset error: ${error.message}`);
+                if (error.code === 'auth/user-not-found') {
+                    dom.resetError.textContent = 'No account found with this email.';
+                } else if (error.code === 'auth/invalid-email') {
+                    dom.resetError.textContent = 'Please enter a valid email address.';
+                } else {
+                    dom.resetError.textContent = error.message;
+                }
+            }
+        });
+        dom.signupBtn.addEventListener('click', async () => {
+            debugLog('📝 Signup button clicked');
+            dom.signupError.textContent = '';
+            const name = dom.signupNameInput.value.trim();
+            const email = dom.signupEmailInput.value.trim();
+            const password = dom.signupPasswordInput.value.trim();
+            const passwordConfirm = dom.signupPasswordConfirmInput.value.trim();
+            debugLog(`Name: ${name}, Email: ${email}, Password: ${password ? '***' : 'empty'}`);
+
+            if (!name || !email || !password || !passwordConfirm) {
+                debugLog('⚠️ Missing required fields');
+                dom.signupError.textContent = 'Please fill all fields.';
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                debugLog('⚠️ Passwords do not match');
+                dom.signupError.textContent = 'Passwords do not match. Please try again.';
+                return;
+            }
+
+            // Validate password strength
+            const passwordValidation = validatePasswordStrength(password);
+            if (!passwordValidation.valid) {
+                debugLog(`⚠️ Password validation failed: ${passwordValidation.message}`);
+                dom.signupError.textContent = passwordValidation.message;
+                return;
+            }
+
+            try {
+                debugLog('🔄 Creating user account...');
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                debugLog('✅ User created, setting up profile...');
+                await setupNewUser(cred.user, name);
+                debugLog('✅ Setup complete!');
+            } catch (error) {
+                debugLog(`❌ Signup error: ${error.message}`);
+                dom.signupError.textContent = error.message;
+            }
+        });
+        dom.loginBtn.addEventListener('click', async () => {
+            debugLog('🔑 Login button clicked');
+            dom.loginError.textContent = '';
+            const email = dom.loginEmailInput.value.trim();
+            const password = dom.loginPasswordInput.value.trim();
+            debugLog(`📧 Email: ${email}, Password: ${password ? '***' : 'empty'}`);
+            if (!email || !password) {
+                debugLog('⚠️ Email or password empty');
+                dom.loginError.textContent = 'Please enter email and password.';
+                return;
+            }
+            try {
+                debugLog('🔄 Attempting sign in...');
+                await auth.signInWithEmailAndPassword(email, password);
+                debugLog('✅ Sign in successful');
+            } catch (error) {
+                debugLog(`❌ Login error: ${error.message}`);
+                dom.loginError.textContent = error.message;
+            }
+        });
+        dom.logoutBtn.addEventListener('click', () => auth.signOut());
+        dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
+        dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
+        dom.retakePlacementBtn.addEventListener('click', () => {
+            dom.settingsModal.classList.add('hidden');
+            showView('placement-view');
+            initPlacementTest();
+        });
+
+        // Settings change listeners
+        dom.dialectSelect.addEventListener('change', async (e) => {
+            debugLog(`⚙️ Dialect changed to: ${e.target.value}`);
+            userSettings.dialect = e.target.value;
+            await saveUserSettings(currentUser.uid, { dialect: e.target.value });
+        });
+        dom.formalitySelect.addEventListener('change', async (e) => {
+            debugLog(`⚙️ Formality changed to: ${e.target.value}`);
+            userSettings.formality = e.target.value;
+            await saveUserSettings(currentUser.uid, { formality: e.target.value });
+        });
+        dom.vignetteLangSelect.addEventListener('change', async (e) => {
+            if (prefersSpanishOnly()) {
+                debugLog('⚠️ Vignette language locked to Spanish for B1+ learners');
+                dom.vignetteLangSelect.value = 'Spanish';
+                return;
+            }
+            debugLog(`⚙️ Vignette language changed to: ${e.target.value}`);
+            userSettings.vignetteLanguage = e.target.value;
+            await saveUserSettings(currentUser.uid, { vignetteLanguage: e.target.value });
+        });
+        dom.questView.addEventListener('click', e => {
+            const card = e.target.closest('.quest-card');
+            if (card) showMapView(card.dataset.questId);
+        });
+        dom.mapContainer.addEventListener('click', e => {
+            const location = e.target.closest('.map-location');
+            if (location) {
+                dom.mapModal.classList.add('hidden');
+                showVignette(location.dataset.questId, location.dataset.stageId);
+            }
+        });
+        dom.startStageBtn.addEventListener('click', startStage);
+        dom.continueQuestBtn.addEventListener('click', () => {
+            dom.stageCompleteModal.classList.add('hidden');
+            dom.chatView.classList.add('hidden');
+            dom.chatView.classList.remove('flex');
+            dom.questView.style.display = 'flex';
+            if (currentStage && currentStage.nextStages && currentStage.nextStages.length > 0) {
+                showMapView(currentStage.questId);
+            } else {
+                alert('Quest Complete! 🎉');
+            }
+        });
+        dom.sendBtn.addEventListener('click', handleSendMessage);
+        dom.chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') handleSendMessage(); });
+        dom.endSessionBtn.addEventListener('click', endStage);
+        // Placement test event listeners
+        dom.submitQuizBtn.addEventListener('click', handlePlacementAnswer);
+        dom.completePlacementBtn.addEventListener('click', handleCompletePlacement);
+
+        // Global click handler to hide translation popover
+        document.addEventListener('click', (e) => {
+            // Don't hide if clicking inside a chat bubble (handled by bubble's own click handler)
+            if (!e.target.closest('.chat-bubble-ai')) {
+                TranslationManager.hideTranslation();
+            }
+        });
+
+        // Hide translation on scroll
+        dom.chatContainer?.addEventListener('scroll', () => {
+            TranslationManager.hideTranslation();
+        });
+
+        renderQuests();
+        debugLog('✅ All event listeners registered');
+        debugLog('🎉 App initialization complete!');
+    }
+
+    debugLog('📄 Script loaded, waiting for DOM...');
+    document.addEventListener('DOMContentLoaded', () => {
+        debugLog('✅ DOM ready, starting main()...');
+        main();
+    });
+  </script>
+</body>
 </html>
