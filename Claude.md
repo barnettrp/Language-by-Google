@@ -122,3 +122,171 @@ Ready to test chat functionality in the browser!
 - Check if Firebase auth is properly initialized
 - Verify API endpoint is accessible
 - May need to switch back to custom dev-server.js if Vite proxy isn't working
+
+---
+
+## Date: 2025-10-19
+
+### Issue: Vercel Deployment - Firebase Not Configured
+
+**Problem:**
+- App loading on Vercel showed error: "Critical Error: App could not load. Firebase is not configured correctly."
+- Local development worked fine with `.env` file
+- Vercel deployments were missing Firebase environment variables
+
+**Root Cause:**
+- Vite embeds `VITE_*` prefixed environment variables into JavaScript bundle at **build time**
+- Vercel builds the app in the cloud without access to local `.env` file
+- Environment variables must be set in Vercel dashboard for production builds
+
+**Solution - Vercel CLI Authentication:**
+
+In remote/containerized environments (like devcontainers), the interactive `vercel login` doesn't persist credentials properly. Use token-based authentication instead:
+
+1. **Create an access token:**
+   - Go to https://vercel.com/account/tokens
+   - Click "Create Token"
+   - Give it a name (e.g., "CLI Access")
+   - Copy the token
+
+2. **Use token with CLI commands:**
+   ```bash
+   # Check authentication
+   vercel whoami --token YOUR_TOKEN
+
+   # Link project
+   vercel link --yes --token YOUR_TOKEN
+
+   # List environment variables
+   vercel env ls --token YOUR_TOKEN
+
+   # Add environment variable
+   echo "VALUE" | vercel env add VAR_NAME production --token YOUR_TOKEN
+
+   # Deploy
+   vercel --prod --token YOUR_TOKEN --yes
+   ```
+
+3. **For persistent use, export the token:**
+   ```bash
+   export VERCEL_TOKEN=YOUR_TOKEN
+   vercel deploy --prod --yes
+   ```
+
+**Vercel Configuration Fix:**
+
+Updated `vercel.json` to use modern configuration format:
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Key Changes:**
+- Removed legacy `routes` syntax (conflicts with `headers`)
+- Removed `functions.runtime` specification (Vercel auto-detects)
+- Use `rewrites` for SPA routing
+
+**Environment Variables Required in Vercel:**
+All variables must be set in Vercel Dashboard → Settings → Environment Variables for Production, Preview, and Development:
+
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+- `GEMINI_API_KEY` (server-side only)
+
+**Result:**
+✅ Successfully deployed to production
+✅ Firebase configuration now working on Vercel
+✅ App loads correctly at production URL
+
+**Production URL:** https://language-by-google-c5xr3cwyn-richard-barnetts-projects.vercel.app
+
+---
+
+### Issue: Users Stuck in Placement Test
+
+**Problem:**
+- After login, users were redirected to placement test with no way to complete it
+- Placement test had quiz and chat views but no "Complete" button
+- Users couldn't access main app with quests
+
+**Root Cause:**
+- Placement test flow was incomplete - missing completion mechanism
+- No button or handler to mark placement test as complete
+- Users were trapped in placement view indefinitely
+
+**Solution:**
+
+1. **Added "Complete Placement Test" button** to placement chat view (index.html:224-226)
+2. **Implemented completion handler** that:
+   - Saves `placementCompleted: true` to Firestore user document
+   - Also saves to localStorage as backup
+   - Transitions user to main app view
+3. **Added necessary imports** (`updateDoc` from firebase/firestore)
+4. **Added DOM reference** and event listener for the new button
+
+**Files Modified:**
+- `public/index.html` - Added complete button with green styling
+- `public/app.js` - Added handler, imports, DOM reference, and event listener
+
+**Code Changes:**
+```javascript
+// New handler function (app.js:748-771)
+async function handleCompletePlacement() {
+  console.log('[ConvoQuest] Completing placement test...');
+
+  try {
+    // Save to Firestore if available
+    if (currentUser && db) {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        placementCompleted: true,
+      });
+    }
+
+    // Also save to localStorage as backup
+    localStorage.setItem('placementCompleted', 'true');
+
+    // Show main app view
+    showView('main-app-view');
+  } catch (error) {
+    console.error('[ConvoQuest] Error completing placement test:', error);
+    alert('Error saving placement test completion. Please try again.');
+  }
+}
+```
+
+**Result:**
+✅ Users can now complete placement test and access main app
+✅ Placement completion saved to both Firestore and localStorage
+✅ Deployed to production
+
+**Latest Production URL:** https://language-by-google-n3x6wixum-richard-barnetts-projects.vercel.app

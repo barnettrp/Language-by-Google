@@ -7,7 +7,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 // Debug Console Display
 const debugConsoleLines = [];
@@ -371,6 +371,7 @@ export function initializeApp() {
     placementChatInput: document.getElementById('placement-chat-input'),
     placementSendBtn: document.getElementById('placement-send-btn'),
     retakePlacementBtn: document.getElementById('retake-placement-btn'),
+    completePlacementBtn: document.getElementById('complete-placement-btn'),
   };
 
   // AI Manager for secure backend communication
@@ -734,14 +735,39 @@ export function initializeApp() {
   function handleRetakePlacement() {
     // Clear chat container
     dom.placementChatContainer.innerHTML = '';
-    
+
     // Clear any selected quiz options
     const quizOptions = document.querySelectorAll('input[name="quiz"]');
     quizOptions.forEach(option => option.checked = false);
-    
+
     // Show quiz view and hide chat view
     dom.placementChatView.style.display = 'none';
     dom.placementQuizView.style.display = 'flex';
+  }
+
+  // Handle placement test completion
+  async function handleCompletePlacement() {
+    console.log('[ConvoQuest] Completing placement test...');
+
+    try {
+      // Save to Firestore if available
+      if (currentUser && db) {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          placementCompleted: true,
+        });
+        console.log('[ConvoQuest] Placement completion saved to Firestore');
+      }
+
+      // Also save to localStorage as backup
+      localStorage.setItem('placementCompleted', 'true');
+      console.log('[ConvoQuest] Placement completion saved to localStorage');
+
+      // Show main app view
+      showView('main-app-view');
+    } catch (error) {
+      console.error('[ConvoQuest] Error completing placement test:', error);
+      alert('Error saving placement test completion. Please try again.');
+    }
   }
 
   // Event listeners
@@ -767,6 +793,9 @@ export function initializeApp() {
   
   // Retake placement test button
   dom.retakePlacementBtn.addEventListener('click', handleRetakePlacement);
+
+  // Complete placement test button
+  dom.completePlacementBtn.addEventListener('click', handleCompletePlacement);
 
   // Settings modal
   dom.settingsBtn.addEventListener('click', () => {
