@@ -352,6 +352,48 @@
                 <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
                 <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
                 <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+
+                <!-- Voice Settings Section -->
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Voice Settings</h3>
+
+                    <!-- Auto-play Setting -->
+                    <div class="flex items-center justify-between mb-3">
+                        <label for="autoplay-setting" class="text-sm font-medium text-gray-700">Auto-play Responses</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoplay-setting" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Voice Speed -->
+                    <div class="mb-3">
+                        <label for="voice-speed-slider" class="block text-sm font-medium text-gray-700 mb-1">Voice Speed: <span id="voice-speed-value">1.0x</span></label>
+                        <input type="range" id="voice-speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0.5x</span>
+                            <span>1.0x</span>
+                            <span>1.5x</span>
+                        </div>
+                    </div>
+
+                    <!-- Voice Pitch -->
+                    <div class="mb-3">
+                        <label for="voice-pitch-slider" class="block text-sm font-medium text-gray-700 mb-1">Voice Pitch: <span id="voice-pitch-value">Normal</span></label>
+                        <input type="range" id="voice-pitch-slider" min="-5" max="5" step="1" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Lower</span>
+                            <span>Normal</span>
+                            <span>Higher</span>
+                        </div>
+                    </div>
+
+                    <!-- Test Voice Button -->
+                    <button id="test-voice-btn" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">
+                        Test Voice
+                    </button>
+                </div>
+
                 <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
             </div>
         </div>
@@ -628,6 +670,10 @@
             formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
             settingsAvatarDisplay: document.getElementById('settings-avatar-display'), changeAvatarBtn: document.getElementById('change-avatar-btn'),
             dailyGoalInput: document.getElementById('daily-goal-input'),
+            autoplaySetting: document.getElementById('autoplay-setting'),
+            voiceSpeedSlider: document.getElementById('voice-speed-slider'), voiceSpeedValue: document.getElementById('voice-speed-value'),
+            voicePitchSlider: document.getElementById('voice-pitch-slider'), voicePitchValue: document.getElementById('voice-pitch-value'),
+            testVoiceBtn: document.getElementById('test-voice-btn'),
             dailyTracker: document.getElementById('daily-tracker'), currentMinutes: document.getElementById('current-minutes'),
             goalMinutes: document.getElementById('goal-minutes'), streakCount: document.getElementById('streak-count'),
             progressBar: document.getElementById('progress-bar'),
@@ -795,6 +841,8 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             synthesis: window.speechSynthesis,
             isRecording: false,
             isAutoPlayEnabled: false, // Toggle for auto-playing AI responses
+            customSpeedMultiplier: 1.0, // User-controlled speed multiplier
+            customPitchAdjustment: 0, // User-controlled pitch adjustment
 
             init() {
                 // Initialize Speech Recognition (Web Speech API)
@@ -938,14 +986,16 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                         this.synthesis.cancel();
                     }
 
-                    // Call server-side Google Cloud TTS API
+                    // Call server-side Google Cloud TTS API with custom settings
                     const response = await fetch('/api/tts', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             text: text,
                             characterName: characterName,
-                            characterGender: characterGender
+                            characterGender: characterGender,
+                            speedMultiplier: this.customSpeedMultiplier,
+                            pitchAdjustment: this.customPitchAdjustment
                         })
                     });
 
@@ -1591,6 +1641,17 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             if (SpeechManager.isAutoPlayEnabled && currentStage) {
                 const characterGender = currentStage.characterGender || null;
                 const characterName = currentStage.characterName || null;
+
+                // Add visual indicator that audio is playing
+                const lastMessage = dom.chatContainer.firstElementChild;
+                if (lastMessage) {
+                    const speakerIcon = document.createElement('span');
+                    speakerIcon.textContent = ' 🔊';
+                    speakerIcon.className = 'speaker-icon animate-pulse';
+                    speakerIcon.title = 'Playing audio...';
+                    lastMessage.querySelector('.chat-bubble-ai')?.appendChild(speakerIcon);
+                }
+
                 SpeechManager.speak(response, 'es-MX', characterGender, characterName);
             }
         }
@@ -2303,10 +2364,120 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             const isEnabled = SpeechManager.toggleAutoPlay();
             dom.autoplayToggleBtn.textContent = isEnabled ? '🔊 Auto-play' : '🔇 Auto-play';
             dom.autoplayToggleBtn.style.color = isEnabled ? '#3b82f6' : '';
+            // Sync with settings modal checkbox
+            if (dom.autoplaySetting) {
+                dom.autoplaySetting.checked = isEnabled;
+            }
         });
+
+        // Voice customization controls in settings
+        if (dom.autoplaySetting) {
+            dom.autoplaySetting.addEventListener('change', (e) => {
+                SpeechManager.isAutoPlayEnabled = e.target.checked;
+                // Sync with chat button
+                dom.autoplayToggleBtn.textContent = e.target.checked ? '🔊 Auto-play' : '🔇 Auto-play';
+                dom.autoplayToggleBtn.style.color = e.target.checked ? '#3b82f6' : '';
+                console.log('[Settings] Auto-play:', e.target.checked);
+            });
+        }
+
+        if (dom.voiceSpeedSlider) {
+            dom.voiceSpeedSlider.addEventListener('input', (e) => {
+                const speed = parseFloat(e.target.value);
+                SpeechManager.customSpeedMultiplier = speed;
+                dom.voiceSpeedValue.textContent = `${speed.toFixed(1)}x`;
+                console.log('[Settings] Voice speed:', speed);
+            });
+        }
+
+        if (dom.voicePitchSlider) {
+            dom.voicePitchSlider.addEventListener('input', (e) => {
+                const pitch = parseInt(e.target.value);
+                SpeechManager.customPitchAdjustment = pitch;
+                if (pitch < -2) {
+                    dom.voicePitchValue.textContent = 'Much Lower';
+                } else if (pitch < 0) {
+                    dom.voicePitchValue.textContent = 'Lower';
+                } else if (pitch === 0) {
+                    dom.voicePitchValue.textContent = 'Normal';
+                } else if (pitch <= 2) {
+                    dom.voicePitchValue.textContent = 'Higher';
+                } else {
+                    dom.voicePitchValue.textContent = 'Much Higher';
+                }
+                console.log('[Settings] Voice pitch:', pitch);
+            });
+        }
+
+        if (dom.testVoiceBtn) {
+            dom.testVoiceBtn.addEventListener('click', async () => {
+                const testText = "Hola, esta es una prueba de voz. ¿Cómo suena ahora?";
+                await SpeechManager.speak(testText, 'es-MX', 'female', 'María, the Vendor');
+                console.log('[Settings] Testing voice with current settings');
+            });
+        }
 
         // Initialize Speech Manager
         SpeechManager.init();
+
+        // Load voice settings from localStorage
+        const savedVoiceSettings = localStorage.getItem('voiceSettings');
+        if (savedVoiceSettings) {
+            try {
+                const settings = JSON.parse(savedVoiceSettings);
+                if (settings.autoPlay !== undefined) {
+                    SpeechManager.isAutoPlayEnabled = settings.autoPlay;
+                    if (dom.autoplaySetting) dom.autoplaySetting.checked = settings.autoPlay;
+                    if (dom.autoplayToggleBtn) {
+                        dom.autoplayToggleBtn.textContent = settings.autoPlay ? '🔊 Auto-play' : '🔇 Auto-play';
+                        dom.autoplayToggleBtn.style.color = settings.autoPlay ? '#3b82f6' : '';
+                    }
+                }
+                if (settings.speed !== undefined) {
+                    SpeechManager.customSpeedMultiplier = settings.speed;
+                    if (dom.voiceSpeedSlider) dom.voiceSpeedSlider.value = settings.speed;
+                    if (dom.voiceSpeedValue) dom.voiceSpeedValue.textContent = `${settings.speed.toFixed(1)}x`;
+                }
+                if (settings.pitch !== undefined) {
+                    SpeechManager.customPitchAdjustment = settings.pitch;
+                    if (dom.voicePitchSlider) dom.voicePitchSlider.value = settings.pitch;
+                    if (dom.voicePitchValue) {
+                        const pitch = settings.pitch;
+                        if (pitch < -2) dom.voicePitchValue.textContent = 'Much Lower';
+                        else if (pitch < 0) dom.voicePitchValue.textContent = 'Lower';
+                        else if (pitch === 0) dom.voicePitchValue.textContent = 'Normal';
+                        else if (pitch <= 2) dom.voicePitchValue.textContent = 'Higher';
+                        else dom.voicePitchValue.textContent = 'Much Higher';
+                    }
+                }
+                console.log('[Settings] Loaded voice settings from localStorage:', settings);
+            } catch (e) {
+                console.error('[Settings] Error loading voice settings:', e);
+            }
+        }
+
+        // Save voice settings when they change
+        function saveVoiceSettings() {
+            const settings = {
+                autoPlay: SpeechManager.isAutoPlayEnabled,
+                speed: SpeechManager.customSpeedMultiplier,
+                pitch: SpeechManager.customPitchAdjustment
+            };
+            localStorage.setItem('voiceSettings', JSON.stringify(settings));
+            console.log('[Settings] Saved voice settings to localStorage');
+        }
+
+        // Update event listeners to save settings
+        if (dom.autoplaySetting) {
+            const originalAutoplayListener = dom.autoplaySetting;
+            dom.autoplaySetting.addEventListener('change', saveVoiceSettings);
+        }
+        if (dom.voiceSpeedSlider) {
+            dom.voiceSpeedSlider.addEventListener('change', saveVoiceSettings);
+        }
+        if (dom.voicePitchSlider) {
+            dom.voicePitchSlider.addEventListener('change', saveVoiceSettings);
+        }
 
         // Log available voices after a short delay (voices may load asynchronously)
         setTimeout(() => {
