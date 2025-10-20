@@ -37,23 +37,31 @@
 
     /* Translation popover styling */
     #translation-popover {
-      max-width: 300px;
-      background: rgba(31, 41, 55, 0.95);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 350px;
+      min-width: 200px;
+      background: linear-gradient(135deg, rgba(31, 41, 55, 0.97), rgba(55, 65, 81, 0.97));
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
       pointer-events: none;
       user-select: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      animation: fadeIn 0.2s ease-out;
+      z-index: 10000;
     }
     #translation-popover.loading {
       opacity: 0.7;
     }
-
-    /* Translatable text styling */
-    .chat-bubble-ai {
-      cursor: help;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
-    .chat-bubble-ai:hover {
-      background-color: #d1d5db;
+
+    /* Translatable text styling - removed hover change to avoid confusion */
+    .chat-bubble-ai::selection {
+      background-color: rgba(96, 165, 250, 0.3);
+      color: inherit;
     }
 
     /* App container sizing */
@@ -261,7 +269,10 @@
       </div>
       <div id="chat-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-          <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+          <div class="flex flex-col">
+            <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+            <p class="text-xs text-gray-500 mt-1">💡 Tip: Select any word or phrase to translate it</p>
+          </div>
           <div class="flex gap-2 items-center">
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
             <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
@@ -810,21 +821,30 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                 const popover = dom.translationPopover;
                 if (!popover) return;
 
-                // Show loading state
-                popover.textContent = 'Translating...';
+                // Show loading state with improved UI
+                popover.innerHTML = '<span style="opacity: 0.7;">⏳ Translating...</span>';
                 popover.classList.add('loading');
                 popover.classList.remove('hidden');
+
+                // Center the popover horizontally on the selected text
                 popover.style.left = `${x}px`;
                 popover.style.top = `${y}px`;
+                popover.style.transform = 'translateX(-50%)';
 
                 // Get translation
                 const translation = await this.translate(text);
 
                 if (translation) {
                     popover.classList.remove('loading');
-                    popover.textContent = translation;
+                    // Show both the selected text and its translation
+                    popover.innerHTML = `
+                        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px; color: #9ca3af;">Selected:</div>
+                        <div style="font-style: italic; margin-bottom: 4px; color: #60a5fa;">"${text}"</div>
+                        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px; color: #9ca3af;">Translation:</div>
+                        <div style="font-weight: 600;">${translation}</div>
+                    `;
                 } else {
-                    popover.textContent = 'Translation unavailable';
+                    popover.innerHTML = '<span style="color: #ef4444;">❌ Translation unavailable</span>';
                 }
             },
 
@@ -1576,30 +1596,36 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             // Add click-to-translate for AI messages
             if (!isUser) {
                 bubble.style.userSelect = 'text';
-                bubble.addEventListener('click', async (e) => {
+                bubble.style.cursor = 'text';
+                bubble.title = 'Select any word or phrase to translate';
+
+                // Listen for text selection (mouseup to catch the selection)
+                bubble.addEventListener('mouseup', async (e) => {
+                    // Small delay to ensure selection is complete
+                    setTimeout(async () => {
+                        const selection = window.getSelection();
+                        const selectedText = selection.toString().trim();
+
+                        // Only translate if there's a selection
+                        if (selectedText && selectedText.length > 0) {
+                            const range = selection.getRangeAt(0);
+                            const rect = range.getBoundingClientRect();
+                            const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                            // Position popover centered above selection
+                            const x = rect.left - containerRect.left + (rect.width / 2);
+                            const y = rect.top - containerRect.top - 10;
+
+                            await TranslationManager.showTranslation(selectedText, x, y);
+                        }
+                    }, 10);
+                });
+
+                // Hide translation when clicking without selecting
+                bubble.addEventListener('click', (e) => {
                     const selection = window.getSelection();
-                    const selectedText = selection.toString().trim();
-
-                    // If there's a selection, translate that
-                    if (selectedText) {
-                        const range = selection.getRangeAt(0);
-                        const rect = range.getBoundingClientRect();
-                        const containerRect = document.getElementById('app-container').getBoundingClientRect();
-
-                        // Position popover above selection
-                        const x = rect.left - containerRect.left;
-                        const y = rect.top - containerRect.top - 40;
-
-                        await TranslationManager.showTranslation(selectedText, x, y);
-                    } else {
-                        // If no selection, translate the entire message
-                        const rect = bubble.getBoundingClientRect();
-                        const containerRect = document.getElementById('app-container').getBoundingClientRect();
-
-                        const x = rect.left - containerRect.left;
-                        const y = rect.top - containerRect.top - 40;
-
-                        await TranslationManager.showTranslation(text, x, y);
+                    if (!selection.toString().trim()) {
+                        TranslationManager.hideTranslation();
                     }
                 });
             }
