@@ -58,7 +58,19 @@
       to { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
 
-    /* Translatable text styling - removed hover change to avoid confusion */
+    /* Translatable word styling */
+    .translatable-word {
+      position: relative;
+    }
+    .translatable-word:hover {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-decoration-color: rgba(96, 165, 250, 0.6);
+      text-underline-offset: 2px;
+    }
+    .translatable-word:active {
+      transform: scale(0.98);
+    }
     .chat-bubble-ai::selection {
       background-color: rgba(96, 165, 250, 0.3);
       color: inherit;
@@ -271,7 +283,7 @@
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <div class="flex flex-col">
             <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
-            <p class="text-xs text-gray-500 mt-1">💡 Tip: Select any word or phrase to translate it</p>
+            <p class="text-xs text-gray-500 mt-1">💡 Tip: Tap any word or select a phrase to translate it</p>
           </div>
           <div class="flex gap-2 items-center">
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
@@ -1593,40 +1605,86 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             bubble.className = 'chat-bubble p-3 rounded-lg w-fit ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai');
             bubble.textContent = text;
 
-            // Add click-to-translate for AI messages
+            // Add tap-to-translate for AI messages
             if (!isUser) {
+                // Enable text selection for multi-word phrases
                 bubble.style.userSelect = 'text';
-                bubble.style.cursor = 'text';
-                bubble.title = 'Select any word or phrase to translate';
 
-                // Listen for text selection (mouseup to catch the selection)
-                bubble.addEventListener('mouseup', async (e) => {
-                    // Small delay to ensure selection is complete
-                    setTimeout(async () => {
-                        const selection = window.getSelection();
-                        const selectedText = selection.toString().trim();
+                // Split text into clickable words
+                const words = text.split(/(\s+|[.,!?;:¿¡"""''])/); // Split on whitespace and punctuation, keeping delimiters
+                bubble.textContent = ''; // Clear the bubble
 
-                        // Only translate if there's a selection
-                        if (selectedText && selectedText.length > 0) {
-                            const range = selection.getRangeAt(0);
-                            const rect = range.getBoundingClientRect();
-                            const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                words.forEach(word => {
+                    const wordSpan = document.createElement('span');
 
-                            // Position popover centered above selection
-                            const x = rect.left - containerRect.left + (rect.width / 2);
-                            const y = rect.top - containerRect.top - 10;
+                    // Check if it's a word (not just whitespace or single punctuation)
+                    const isWord = word.trim().length > 0 && /[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(word);
 
-                            await TranslationManager.showTranslation(selectedText, x, y);
-                        }
-                    }, 10);
-                });
+                    if (isWord) {
+                        wordSpan.textContent = word;
+                        wordSpan.className = 'translatable-word';
+                        wordSpan.style.cursor = 'pointer';
+                        wordSpan.style.padding = '2px 1px';
+                        wordSpan.style.borderRadius = '3px';
+                        wordSpan.style.transition = 'background-color 0.15s';
+                        wordSpan.style.display = 'inline-block';
 
-                // Hide translation when clicking without selecting
-                bubble.addEventListener('click', (e) => {
-                    const selection = window.getSelection();
-                    if (!selection.toString().trim()) {
-                        TranslationManager.hideTranslation();
+                        // Hover effect
+                        wordSpan.addEventListener('mouseenter', () => {
+                            wordSpan.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+                        });
+                        wordSpan.addEventListener('mouseleave', () => {
+                            wordSpan.style.backgroundColor = 'transparent';
+                        });
+
+                        // Click/tap to translate single word
+                        wordSpan.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+
+                            // Check if there's a text selection (for multi-word phrases)
+                            const selection = window.getSelection();
+                            const selectedText = selection.toString().trim();
+
+                            if (selectedText && selectedText.length > word.trim().length) {
+                                // User has selected multiple words - translate the selection
+                                const range = selection.getRangeAt(0);
+                                const rect = range.getBoundingClientRect();
+                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                                const x = rect.left - containerRect.left + (rect.width / 2);
+                                const y = rect.top - containerRect.top - 10;
+
+                                await TranslationManager.showTranslation(selectedText, x, y);
+                            } else {
+                                // Single word click - translate just this word
+                                const cleanWord = word.replace(/[.,!?;:¿¡"""'']/g, '').trim();
+
+                                // Highlight the clicked word
+                                wordSpan.style.backgroundColor = 'rgba(96, 165, 250, 0.4)';
+
+                                // Get position
+                                const rect = wordSpan.getBoundingClientRect();
+                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                                const x = rect.left - containerRect.left + (rect.width / 2);
+                                const y = rect.top - containerRect.top - 10;
+
+                                // Translate just this word
+                                await TranslationManager.showTranslation(cleanWord, x, y);
+
+                                // Reset highlight after a moment
+                                setTimeout(() => {
+                                    wordSpan.style.backgroundColor = 'transparent';
+                                }, 2000);
+                            }
+                        });
+                    } else {
+                        // Just add whitespace/punctuation as-is
+                        wordSpan.textContent = word;
+                        wordSpan.style.cursor = 'default';
                     }
+
+                    bubble.appendChild(wordSpan);
                 });
             }
 
