@@ -1657,8 +1657,46 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                 // Track selection timeout
                 let selectionTimeout = null;
 
+                // Function to expand selection to whole words
+                const expandSelectionToWholeWords = () => {
+                    const selection = window.getSelection();
+                    if (!selection.rangeCount) return;
+
+                    const range = selection.getRangeAt(0);
+                    let startNode = range.startContainer;
+                    let endNode = range.endContainer;
+                    let startOffset = range.startOffset;
+                    let endOffset = range.endOffset;
+
+                    // Get text content
+                    const startText = startNode.textContent || '';
+                    const endText = endNode.textContent || '';
+
+                    // Expand start to beginning of word
+                    while (startOffset > 0 && /[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(startText[startOffset - 1])) {
+                        startOffset--;
+                    }
+
+                    // Expand end to end of word
+                    while (endOffset < endText.length && /[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(endText[endOffset])) {
+                        endOffset++;
+                    }
+
+                    // Create new range with expanded selection
+                    const newRange = document.createRange();
+                    newRange.setStart(startNode, startOffset);
+                    newRange.setEnd(endNode, endOffset);
+
+                    // Update selection
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                };
+
                 // Auto-translate on text selection (for multi-word phrases)
                 bubble.addEventListener('mouseup', async (e) => {
+                    // Expand to whole words first
+                    expandSelectionToWholeWords();
+
                     // Clear any existing timeout
                     if (selectionTimeout) {
                         clearTimeout(selectionTimeout);
@@ -1681,6 +1719,22 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                             await TranslationManager.showTranslation(selectedText, x, y);
                         }
                     }, 300); // 300ms delay to allow user to finish selecting
+                });
+
+                // Expand selection during dragging for better visual feedback
+                bubble.addEventListener('selectstart', () => {
+                    const selectionChangeHandler = () => {
+                        expandSelectionToWholeWords();
+                    };
+
+                    document.addEventListener('selectionchange', selectionChangeHandler);
+
+                    // Remove listener after mouseup
+                    const cleanupListener = () => {
+                        document.removeEventListener('selectionchange', selectionChangeHandler);
+                        document.removeEventListener('mouseup', cleanupListener);
+                    };
+                    document.addEventListener('mouseup', cleanupListener, { once: true });
                 });
 
                 // Split text into clickable words
