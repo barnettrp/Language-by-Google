@@ -57,7 +57,7 @@ export function initializeApp() {
     dialectSelect: document.getElementById('dialect-select'),
     formalitySelect: document.getElementById('formality-select'),
     saveSettingsBtn: document.getElementById('save-settings-btn'),
-    questList: document.getElementById('quest-list'),
+    questList: document.getElementById('quest-list-container'),
     questView: document.getElementById('quest-view'),
     backToQuestsBtn: document.getElementById('back-to-quests-btn'),
     questTitle: document.getElementById('quest-title'),
@@ -276,21 +276,26 @@ export function initializeApp() {
     currentQuest = questKey;
     currentStage = "1";
     messages = [];
-    
+
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
-    
+
     dom.questTitle.textContent = quest.title;
     dom.questObjective.textContent = quest.objective;
     dom.questMapImage.src = quest.mapImage;
     dom.characterName.textContent = stage.characterName;
     dom.vignette.textContent = stage.vignette_en;
-    
+
     dom.chatContainer.innerHTML = '';
     if (stage.initialMessage) {
       addMessage('npc', stage.initialMessage);
     }
-    
+
+    // Track quest start in dev mode
+    if (typeof window.devTrackQuestStart === 'function') {
+      window.devTrackQuestStart(questKey, currentStage);
+    }
+
     showView('quest-view');
   }
 
@@ -440,7 +445,23 @@ export function initializeApp() {
 
   // Initialize quest list
   renderQuests();
-  
+
+  // Initialize quest map
+  if (typeof window.initializeQuestMap === 'function') {
+    window.initializeQuestMap();
+    console.log('[ConvoQuest] Quest map initialized');
+  }
+
+  // Initialize developer mode
+  if (typeof window.initDevMode === 'function') {
+    window.initDevMode();
+    console.log('[ConvoQuest] Developer mode initialized');
+  }
+
+  // Expose functions for quest map and dev mode
+  window.startQuest = startQuest;
+  window.showQuestList = () => showView('main-app-view');
+
   console.log('[ConvoQuest] Application initialized successfully');
 }
 

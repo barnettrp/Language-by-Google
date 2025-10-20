@@ -13,7 +13,21 @@
       "Bash(git push:*)",
       "Bash(npm run build)",
       "Bash(git checkout:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(node dev-server.js)",
+      "Read(//home/node/.local/share/com.vercel.cli/**)",
+      "Bash(printf '\\n')",
+      "Bash(timeout:*)",
+      "Bash(export VERCEL_TOKEN=zrKhniV36MO0W072bV5Rm1ej)",
+      "Bash(git fetch:*)",
+      "Bash(git log --all --date=short --format=\"%h %ad %s\" -- \"public/index.html\")",
+      "Bash(git log --all --diff-filter=A --name-only --pretty=format:\"%h %ai\" -- \"dist/index.html\")",
+      "Bash(git log --all --oneline --format=\"%h %ad %s\" --date=short -- \"dist/index.html\" \"public/index.html\")",
+      "Bash(sort -k2)",
+      "Bash(git log --all -S \"calculateConfidence\" --oneline)",
+      "Bash(xargs kill:*)"
     ],
     "deny": [],
     "ask": []

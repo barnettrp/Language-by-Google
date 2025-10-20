@@ -10,18 +10,25 @@ const QUEST_DATABASE = {
     "missing-guitar": {
       id: "missing-guitar",
       title: "The Missing Guitar",
-      objective: "Piece together clues across Bogotá to recover Carlos's missing guitar before his headline performance.",
+      objective: "Piece together clues across Puerto Esperanza to recover Carlos's missing guitar before his headline performance.",
+
+      // Map Location
+      mapLocation: {
+        id: "hotel-colonial",
+        name: "El Hotel Colonial",
+        icon: "🏨"
+      },
 
       // Metadata
       difficulty: "beginner",
       requiredLevel: "A1",
       estimatedDuration: 25, // minutes
       category: "mystery",
-      tags: ["music", "investigation", "colombia", "urban"],
+      tags: ["music", "investigation", "mexico", "coastal", "hotel"],
 
       // Media
       thumbnailImage: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=300&fit=crop",
-      mapImage: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop",
+      mapImage: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1887&auto=format&fit=crop",
 
       // Learning objectives
       focusGrammar: ["present tense", "question formation", "past tense"],
@@ -35,15 +42,16 @@ const QUEST_DATABASE = {
         "1": {
           id: "1",
           characterName: "Mateo, the Concierge",
+          characterGender: "male",
           characterAvatar: "👨‍💼",
-          location: "Hotel Lobby, Bogotá",
+          location: "Hotel Colonial Lobby, Puerto Esperanza",
 
           vignette: {
-            en: "You're in a hotel lobby. The concierge looks worried. Your goal: Find out who the musician is and where he was last seen.",
-            es: "Estás en el vestíbulo de un hotel. El conserje parece preocupado. Tu objetivo: Descubrir quién es el músico y dónde fue visto por última vez."
+            en: "You're in the elegant lobby of Hotel Colonial. The concierge looks worried. Your goal: Find out who the musician is and where he was last seen.",
+            es: "Estás en el elegante vestíbulo del Hotel Colonial. El conserje parece preocupado. Tu objetivo: Descubrir quién es el músico y dónde fue visto por última vez."
           },
 
-          systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá. A famous musician named Carlos has lost his guitar and he's staying at your hotel. You're very concerned about the hotel's reputation. Speak naturally and show your worry. Answer questions about Carlos and mention that he was last seen at the plaza.",
+          systemPrompt: "You are Mateo, a professional but worried hotel concierge at Hotel Colonial in Puerto Esperanza. A famous musician named Carlos has lost his guitar and he's staying at your hotel. You're very concerned about the hotel's reputation. Speak naturally and show your worry. Answer questions about Carlos and mention that he was last seen at the plaza.",
 
           initialMessage: "Good morning. How can I help you today?",
 
@@ -120,15 +128,16 @@ const QUEST_DATABASE = {
         "2a": {
           id: "2a",
           characterName: "Elena, the Vendor",
+          characterGender: "female",
           characterAvatar: "👩‍🦱",
-          location: "Plaza de Bolívar, Bogotá",
+          location: "La Plaza Central, Puerto Esperanza",
 
           vignette: {
             en: "You arrive at the bustling plaza filled with vendors and street performers. A friendly vendor catches your eye. Your goal: Ask her if she saw Carlos and learn about the rival musician.",
             es: "Llegas a la plaza bulliciosa llena de vendedores y artistas callejeros. Una vendedora amigable llama tu atención. Tu objetivo: Pregúntale si vio a Carlos y aprende sobre el músico rival."
           },
 
-          systemPrompt: "You are Elena, a chatty and knowledgeable street vendor in Plaza de Bolívar. You sell handmade crafts and know everyone in the area. You saw Carlos yesterday with another musician named Javier - they seemed to be arguing. You're friendly and love to talk, but customers need to ask you specific questions. Speak naturally with some local expressions.",
+          systemPrompt: "You are Elena, a chatty and knowledgeable street vendor in La Plaza Central of Puerto Esperanza. You sell handmade crafts and know everyone in the area. You saw Carlos yesterday with another musician named Javier - they seemed to be arguing. You're friendly and love to talk, but customers need to ask you specific questions. Speak naturally with some local coastal expressions.",
 
           initialMessage: "¡Hola! ¿Buscas algo bonito? I have beautiful handmade crafts!",
 
@@ -198,6 +207,7 @@ const QUEST_DATABASE = {
         "2b": {
           id: "2b",
           characterName: "Roberto, the Chef",
+          characterGender: "male",
           characterAvatar: "👨‍🍳",
           location: "Hotel Restaurant",
 
@@ -276,6 +286,7 @@ const QUEST_DATABASE = {
         "3": {
           id: "3",
           characterName: "Javier, the Rival",
+          characterGender: "male",
           characterAvatar: "🎸",
           location: "Music Studio",
 
@@ -367,6 +378,7 @@ const QUEST_DATABASE = {
         "4": {
           id: "4",
           characterName: "Lucía, Head of Security",
+          characterGender: "female",
           characterAvatar: "🛡️",
           location: "Hotel Security Office",
 
@@ -458,6 +470,7 @@ const QUEST_DATABASE = {
         "5": {
           id: "5",
           characterName: "Carlos, the Musician",
+          characterGender: "male",
           characterAvatar: "🎤",
           location: "Backstage Green Room",
 
@@ -547,11 +560,18 @@ const QUEST_DATABASE = {
       title: "Market Day",
       objective: "Coordinate the Mercado Central festival launch by organizing inventory, negotiating supplies, and inviting the community.",
 
+      // Map Location
+      mapLocation: {
+        id: "el-mercado",
+        name: "El Mercado",
+        icon: "🛒"
+      },
+
       difficulty: "beginner",
       requiredLevel: "A1",
       estimatedDuration: 25,
       category: "daily-life",
-      tags: ["food", "market", "shopping", "culture", "mexico"],
+      tags: ["food", "market", "shopping", "culture", "mexico", "coastal"],
 
       thumbnailImage: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop",
       mapImage: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1887&auto=format&fit=crop",
@@ -565,19 +585,20 @@ const QUEST_DATABASE = {
         "1": {
           id: "1",
           characterName: "María, the Vendor",
+          characterGender: "female",
           characterAvatar: "👩‍🌾",
-          location: "Mercado Central, Mexico City",
+          location: "El Mercado, Puerto Esperanza",
 
           vignette: {
-            en: "You meet María at the central market. She needs help organizing her fruit stand. Your goal: Learn the names of fruits and help her count inventory.",
-            es: "Conoces a María en el mercado central. Necesita ayuda organizando su puesto de frutas. Tu objetivo: Aprende los nombres de las frutas y ayúdala a contar el inventario."
+            en: "You meet María at the vibrant seaside market. She needs help organizing her fruit stand. Your goal: Learn the names of fruits and help her count inventory.",
+            es: "Conoces a María en el vibrante mercado junto al mar. Necesita ayuda organizando su puesto de frutas. Tu objetivo: Aprende los nombres de las frutas y ayúdala a contar el inventario."
           },
 
           // Image to display at start of stage
           stageImage: null, // Will be initialized after QUEST_IMAGES loads
           stageImageGenerator: "marketDay_stage1_fruitStand",
 
-          systemPrompt: "You are María, a kind fruit vendor at the market in Mexico City. You need help counting and organizing fruits for the big market day tomorrow. You teach the player fruit names and numbers in Spanish naturally through conversation. Be patient and encouraging. At your stand you have: 8 red apples (manzanas rojas), 12 oranges (naranjas), 6 bananas (plátanos), 15 strawberries (fresas), and 3 watermelons (sandías). When they need to count specific fruits, refer to the image showing your fruit stand above with the exact inventory.",
+          systemPrompt: "You are María, a kind fruit vendor at the market in Puerto Esperanza. You need help counting and organizing fruits for the big market day tomorrow. You teach the player fruit names and numbers in Spanish naturally through conversation. Be patient and encouraging. At your stand you have: 8 red apples (manzanas rojas), 12 oranges (naranjas), 6 bananas (plátanos), 15 strawberries (fresas), and 3 watermelons (sandías). When they need to count specific fruits, refer to the image showing your fruit stand above with the exact inventory.",
 
           initialMessage: "¡Buenos días! I need help preparing for tomorrow's big market. Can you help me? Look at my fruit stand above - I need to count everything!",
 
@@ -643,8 +664,9 @@ const QUEST_DATABASE = {
         "2": {
           id: "2",
           characterName: "María, the Vendor",
+          characterGender: "female",
           characterAvatar: "👩‍🌾",
-          location: "Mercado Central, Mexico City",
+          location: "El Mercado, Puerto Esperanza",
 
           vignette: {
             en: "Now María needs help organizing fruits by color for a beautiful display. Your goal: Learn color names and describe the fruits.",
@@ -721,6 +743,7 @@ const QUEST_DATABASE = {
         "3": {
           id: "3",
           characterName: "Don Ernesto, the Supplier",
+          characterGender: "male",
           characterAvatar: "🚚",
           location: "Produce Warehouse, Outside Mexico City",
 
@@ -810,6 +833,7 @@ const QUEST_DATABASE = {
         "4": {
           id: "4",
           characterName: "Carolina, the Festival Planner",
+          characterGender: "female",
           characterAvatar: "🎉",
           location: "Municipal Cultural Office",
 
@@ -900,6 +924,7 @@ const QUEST_DATABASE = {
         "5": {
           id: "5",
           characterName: "Señor Rivera, Radio Host",
+          characterGender: "male",
           characterAvatar: "📻",
           location: "Radio Alegría Studio",
 
@@ -976,6 +1001,900 @@ const QUEST_DATABASE = {
             achievements: ["market_headliner", "quest_complete_market_day"],
             unlockedContent: ["festival_photo_gallery"],
             items: ["radio_microphone_pin"]
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    "cafe-order": {
+      id: "cafe-order",
+      title: "La Café Order",
+      objective: "Navigate the menu, order your perfect coffee, and make small talk with locals at the seaside café.",
+
+      // Map Location
+      mapLocation: {
+        id: "la-cafe",
+        name: "La Café del Puerto",
+        icon: "☕"
+      },
+
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 15,
+      category: "daily-life",
+      tags: ["food", "drink", "cafe", "conversation", "coastal"],
+
+      thumbnailImage: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop",
+      mapImage: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1887&auto=format&fit=crop",
+
+      focusGrammar: ["present tense", "me gusta", "quisiera", "polite requests"],
+      focusVocabulary: ["drinks", "food items", "sizes", "preferences", "money"],
+
+      prerequisites: ["market-day"],
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Sofia, the Barista",
+          characterGender: "female",
+          characterAvatar: "👩‍🍳",
+          location: "La Café del Puerto, Puerto Esperanza",
+
+          vignette: {
+            en: "You enter the cozy seaside café. The aroma of fresh coffee fills the air. Sofia, the friendly barista, greets you. Your goal: Study the menu and order your drink.",
+            es: "Entras al acogedor café junto al mar. El aroma del café fresco llena el aire. Sofia, la barista amigable, te saluda. Tu objetivo: Estudia el menú y ordena tu bebida."
+          },
+
+          systemPrompt: "You are Sofia, an enthusiastic barista at La Café del Puerto in Puerto Esperanza. You love your job and help customers understand the menu. You offer coffee (café), latte (café con leche), cappuccino, juice (jugo), and tea (té) in small (pequeño), medium (mediano), and large (grande) sizes. Prices range from 25 to 60 pesos. Be patient and encouraging with Spanish learners.",
+
+          initialMessage: "¡Bienvenido! Welcome to La Café del Puerto! What can I get you today?",
+
+          objectives: [
+            {
+              id: "study_menu",
+              type: "extract_info",
+              target: "menu_understanding",
+              description: "Learn what drinks are available",
+              keywords: ["café", "latte", "té", "jugo", "cappuccino", "menu"],
+              required: true,
+              hints: [
+                "Ask '¿Qué tienen?' or 'What do you have?'",
+                "Try 'Can I see the menu?'",
+                "Ask about specific drinks"
+              ]
+            },
+            {
+              id: "place_order",
+              type: "conversation_skill",
+              target: "order_placement",
+              description: "Place your drink order with size preference",
+              keywords: ["quisiera", "quiero", "pequeño", "mediano", "grande", "por favor"],
+              required: true,
+              hints: [
+                "Use 'Quisiera...' (I would like...)",
+                "Specify size: pequeño, mediano, or grande",
+                "Don't forget 'por favor'!"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Order placed! Now you need to pay and find a seat.",
+            xp: 40,
+            achievements: ["first_cafe_order"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "2",
+              condition: "default",
+              label: "Handle Payment"
+            }
+          ]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Sofia, the Barista",
+          characterGender: "female",
+          characterAvatar: "👩‍🍳",
+          location: "La Café del Puerto, Puerto Esperanza",
+
+          vignette: {
+            en: "Sofia prepares your drink. Now it's time to pay. Your goal: Understand the price and handle the transaction in Spanish.",
+            es: "Sofia prepara tu bebida. Ahora es momento de pagar. Tu objetivo: Entender el precio y manejar la transacción en español."
+          },
+
+          systemPrompt: "You are Sofia. The customer has ordered and now needs to pay. State the price clearly (between 25-60 pesos depending on their order). Help them with numbers if needed. Accept payment and give change if necessary. Be encouraging about their Spanish.",
+
+          initialMessage: "Perfecto! Your order is ready. That will be 45 pesos, por favor.",
+
+          objectives: [
+            {
+              id: "understand_price",
+              type: "grammar_practice",
+              target: "numbers",
+              description: "Understand and confirm the price",
+              keywords: ["pesos", "cuánto", "precio", "cuesta", "cuarenta", "cincuenta"],
+              required: true,
+              hints: [
+                "Ask '¿Cuánto cuesta?' (How much is it?)",
+                "Practice numbers: cuarenta y cinco",
+                "Repeat the price to confirm"
+              ]
+            },
+            {
+              id: "complete_payment",
+              type: "conversation_skill",
+              target: "payment_interaction",
+              description: "Hand over money and receive change",
+              keywords: ["aquí está", "gracias", "cambio", "tengo"],
+              required: true,
+              hints: [
+                "Say 'Aquí está' (Here it is)",
+                "Ask about change: '¿Cuánto de cambio?'",
+                "Thank her: 'Gracias'"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Payment complete! Time to enjoy your drink and maybe chat with someone.",
+            xp: 40,
+            achievements: ["money_handler"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "3",
+              condition: "default",
+              label: "Chat with a Local"
+            }
+          ]
+        },
+
+        "3": {
+          id: "3",
+          characterName: "Miguel, a Regular",
+          characterGender: "male",
+          characterAvatar: "👨‍💼",
+          location: "La Café del Puerto, Puerto Esperanza",
+
+          vignette: {
+            en: "You sit down with your coffee. A friendly local named Miguel strikes up a conversation. Your goal: Practice casual small talk in Spanish.",
+            es: "Te sientas con tu café. Un local amigable llamado Miguel inicia una conversación. Tu objetivo: Practica conversación casual en español."
+          },
+
+          systemPrompt: "You are Miguel, a friendly regular at La Café del Puerto. You work nearby and come here every day. You're curious about newcomers and love to make small talk about Puerto Esperanza. Ask about where they're from, why they're here, and recommend places to visit. Keep it casual and friendly.",
+
+          initialMessage: "¡Hola! I haven't seen you here before. Are you new to Puerto Esperanza?",
+
+          objectives: [
+            {
+              id: "introduce_yourself",
+              type: "conversation_skill",
+              target: "introduction",
+              description: "Introduce yourself and where you're from",
+              keywords: ["soy", "me llamo", "de", "vengo", "estoy"],
+              required: true,
+              hints: [
+                "Say 'Me llamo...' (My name is...)",
+                "Use 'Soy de...' (I'm from...)",
+                "Explain why you're in Puerto Esperanza"
+              ]
+            },
+            {
+              id: "make_small_talk",
+              type: "conversation_skill",
+              target: "casual_conversation",
+              description: "Ask Miguel questions and respond naturally",
+              keywords: ["qué", "cómo", "dónde", "te gusta", "recomiendas"],
+              required: true,
+              hints: [
+                "Ask what he likes about the town",
+                "Ask for recommendations: '¿Qué recomiendas?'",
+                "Share your thoughts about the café"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Great conversation! Miguel suggested visiting the beach for surf lessons.",
+            xp: 50,
+            achievements: ["social_butterfly_cafe", "quest_complete_cafe_order"],
+            unlockedContent: ["la-playa"],
+            items: ["miguel_phone_number"]
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    "surf-lesson": {
+      id: "surf-lesson",
+      title: "Surf Lesson",
+      objective: "Learn surfing vocabulary, follow safety instructions, and describe your beach experience in Spanish.",
+
+      // Map Location
+      mapLocation: {
+        id: "la-playa",
+        name: "La Playa",
+        icon: "🏖️"
+      },
+
+      difficulty: "intermediate",
+      requiredLevel: "A2",
+      estimatedDuration: 20,
+      category: "adventure",
+      tags: ["beach", "sports", "commands", "safety", "nature"],
+
+      thumbnailImage: "https://images.unsplash.com/photo-1502933691298-84fc14542831?w=400&h=300&fit=crop",
+      mapImage: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=1887&auto=format&fit=crop",
+
+      focusGrammar: ["imperatives", "commands", "past tense", "present continuous"],
+      focusVocabulary: ["surf equipment", "body parts", "directions", "beach vocabulary", "safety"],
+
+      prerequisites: ["cafe-order"],
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Andrés, Surf Instructor",
+          characterGender: "male",
+          characterAvatar: "🏄",
+          location: "La Playa, Puerto Esperanza",
+
+          vignette: {
+            en: "The sun is shining and waves are rolling in. Andrés, a bronzed surf instructor, greets you on the beach. Your goal: Meet Andrés and learn the names of surfing equipment.",
+            es: "El sol brilla y las olas llegan. Andrés, un instructor de surf bronceado, te saluda en la playa. Tu objetivo: Conoce a Andrés y aprende los nombres del equipo de surf."
+          },
+
+          systemPrompt: "You are Andrés, an experienced and enthusiastic surf instructor at La Playa in Puerto Esperanza. You've been surfing for 15 years and love teaching beginners. Introduce yourself and show the equipment: surfboard (tabla de surf), wetsuit (traje de neopreno), wax (cera), leash (correa). Be encouraging and safety-focused.",
+
+          initialMessage: "¡Hola amigo! Welcome to your first surf lesson. Ready to catch some waves?",
+
+          objectives: [
+            {
+              id: "meet_instructor",
+              type: "conversation_skill",
+              target: "greeting_introduction",
+              description: "Greet Andrés and express excitement",
+              keywords: ["hola", "mucho gusto", "emocionado", "listo", "sí"],
+              required: true,
+              hints: [
+                "Greet him: '¡Hola Andrés!'",
+                "Say you're excited: 'Estoy emocionado/a'",
+                "Express readiness: 'Estoy listo/a'"
+              ]
+            },
+            {
+              id: "learn_equipment",
+              type: "vocabulary_practice",
+              target: "surf_vocabulary",
+              description: "Learn the names of at least 4 pieces of equipment",
+              keywords: ["tabla", "traje", "cera", "correa", "neopreno", "surfboard"],
+              required: true,
+              hints: [
+                "Ask '¿Qué es esto?' (What is this?)",
+                "Point to equipment and name it",
+                "Repeat after Andrés to practice"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Equipment learned! Time for the safety briefing.",
+            xp: 60,
+            achievements: ["surf_student"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "2",
+              condition: "default",
+              label: "Safety Instructions"
+            }
+          ]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Andrés, Surf Instructor",
+          characterGender: "male",
+          characterAvatar: "🏄",
+          location: "La Playa, Puerto Esperanza",
+
+          vignette: {
+            en: "Andrés becomes serious as he explains safety rules. Your goal: Understand and confirm you know the safety instructions using imperatives.",
+            es: "Andrés se pone serio mientras explica las reglas de seguridad. Tu objetivo: Entender y confirmar que conoces las instrucciones de seguridad usando imperativos."
+          },
+
+          systemPrompt: "You are Andrés giving a safety briefing. Use clear imperatives (commands): watch out for rocks (cuidado con las rocas), stay close to shore (quédate cerca de la orilla), raise your hand if you need help (levanta la mano si necesitas ayuda), don't surf alone (no surfees solo). Make sure the student understands and can repeat key safety rules.",
+
+          initialMessage: "Okay, before we go in the water, let's talk about safety. It's very important. Listen carefully!",
+
+          objectives: [
+            {
+              id: "understand_commands",
+              type: "grammar_practice",
+              target: "imperatives",
+              description: "Understand and repeat safety commands",
+              keywords: ["cuidado", "quédate", "levanta", "mira", "no", "mantén"],
+              required: true,
+              hints: [
+                "Listen for command forms (-a, -e endings)",
+                "Repeat after Andrés to show understanding",
+                "Ask '¿Qué debo hacer?' (What should I do?)"
+              ]
+            },
+            {
+              id: "confirm_safety",
+              type: "conversation_skill",
+              target: "safety_confirmation",
+              description: "Confirm you understand all safety rules",
+              keywords: ["entiendo", "comprendo", "claro", "sí", "seguro"],
+              required: true,
+              hints: [
+                "Say 'Entiendo' (I understand)",
+                "Confirm: 'Sí, está claro'",
+                "Ask questions if anything is unclear"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Safety briefing complete! Time to practice on the board.",
+            xp: 70,
+            achievements: ["safety_first"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "3",
+              condition: "default",
+              label: "Practice Session"
+            }
+          ]
+        },
+
+        "3": {
+          id: "3",
+          characterName: "Andrés, Surf Instructor",
+          characterGender: "male",
+          characterAvatar: "🏄",
+          location: "La Playa, Puerto Esperanza",
+
+          vignette: {
+            en: "You're on the board! Andrés coaches you through movements. Your goal: Follow commands and practice surf positions using body part vocabulary.",
+            es: "¡Estás en la tabla! Andrés te guía a través de los movimientos. Tu objetivo: Sigue comandos y practica posiciones de surf usando vocabulario de partes del cuerpo."
+          },
+
+          systemPrompt: "You are Andrés coaching during practice. Give clear commands: bend your knees (dobla las rodillas), keep your arms out (mantén los brazos extendidos), look forward (mira adelante), lie on your belly (acuéstate boca abajo), jump up (salta). Encourage the student and correct their form positively.",
+
+          initialMessage: "¡Perfecto! Now let's practice on the sand first. Get on the board and lie down.",
+
+          objectives: [
+            {
+              id: "follow_commands",
+              type: "task_sequence",
+              target: "movement_commands",
+              description: "Follow Andrés's movement instructions",
+              keywords: ["dobla", "rodillas", "brazos", "mira", "salta", "levanta"],
+              required: true,
+              hints: [
+                "Listen carefully to each command",
+                "Respond that you're doing it: 'Lo hago'",
+                "Ask for clarification if needed"
+              ]
+            },
+            {
+              id: "body_parts_practice",
+              type: "vocabulary_practice",
+              target: "body_vocabulary",
+              description: "Learn and use body part vocabulary",
+              keywords: ["rodillas", "brazos", "piernas", "pies", "espalda", "manos"],
+              required: true,
+              hints: [
+                "Name body parts when Andrés mentions them",
+                "Use in sentences: 'Mis rodillas...'",
+                "Ask '¿Cómo se dice...?' for new words"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 5,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Great practice! Now describe your experience.",
+            xp: 80,
+            achievements: ["surf_moves_learned"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "4",
+              condition: "default",
+              label: "Reflect on Experience"
+            }
+          ]
+        },
+
+        "4": {
+          id: "4",
+          characterName: "Andrés, Surf Instructor",
+          characterGender: "male",
+          characterAvatar: "🏄",
+          location: "La Playa, Puerto Esperanza",
+
+          vignette: {
+            en: "Lesson complete! You're back on the beach. Your goal: Describe your experience using past tense and express how you felt.",
+            es: "¡Lección completa! Estás de vuelta en la playa. Tu objetivo: Describe tu experiencia usando tiempo pasado y expresa cómo te sentiste."
+          },
+
+          systemPrompt: "You are Andrés wrapping up the lesson. Ask the student how they felt, what they learned, and if they want to come back. Encourage them to use past tense (fue divertido, aprendí, me gustó). Be proud of their progress and invite them to future sessions.",
+
+          initialMessage: "¡Excelente trabajo! How was your first surf lesson? Tell me about it!",
+
+          objectives: [
+            {
+              id: "describe_experience",
+              type: "grammar_practice",
+              target: "past_tense",
+              description: "Describe the lesson using past tense",
+              keywords: ["fue", "aprendí", "practiqué", "me gustó", "hice"],
+              required: true,
+              hints: [
+                "Use past tense: 'Fue...' (It was...)",
+                "Say what you learned: 'Aprendí...'",
+                "Describe actions: 'Practiqué...'"
+              ]
+            },
+            {
+              id: "express_feelings",
+              type: "conversation_skill",
+              target: "emotions",
+              description: "Express how the experience made you feel",
+              keywords: ["divertido", "emocionante", "difícil", "feliz", "nervioso", "genial"],
+              required: true,
+              hints: [
+                "Say how you felt: 'Me sentí...'",
+                "Use adjectives: divertido, emocionante",
+                "Thank Andrés for the lesson"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Surf lesson complete! Andrés mentioned his friend Don Pedro at the dock gives fishing lessons.",
+            xp: 90,
+            achievements: ["surfer_dude", "quest_complete_surf_lesson"],
+            unlockedContent: ["el-muelle"],
+            items: ["surf_lesson_certificate"]
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    "fishing-don-pedro": {
+      id: "fishing-don-pedro",
+      title: "Fishing with Don Pedro",
+      objective: "Learn maritime vocabulary, practice time expressions, and experience traditional fishing at the Puerto Esperanza dock.",
+
+      // Map Location
+      mapLocation: {
+        id: "el-muelle",
+        name: "El Muelle",
+        icon: "⚓"
+      },
+
+      difficulty: "intermediate",
+      requiredLevel: "A2",
+      estimatedDuration: 20,
+      category: "adventure",
+      tags: ["fishing", "maritime", "nature", "culture", "patience"],
+
+      thumbnailImage: "https://images.unsplash.com/photo-1544552866-d3ed42536cfd?w=400&h=300&fit=crop",
+      mapImage: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1887&auto=format&fit=crop",
+
+      focusGrammar: ["time expressions", "weather vocabulary", "present perfect", "reflexive verbs"],
+      focusVocabulary: ["fish types", "fishing equipment", "weather", "time of day", "patience expressions"],
+
+      prerequisites: ["surf-lesson"],
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Don Pedro",
+          characterGender: "male",
+          characterAvatar: "👴",
+          location: "El Muelle, Puerto Esperanza",
+
+          vignette: {
+            en: "It's early morning at the dock. Don Pedro, a weathered fisherman, is preparing his boat. Your goal: Greet him and discuss the best time for fishing.",
+            es: "Es temprano en la mañana en el muelle. Don Pedro, un pescador curtido, está preparando su bote. Tu objetivo: Salúdalo y discute el mejor momento para pescar."
+          },
+
+          systemPrompt: "You are Don Pedro, a wise 65-year-old fisherman who has worked these waters for 40 years. You wake up at 5 AM every day. Talk about how sunrise (el amanecer) is the best time for fishing. Teach time expressions naturally: por la mañana, al amanecer, temprano. You're patient and philosophical about fishing requiring patience.",
+
+          initialMessage: "¡Buenos días, joven! You're up early. ¿Quieres pescar conmigo?",
+
+          objectives: [
+            {
+              id: "morning_greeting",
+              type: "conversation_skill",
+              target: "time_greeting",
+              description: "Greet Don Pedro appropriately for morning time",
+              keywords: ["buenos días", "temprano", "mañana", "amanecer"],
+              required: true,
+              hints: [
+                "Use morning greeting: 'Buenos días'",
+                "Mention the early time: 'Es muy temprano'",
+                "Show enthusiasm for fishing"
+              ]
+            },
+            {
+              id: "time_discussion",
+              type: "grammar_practice",
+              target: "time_expressions",
+              description: "Discuss and understand time of day expressions",
+              keywords: ["hora", "amanecer", "mañana", "tarde", "temprano", "mejor"],
+              required: true,
+              hints: [
+                "Ask what time it is: '¿Qué hora es?'",
+                "Ask when is best to fish",
+                "Use time expressions Don Pedro teaches"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Good morning conversation! Don Pedro invites you on his boat.",
+            xp: 60,
+            achievements: ["early_bird"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "2",
+              condition: "default",
+              label: "Learn Equipment and Weather"
+            }
+          ]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Don Pedro",
+          characterGender: "male",
+          characterAvatar: "👴",
+          location: "El Muelle, Puerto Esperanza",
+
+          vignette: {
+            en: "On Don Pedro's boat, he shows you fishing gear and checks the weather. Your goal: Learn fishing equipment vocabulary and discuss weather conditions.",
+            es: "En el bote de Don Pedro, te muestra el equipo de pesca y revisa el clima. Tu objetivo: Aprende vocabulario de equipo de pesca y discute las condiciones climáticas."
+          },
+
+          systemPrompt: "You are Don Pedro showing fishing equipment: fishing rod (caña de pescar), hook (anzuelo), bait (carnada), net (red), bucket (cubeta). Then discuss weather: it's sunny (hace sol), the sea is calm (el mar está tranquilo), perfect conditions (condiciones perfectas). Teach weather expressions naturally.",
+
+          initialMessage: "Mira, here's the equipment we'll use. First, la caña de pescar - the fishing rod.",
+
+          objectives: [
+            {
+              id: "fishing_equipment",
+              type: "vocabulary_practice",
+              target: "fishing_vocab",
+              description: "Learn at least 4 pieces of fishing equipment",
+              keywords: ["caña", "anzuelo", "carnada", "red", "cubeta", "pescar"],
+              required: true,
+              hints: [
+                "Point and ask: '¿Qué es esto?'",
+                "Repeat equipment names",
+                "Ask what each item is used for"
+              ]
+            },
+            {
+              id: "weather_discussion",
+              type: "vocabulary_practice",
+              target: "weather_vocab",
+              description: "Discuss weather conditions for fishing",
+              keywords: ["sol", "nublado", "viento", "mar", "tranquilo", "clima"],
+              required: true,
+              hints: [
+                "Ask about the weather: '¿Cómo está el clima?'",
+                "Describe what you see: 'Hace sol'",
+                "Ask if conditions are good"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Equipment learned! Time to cast your line and wait.",
+            xp: 70,
+            achievements: ["fisherman_apprentice"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "3",
+              condition: "default",
+              label: "The Waiting Game"
+            }
+          ]
+        },
+
+        "3": {
+          id: "3",
+          characterName: "Don Pedro",
+          characterGender: "male",
+          characterAvatar: "👴",
+          location: "El Muelle, Puerto Esperanza",
+
+          vignette: {
+            en: "Lines cast, you wait for a bite. Don Pedro shares fishing wisdom. Your goal: Practice patience vocabulary and learn about waiting expressions in Spanish.",
+            es: "Líneas lanzadas, esperas una picada. Don Pedro comparte sabiduría pesquera. Tu objetivo: Practica vocabulario de paciencia y aprende sobre expresiones de espera en español."
+          },
+
+          systemPrompt: "You are Don Pedro being philosophical about patience. Talk about how fishing teaches patience (paciencia). Use expressions: tener paciencia (to have patience), esperar (to wait), hay que esperar (one must wait), tranquilo (calm), poco a poco (little by little). Share stories about the sea and fishing. Be a wise mentor.",
+
+          initialMessage: "Now we wait. Fishing is about paciencia, my friend. Tell me, ¿tienes paciencia?",
+
+          objectives: [
+            {
+              id: "patience_vocabulary",
+              type: "vocabulary_practice",
+              target: "patience_expressions",
+              description: "Learn and use patience-related vocabulary",
+              keywords: ["paciencia", "esperar", "tranquilo", "poco a poco", "tiempo"],
+              required: true,
+              hints: [
+                "Say you have patience: 'Tengo paciencia'",
+                "Ask how long to wait",
+                "Use 'tranquilo' to show calmness"
+              ]
+            },
+            {
+              id: "philosophical_chat",
+              type: "conversation_skill",
+              target: "deep_conversation",
+              description: "Engage in Don Pedro's stories and wisdom",
+              keywords: ["vida", "mar", "pesca", "aprender", "importante"],
+              required: true,
+              hints: [
+                "Ask about his fishing stories",
+                "Share what fishing teaches you",
+                "Respond to his philosophical points"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 5,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Suddenly - a bite! Time to catch the fish!",
+            xp: 80,
+            achievements: ["patient_angler"],
+            unlockedContent: [],
+            items: []
+          },
+
+          nextStages: [
+            {
+              id: "4",
+              condition: "default",
+              label: "The Catch!"
+            }
+          ]
+        },
+
+        "4": {
+          id: "4",
+          characterName: "Don Pedro",
+          characterGender: "male",
+          characterAvatar: "👴",
+          location: "El Muelle, Puerto Esperanza",
+
+          vignette: {
+            en: "You've caught a fish! Don Pedro helps identify it. Your goal: Learn fish names and celebrate your success using present perfect tense.",
+            es: "¡Has pescado un pez! Don Pedro ayuda a identificarlo. Tu objetivo: Aprende nombres de peces y celebra tu éxito usando tiempo presente perfecto."
+          },
+
+          systemPrompt: "You are Don Pedro excited about the catch! Identify the fish - it's a sea bass (robalo). Teach fish names: tuna (atún), snapper (pargo), sardine (sardina). Congratulate using present perfect: 'Has pescado' (you have caught), '¡Lo has logrado!' (you've done it!). Celebrate the success and invite them to cook it.",
+
+          initialMessage: "¡Mira! ¡Has pescado un robalo! A beautiful sea bass! ¡Qué emoción!",
+
+          objectives: [
+            {
+              id: "fish_vocabulary",
+              type: "vocabulary_practice",
+              target: "fish_types",
+              description: "Learn names of at least 3 fish types",
+              keywords: ["robalo", "atún", "pargo", "sardina", "pez", "pescado"],
+              required: true,
+              hints: [
+                "Ask about different fish: '¿Qué pescado es?'",
+                "Repeat fish names",
+                "Ask which fish are common here"
+              ]
+            },
+            {
+              id: "celebrate_success",
+              type: "grammar_practice",
+              target: "present_perfect",
+              description: "Use present perfect to talk about the catch",
+              keywords: ["he pescado", "has", "hemos", "logrado", "conseguido"],
+              required: true,
+              hints: [
+                "Say 'He pescado' (I have caught)",
+                "Celebrate: '¡Lo he logrado!'",
+                "Express excitement about the catch"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "medium" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 4,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Fishing complete! Don Pedro suggests cooking your catch or visiting the music school.",
+            xp: 90,
+            achievements: ["master_angler", "quest_complete_fishing"],
+            unlockedContent: ["escuela-musica"],
+            items: ["fresh_robalo", "fishing_wisdom"]
           },
 
           nextStages: []

@@ -78,15 +78,26 @@ const QUEST_IMAGES = {
         <circle cx="210" cy="295" r="14" fill="#ff8c00" stroke="#ff6500" stroke-width="2"/>
         <circle cx="240" cy="295" r="14" fill="#ff8c00" stroke="#ff6500" stroke-width="2"/>
 
-        <!-- Section 3: 6 Bananas (plátanos) -->
-        <!-- Banana bunch 1 -->
-        <path d="M 290 200 Q 295 180, 300 200 Q 305 220, 310 200" fill="#ffe135" stroke="#ffd700" stroke-width="2"/>
-        <path d="M 305 200 Q 310 180, 315 200 Q 320 220, 325 200" fill="#ffe135" stroke="#ffd700" stroke-width="2"/>
-        <path d="M 320 200 Q 325 180, 330 200 Q 335 220, 340 200" fill="#ffe135" stroke="#ffd700" stroke-width="2"/>
-        <!-- Banana bunch 2 -->
-        <path d="M 290 260 Q 295 240, 300 260 Q 305 280, 310 260" fill="#ffe135" stroke="#ffd700" stroke-width="2"/>
-        <path d="M 305 260 Q 310 240, 315 260 Q 320 280, 325 260" fill="#ffe135" stroke="#ffd700" stroke-width="2"/>
-        <path d="M 320 260 Q 325 240, 330 260 Q 335 280, 340 260" fill="#ffe135" stroke="#ffd700" stroke-width="2"/>
+        <!-- Section 3: 6 Bananas (plátanos) - Individual bananas clearly separated -->
+        <!-- Top row: 3 bananas -->
+        <ellipse cx="300" cy="190" rx="12" ry="25" fill="#ffe135" stroke="#ffd700" stroke-width="2" transform="rotate(-10 300 190)"/>
+        <path d="M 295 165 Q 297 163, 299 165" fill="none" stroke="#8b7355" stroke-width="2"/>
+
+        <ellipse cx="330" cy="195" rx="12" ry="25" fill="#ffe135" stroke="#ffd700" stroke-width="2" transform="rotate(5 330 195)"/>
+        <path d="M 325 170 Q 327 168, 329 170" fill="none" stroke="#8b7355" stroke-width="2"/>
+
+        <ellipse cx="360" cy="190" rx="12" ry="25" fill="#ffe135" stroke="#ffd700" stroke-width="2" transform="rotate(10 360 190)"/>
+        <path d="M 355 165 Q 357 163, 359 165" fill="none" stroke="#8b7355" stroke-width="2"/>
+
+        <!-- Bottom row: 3 bananas -->
+        <ellipse cx="295" cy="270" rx="12" ry="25" fill="#ffe135" stroke="#ffd700" stroke-width="2" transform="rotate(-15 295 270)"/>
+        <path d="M 290 245 Q 292 243, 294 245" fill="none" stroke="#8b7355" stroke-width="2"/>
+
+        <ellipse cx="330" cy="275" rx="12" ry="25" fill="#ffe135" stroke="#ffd700" stroke-width="2" transform="rotate(0 330 275)"/>
+        <path d="M 325 250 Q 327 248, 329 250" fill="none" stroke="#8b7355" stroke-width="2"/>
+
+        <ellipse cx="365" cy="270" rx="12" ry="25" fill="#ffe135" stroke="#ffd700" stroke-width="2" transform="rotate(15 365 270)"/>
+        <path d="M 360 245 Q 362 243, 364 245" fill="none" stroke="#8b7355" stroke-width="2"/>
 
         <!-- Section 4: 15 Strawberries (fresas) -->
         <path d="M 410 190 L 420 200 L 410 210 L 400 200 Z" fill="#ff1744" stroke="#c41233" stroke-width="1.5"/>

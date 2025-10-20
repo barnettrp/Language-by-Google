@@ -10,7 +10,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: join(__dirname, '.env') });
 
-const PORT = process.env.PORT || 5173;
+const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = join(__dirname, 'public');
 
 const MIME_TYPES = {
@@ -25,8 +25,225 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
 };
 
+// Character voice mapping for Google Cloud TTS
+// Available voices: https://cloud.google.com/text-to-speech/docs/voices
+const CHARACTER_VOICES = {
+  // Male voices - different ages and styles
+  'male_young': { name: 'es-US-Neural2-B', gender: 'MALE' }, // Young male
+  'male_mature': { name: 'es-US-Neural2-C', gender: 'MALE' }, // Mature male
+  'male_elder': { name: 'es-US-Standard-B', gender: 'MALE' }, // Older male (deeper voice)
+
+  // Female voices - different ages and styles
+  'female_young': { name: 'es-US-Neural2-A', gender: 'FEMALE' }, // Young female
+  'female_mature': { name: 'es-US-Standard-A', gender: 'FEMALE' }, // Mature female
+  'female_elder': { name: 'es-US-Wavenet-A', gender: 'FEMALE' }, // Older female
+};
+
+// Select appropriate voice based on character
+function selectVoiceForCharacter(characterName, characterGender) {
+  const name = characterName?.toLowerCase() || '';
+
+  // Elderly characters
+  if (name.includes('don pedro') || name.includes('don ernesto') || name.includes('señor rivera')) {
+    return CHARACTER_VOICES.male_elder;
+  }
+
+  // Young characters
+  if (name.includes('andrés') || name.includes('javier') || (name.includes('carlos') && name.includes('musician'))) {
+    return CHARACTER_VOICES.male_young;
+  }
+
+  if (name.includes('sofia') || name.includes('elena') || name.includes('carolina')) {
+    return CHARACTER_VOICES.female_young;
+  }
+
+  // Mature characters
+  if (name.includes('mateo') || name.includes('roberto') || name.includes('miguel')) {
+    return CHARACTER_VOICES.male_mature;
+  }
+
+  if (name.includes('maría') || name.includes('lucía')) {
+    return CHARACTER_VOICES.female_mature;
+  }
+
+  // Default based on gender
+  if (characterGender === 'male') {
+    return CHARACTER_VOICES.male_mature;
+  } else if (characterGender === 'female') {
+    return CHARACTER_VOICES.female_mature;
+  }
+
+  // Fallback
+  return CHARACTER_VOICES.male_mature;
+}
+
+// Handle text-to-speech requests
+async function handleTTSRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { text, characterName, characterGender } = JSON.parse(body);
+
+      const ttsApiKey = process.env.GOOGLE_CLOUD_TTS_API_KEY || process.env.GEMINI_API_KEY;
+      if (!ttsApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'Google Cloud TTS API key not configured'
+        }));
+        return;
+      }
+
+      // Select voice based on character
+      let voiceConfig = selectVoiceForCharacter(characterName, characterGender);
+
+      console.log(`[TTS] Generating speech for "${characterName}" using voice: ${voiceConfig.name}`);
+
+      // Use Google Cloud Text-to-Speech API
+      const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${ttsApiKey}`;
+
+      const ttsResponse = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: { text: text },
+          voice: {
+            languageCode: 'es-US',
+            name: voiceConfig.name,
+            ssmlGender: voiceConfig.gender
+          },
+          audioConfig: {
+            audioEncoding: 'MP3',
+            speakingRate: 0.95,
+            pitch: 0.0
+          }
+        }),
+      });
+
+      const data = await ttsResponse.json();
+
+      if (ttsResponse.ok && data.audioContent) {
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          audioContent: data.audioContent,
+          voiceName: voiceConfig.name
+        }));
+      } else {
+        console.error('[TTS] API Error:', data);
+        res.writeHead(ttsResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: data.error || 'TTS generation failed'
+        }));
+      }
+
+    } catch (error) {
+      console.error('[TTS] Error handling request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to generate speech'
+      }));
+    }
+  });
+}
+
+// Handle translation requests
+async function handleTranslateRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { text, sourceLang, targetLang } = JSON.parse(body);
+
+      const translateApiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
+      if (!translateApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'Google Translate API key not configured. Please set GOOGLE_TRANSLATE_API_KEY in .env'
+        }));
+        return;
+      }
+
+      // Use Google Cloud Translation API
+      const url = `https://translation.googleapis.com/language/translate/v2?key=${translateApiKey}`;
+
+      const translateResponse = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: text,
+          source: sourceLang,
+          target: targetLang,
+          format: 'text'
+        }),
+      });
+
+      const data = await translateResponse.json();
+
+      if (translateResponse.ok && data.data && data.data.translations && data.data.translations[0]) {
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          translatedText: data.data.translations[0].translatedText
+        }));
+      } else {
+        res.writeHead(translateResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: data.error || 'Translation failed'
+        }));
+      }
+
+    } catch (error) {
+      console.error('Error handling translation request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to translate text'
+      }));
+    }
+  });
+}
+
 // Handle API requests
 async function handleApiRequest(req, res) {
+  // Handle translation API
+  if (req.url === '/api/translate' && req.method === 'POST') {
+    return handleTranslateRequest(req, res);
+  }
+
+  // Handle TTS API
+  if (req.url === '/api/tts' && req.method === 'POST') {
+    return handleTTSRequest(req, res);
+  }
+
+  // Handle Gemini API
   if (req.url !== '/api/gemini' || req.method !== 'POST') {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not Found' }));
@@ -54,38 +271,30 @@ async function handleApiRequest(req, res) {
         return;
       }
 
-      // Use Google Generative AI SDK with gemini-pro (older but accessible model)
-      const genAI = new GoogleGenerativeAI(geminiApiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      // Use gemini-2.0-flash with v1beta API
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
-      // Prepend system instruction as the first user message if provided
-      let chat;
+      // Prepend system instruction as the first user message with model acknowledgment
+      let finalContents = contents;
       if (systemInstruction) {
-        const history = [
+        finalContents = [
           { role: 'user', parts: [{ text: systemInstruction }] },
-          { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] }
+          { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] },
+          ...contents
         ];
-        chat = model.startChat({ history });
-      } else {
-        chat = model.startChat({});
       }
 
-      // Send the actual user message
-      const userMessage = contents[contents.length - 1].parts[0].text;
-      const result = await chat.sendMessage(userMessage);
-      const response = await result.response;
+      const requestBody = { contents: finalContents };
 
-      // Format response to match expected structure
-      const data = {
-        candidates: [{
-          content: {
-            parts: [{ text: response.text() }],
-            role: 'model'
-          }
-        }]
-      };
+      const geminiResponse = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
 
-      res.writeHead(200, {
+      const data = await geminiResponse.json();
+
+      res.writeHead(geminiResponse.ok ? 200 : geminiResponse.status, {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       });
@@ -198,7 +407,10 @@ server.listen(PORT, () => {
   console.log(`  \x1b[36m➜  Local:   http://localhost:${PORT}/\x1b[0m\n`);
   console.log(`  📦 Serving static files from: ${PUBLIC_DIR}`);
   console.log(`  🤖 API endpoint available at: http://localhost:${PORT}/api/gemini`);
+  console.log(`  🌐 Translation endpoint available at: http://localhost:${PORT}/api/translate`);
+  console.log(`  🔊 Text-to-Speech endpoint available at: http://localhost:${PORT}/api/tts`);
   console.log(`  🔑 Gemini API Key: ${process.env.GEMINI_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+  console.log(`  🔑 Google Translate API Key: ${process.env.GOOGLE_TRANSLATE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase API Key: ${process.env.VITE_FIREBASE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase Project: ${process.env.VITE_FIREBASE_PROJECT_ID || 'Not set'}\n`);
 });
