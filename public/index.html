@@ -1654,6 +1654,35 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                 // Enable text selection for multi-word phrases
                 bubble.style.userSelect = 'text';
 
+                // Track selection timeout
+                let selectionTimeout = null;
+
+                // Auto-translate on text selection (for multi-word phrases)
+                bubble.addEventListener('mouseup', async (e) => {
+                    // Clear any existing timeout
+                    if (selectionTimeout) {
+                        clearTimeout(selectionTimeout);
+                    }
+
+                    // Wait a short moment to ensure selection is complete
+                    selectionTimeout = setTimeout(async () => {
+                        const selection = window.getSelection();
+                        const selectedText = selection.toString().trim();
+
+                        // Only translate if there's a meaningful selection (more than 1 character)
+                        if (selectedText && selectedText.length > 1) {
+                            const range = selection.getRangeAt(0);
+                            const rect = range.getBoundingClientRect();
+                            const containerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                            const x = rect.left - containerRect.left + (rect.width / 2);
+                            const y = rect.top - containerRect.top - 10;
+
+                            await TranslationManager.showTranslation(selectedText, x, y);
+                        }
+                    }, 300); // 300ms delay to allow user to finish selecting
+                });
+
                 // Split text into clickable words
                 const words = text.split(/(\s+|[.,!?;:¿¡"""''])/); // Split on whitespace and punctuation, keeping delimiters
                 bubble.textContent = ''; // Clear the bubble
@@ -1685,21 +1714,12 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                         wordSpan.addEventListener('click', async (e) => {
                             e.stopPropagation();
 
-                            // Check if there's a text selection (for multi-word phrases)
+                            // Check if there's a multi-word selection
                             const selection = window.getSelection();
                             const selectedText = selection.toString().trim();
 
-                            if (selectedText && selectedText.length > word.trim().length) {
-                                // User has selected multiple words - translate the selection
-                                const range = selection.getRangeAt(0);
-                                const rect = range.getBoundingClientRect();
-                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
-
-                                const x = rect.left - containerRect.left + (rect.width / 2);
-                                const y = rect.top - containerRect.top - 10;
-
-                                await TranslationManager.showTranslation(selectedText, x, y);
-                            } else {
+                            // Only handle single word clicks here (multi-word handled by mouseup)
+                            if (!selectedText || selectedText.length <= word.trim().length) {
                                 // Single word click - translate just this word
                                 const cleanWord = word.replace(/[.,!?;:¿¡"""'']/g, '').trim();
 
