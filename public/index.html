@@ -838,10 +838,54 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                 popover.classList.add('loading');
                 popover.classList.remove('hidden');
 
-                // Center the popover horizontally on the selected text
+                // Get the chat container bounds
+                const chatContainer = dom.chatContainer;
+                const containerRect = chatContainer.getBoundingClientRect();
+                const appContainerRect = document.getElementById('app-container').getBoundingClientRect();
+
+                // Set initial position (centered on the word)
                 popover.style.left = `${x}px`;
                 popover.style.top = `${y}px`;
                 popover.style.transform = 'translateX(-50%)';
+
+                // Wait a tick for the popover to render so we can get its dimensions
+                await new Promise(resolve => setTimeout(resolve, 0));
+
+                // Get popover dimensions
+                const popoverRect = popover.getBoundingClientRect();
+                const popoverWidth = popoverRect.width;
+                const popoverHeight = popoverRect.height;
+
+                // Calculate boundaries (relative to app-container)
+                const chatLeft = containerRect.left - appContainerRect.left;
+                const chatRight = containerRect.right - appContainerRect.left;
+                const chatTop = containerRect.top - appContainerRect.top;
+                const chatBottom = containerRect.bottom - appContainerRect.top;
+
+                // Adjust horizontal position if needed
+                let adjustedX = x;
+                const popoverLeft = x - (popoverWidth / 2);
+                const popoverRight = x + (popoverWidth / 2);
+
+                if (popoverLeft < chatLeft) {
+                    // Too far left - align with left edge + padding
+                    adjustedX = chatLeft + (popoverWidth / 2) + 10;
+                    popover.style.left = `${adjustedX}px`;
+                } else if (popoverRight > chatRight) {
+                    // Too far right - align with right edge - padding
+                    adjustedX = chatRight - (popoverWidth / 2) - 10;
+                    popover.style.left = `${adjustedX}px`;
+                }
+
+                // Adjust vertical position if needed
+                let adjustedY = y;
+                const popoverTop = y - popoverHeight;
+
+                if (popoverTop < chatTop) {
+                    // Would go above chat container - show below the word instead
+                    adjustedY = y + 30; // Position below the word
+                    popover.style.top = `${adjustedY}px`;
+                }
 
                 // Get translation
                 const translation = await this.translate(text);
