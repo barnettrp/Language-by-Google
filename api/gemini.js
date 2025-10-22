@@ -31,8 +31,8 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Missing "contents" in request body.' });
   }
 
-  // Use gemini-pro (classic stable model)
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+  // Use gemini-2.0-flash with v1beta API
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
   // Prepend system instruction as the first user message
   let finalContents = contents;
