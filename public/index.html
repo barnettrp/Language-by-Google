@@ -783,7 +783,7 @@
         function showHint(hintText, objectiveDescription) {
             const hintEl = document.createElement('div');
             hintEl.className = 'p-3 bg-yellow-50 border-2 border-yellow-400 text-yellow-900 rounded-lg mb-3 shadow';
-            hintEl.style.cssText = 'position: sticky; top: 0; z-index: 1000;';
+            hintEl.style.cssText = 'position: sticky; top: 0; z-index: 1000; transition: opacity 0.3s ease-out;';
             hintEl.innerHTML = `
                 <div class="flex items-start gap-2">
                     <span class="text-2xl">💡</span>
@@ -801,6 +801,16 @@
             dom.chatContainer.scrollTop = 0;
 
             debugLog(`💡 Hint shown: ${hintText}`);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                hintEl.style.opacity = '0';
+                setTimeout(() => {
+                    hintEl.remove();
+                    // Scroll back to bottom to show latest messages
+                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+                }, 300); // Wait for fade out animation
+            }, 5000);
         }
 
         const dom = {
