@@ -2910,6 +2910,12 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
         renderQuests();
         debugLog('✅ All event listeners registered');
 
+        // Re-render quests when QUEST_DATABASE loads (in case it loaded after DOM ready)
+        window.addEventListener('quest-images-ready', () => {
+            debugLog('🎮 Quest data ready, re-rendering quests');
+            renderQuests();
+        }, { once: true });
+
         // Initialize developer mode
         if (typeof window.initDevMode === 'function') {
             window.initDevMode();
