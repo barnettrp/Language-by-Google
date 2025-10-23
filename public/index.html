@@ -718,8 +718,8 @@
             if (hasMinMessages && hasRequiredObjectives) {
                 debugLog('🎉 Stage auto-completion criteria met!');
                 showStageCompletionNotification();
-                setTimeout(() => {
-                    endStage();
+                setTimeout(async () => {
+                    await endStage();
                 }, 4000); // Longer delay to read completion message
             }
         }
@@ -736,7 +736,8 @@
             if (!currentStage) return;
 
             const notification = document.createElement('div');
-            notification.className = 'p-4 bg-green-100 border-2 border-green-500 text-green-800 rounded-lg mb-3 animate-pulse shadow-lg';
+            notification.className = 'p-4 bg-green-100 border-2 border-green-500 text-green-800 rounded-lg mb-3 shadow-lg';
+            notification.style.cssText = 'position: sticky; top: 0; z-index: 1000; animation: slideIn 0.3s ease-out;';
             notification.innerHTML = `
                 <div class="flex items-center gap-3">
                     <span class="text-3xl">✅</span>
@@ -749,8 +750,12 @@
                 </div>
             `;
 
-            dom.chatContainer.appendChild(notification);
-            dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+            // Insert at the beginning so it's visible at the top
+            dom.chatContainer.insertBefore(notification, dom.chatContainer.firstChild);
+            // Scroll to top to show the notification
+            dom.chatContainer.scrollTop = 0;
+
+            debugLog('✅ Stage completion notification displayed');
         }
 
         // Check and show hints if player is stuck
@@ -789,8 +794,14 @@
                 </div>
             `;
 
+            // Append to chat and scroll to bottom to make it visible
             dom.chatContainer.appendChild(hintEl);
-            dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+
+            // Scroll to the hint smoothly
+            setTimeout(() => {
+                hintEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+
             debugLog(`💡 Hint shown: ${hintText}`);
         }
 
