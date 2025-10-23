@@ -717,16 +717,81 @@
             // Auto-complete if both criteria are met
             if (hasMinMessages && hasRequiredObjectives) {
                 debugLog('🎉 Stage auto-completion criteria met!');
+                showStageCompletionNotification();
                 setTimeout(() => {
                     endStage();
-                }, 1500); // Small delay for better UX
+                }, 4000); // Longer delay to read completion message
             }
         }
 
         function resetObjectiveTracking() {
             objectivesCompleted = {};
             messageCount = 0;
+            shownHints = new Set();
             debugLog('🔄 Objective tracking reset');
+        }
+
+        // Show stage completion notification
+        function showStageCompletionNotification() {
+            if (!currentStage) return;
+
+            const notification = document.createElement('div');
+            notification.className = 'p-4 bg-green-100 border-2 border-green-500 text-green-800 rounded-lg mb-3 animate-pulse shadow-lg';
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">✅</span>
+                    <div class="flex-1">
+                        <div class="font-bold text-lg">Stage Complete!</div>
+                        <div class="text-sm mt-1">You've completed all objectives for this stage.</div>
+                        ${currentStage.reward?.clue ? `<div class="text-sm mt-2 italic bg-green-50 p-2 rounded border-l-4 border-green-600">"${currentStage.reward.clue}"</div>` : ''}
+                        ${currentStage.reward?.xp ? `<div class="text-xs mt-2 font-semibold">+${currentStage.reward.xp} XP</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            dom.chatContainer.appendChild(notification);
+            dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+        }
+
+        // Check and show hints if player is stuck
+        let shownHints = new Set();
+
+        function checkAndShowHints() {
+            if (!currentStage || !currentStage.objectives) return;
+
+            // Show hint after 5 messages if no progress on required objectives
+            if (messageCount >= 5) {
+                currentStage.objectives.forEach(objective => {
+                    if (objective.required && !objectivesCompleted[objective.id]) {
+                        // Show first hint that hasn't been shown yet
+                        const hintKey = `${currentStage.id}-${objective.id}`;
+                        if (!shownHints.has(hintKey) && objective.hints && objective.hints.length > 0) {
+                            showHint(objective.hints[0], objective.description);
+                            shownHints.add(hintKey);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Display hint to user
+        function showHint(hintText, objectiveDescription) {
+            const hintEl = document.createElement('div');
+            hintEl.className = 'p-3 bg-yellow-50 border-2 border-yellow-400 text-yellow-900 rounded-lg mb-3 shadow';
+            hintEl.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="text-2xl">💡</span>
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm">Hint</div>
+                        ${objectiveDescription ? `<div class="text-xs text-yellow-700 mt-1">Objective: ${objectiveDescription}</div>` : ''}
+                        <div class="text-sm mt-2">${hintText}</div>
+                    </div>
+                </div>
+            `;
+
+            dom.chatContainer.appendChild(hintEl);
+            dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+            debugLog(`💡 Hint shown: ${hintText}`);
         }
 
         const dom = {
@@ -1967,6 +2032,9 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             // Check for objective completion in user message ONLY
             // (User must demonstrate knowledge, not just trigger from NPC mentioning keywords)
             checkObjectiveCompletion(userInput);
+
+            // Check if hints should be shown
+            checkAndShowHints();
 
             const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
             addMessage(response, 'ai');
