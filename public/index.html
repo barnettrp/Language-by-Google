@@ -487,63 +487,6 @@
     </div>
   </div>
 
-  <!-- Developer Testing Panel Reset Button (always visible) -->
-  <button id="dev-panel-reset" title="Reset Dev Panel Position (or press Ctrl+Shift+D)" style="position: fixed; bottom: 10px; right: 10px; width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; cursor: pointer; font-size: 18px; z-index: 999998; box-shadow: 0 2px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-    🛠️
-  </button>
-
-  <!-- Developer Testing Panel -->
-  <div id="dev-panel" style="position: fixed; top: 20px; right: 20px; width: 360px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; font-family: system-ui; font-size: 13px; z-index: 999999; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border-radius: 8px;">
-    <div id="dev-panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: move; user-select: none;">
-      <div style="font-weight: bold; display: flex; align-items: center; gap: 8px;">
-        🛠️ DEVELOPER MODE
-        <button id="toggle-dev-panel" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">Minimize</button>
-      </div>
-      <div style="display: flex; gap: 8px; font-size: 11px;">
-        <span>Quests: <strong id="dev-quest-count">0</strong></span>
-        <span>Level: <strong id="dev-cefr-level">A1</strong></span>
-        <span>Locations: <strong id="dev-locations-unlocked">1</strong></span>
-      </div>
-    </div>
-
-    <div id="dev-controls" style="display: flex; flex-direction: column; gap: 8px;">
-      <!-- Quest Controls -->
-      <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
-        <div style="font-size: 10px; opacity: 0.8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Quest Controls</div>
-        <button id="dev-complete-quest" style="width: 100%; background: #10b981; border: none; color: white; padding: 6px; border-radius: 4px; cursor: pointer; margin-bottom: 4px; font-weight: 500;">✓ Complete Current Quest</button>
-        <button id="dev-complete-stage" style="width: 100%; background: #3b82f6; border: none; color: white; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: 500;">→ Skip to Next Stage</button>
-      </div>
-
-      <!-- Location Controls -->
-      <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
-        <div style="font-size: 10px; opacity: 0.8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Location Controls</div>
-        <button id="dev-unlock-all" style="width: 100%; background: #f59e0b; border: none; color: white; padding: 6px; border-radius: 4px; cursor: pointer; margin-bottom: 4px; font-weight: 500;">🔓 Unlock All Locations</button>
-        <button id="dev-reset-progress" style="width: 100%; background: #ef4444; border: none; color: white; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: 500;">🔄 Reset All Progress</button>
-      </div>
-
-      <!-- Level Controls -->
-      <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
-        <div style="font-size: 10px; opacity: 0.8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">CEFR Level</div>
-        <select id="dev-level-select" style="width: 100%; background: rgba(255,255,255,0.9); border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: 500; color: #1f2937;">
-          <option value="A1">A1 - Beginner</option>
-          <option value="A2">A2 - Elementary</option>
-          <option value="B1">B1 - Intermediate</option>
-          <option value="B2">B2 - Upper Intermediate</option>
-          <option value="C1">C1 - Advanced</option>
-          <option value="C2">C2 - Proficiency</option>
-        </select>
-      </div>
-
-      <!-- Debug Log -->
-      <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
-        <div style="font-size: 10px; opacity: 0.8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Debug Log</div>
-        <div id="dev-log" style="background: rgba(0,0,0,0.3); padding: 6px; border-radius: 4px; font-size: 11px; height: 40px; overflow-y: auto; font-family: monospace;">
-          <div style="color: #10b981;">✓ Dev mode active</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Placement Test Questions -->
   <script src="/placement-questions.js"></script>
 
@@ -558,9 +501,6 @@
 
   <!-- Quest Map UI -->
   <script src="/quest-map.js"></script>
-
-  <!-- Developer Mode -->
-  <script src="/dev-mode.js"></script>
 
   <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -2915,12 +2855,6 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             debugLog('🎮 Quest data ready, re-rendering quests');
             renderQuests();
         }, { once: true });
-
-        // Initialize developer mode
-        if (typeof window.initDevMode === 'function') {
-            window.initDevMode();
-            debugLog('🛠️ Developer mode initialized');
-        }
 
         debugLog('🎉 App initialization complete!');
     }
