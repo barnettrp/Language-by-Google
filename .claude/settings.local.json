@@ -27,7 +27,9 @@
       "Bash(git log --all --oneline --format=\"%h %ad %s\" --date=short -- \"dist/index.html\" \"public/index.html\")",
       "Bash(sort -k2)",
       "Bash(git log --all -S \"calculateConfidence\" --oneline)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Read(//tmp/**)",
+      "Bash(npm run dev:local:*)"
     ],
     "deny": [],
     "ask": []

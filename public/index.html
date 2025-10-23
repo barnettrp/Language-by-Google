@@ -283,11 +283,14 @@
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <div class="flex flex-col">
             <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+            <div id="objectives-progress" class="text-xs text-blue-600 font-medium mt-1 hidden cursor-pointer hover:underline" title="Click to view quest objective">
+              <span id="objectives-count">0/0</span> objectives completed
+            </div>
             <p class="text-xs text-gray-500 mt-1">💡 Tip: Tap any word or select a phrase to translate it</p>
           </div>
           <div class="flex gap-2 items-center">
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
-            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Complete Stage</button>
+            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
           </div>
         </header>
         <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto" style="min-height: 0;"></div>
@@ -462,6 +465,22 @@
             </div>
         </div>
     </div>
+    <div id="quest-objective-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Quest Objective</h2>
+                <button id="close-objective-modal-btn" class="text-gray-400 hover:text-gray-600 transition-colors" title="Close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <h3 id="objective-quest-title" class="text-lg font-semibold text-blue-600 mb-2"></h3>
+                <p id="objective-quest-text" class="text-gray-700"></p>
+            </div>
+        </div>
+    </div>
     <div id="translation-popover" class="hidden absolute bg-gray-800 text-white text-sm rounded-md px-3 py-1.5 z-50 shadow-lg"></div>
     <div id="hint-popover" class="hidden hint-popover absolute bg-white border rounded-md p-3 z-50 shadow-lg w-48 cursor-pointer bottom-16 left-4">
         <p class="text-sm text-gray-700">Click to use this hint</p>
@@ -621,6 +640,8 @@
         let messages = [];
         let selectedAvatar = '👤'; // Default avatar
         let sessionStartTime = null; // Track when user starts a stage
+        let objectivesCompleted = {}; // Track completed objectives for current stage
+        let messageCount = 0; // Track number of messages in current stage
 
         // Available avatars - safe, emoji-based options
         const avatarOptions = [
@@ -657,6 +678,101 @@
             return 'en';
         }
 
+        /* ---------------- Objective Tracking System ------------------- */
+        function checkObjectiveCompletion(text) {
+            if (!currentStage || !currentStage.objectives) return;
+
+            const lowerText = text.toLowerCase();
+
+            // Check each objective for keyword matches
+            currentStage.objectives.forEach(objective => {
+                // Skip if already completed
+                if (objectivesCompleted[objective.id]) return;
+
+                // Check if any keywords are present in the text
+                const hasKeyword = objective.keywords.some(keyword =>
+                    lowerText.includes(keyword.toLowerCase())
+                );
+
+                if (hasKeyword) {
+                    objectivesCompleted[objective.id] = true;
+                    debugLog(`✅ Objective completed: ${objective.description}`);
+                    console.log(`[Objectives] Completed: ${objective.id} - ${objective.description}`);
+
+                    // Update UI to show progress
+                    updateObjectivesUI();
+                }
+            });
+
+            // Check if stage should auto-complete
+            checkStageCompletion();
+        }
+
+        function updateObjectivesUI() {
+            if (!currentStage || !currentStage.objectives) {
+                // Hide objectives UI if no objectives exist
+                if (dom.objectivesProgress) {
+                    dom.objectivesProgress.classList.add('hidden');
+                }
+                return;
+            }
+
+            const completed = Object.keys(objectivesCompleted).length;
+            const total = currentStage.objectives.length;
+            debugLog(`📊 Objectives Progress: ${completed}/${total}`);
+
+            // Update UI elements
+            if (dom.objectivesCount) {
+                dom.objectivesCount.textContent = `${completed}/${total}`;
+            }
+
+            if (dom.objectivesProgress) {
+                dom.objectivesProgress.classList.remove('hidden');
+
+                // Add visual feedback when objective is completed
+                if (completed > 0) {
+                    dom.objectivesProgress.classList.add('text-green-600');
+                    dom.objectivesProgress.classList.remove('text-blue-600');
+                }
+
+                // Change to success color when all completed
+                if (completed === total) {
+                    dom.objectivesProgress.innerHTML = `
+                        <span class="text-green-600 font-bold">✓ All objectives completed! Stage will end soon...</span>
+                    `;
+                }
+            }
+        }
+
+        function checkStageCompletion() {
+            if (!currentStage || !currentStage.completionCriteria) return;
+
+            const criteria = currentStage.completionCriteria;
+            const completedCount = Object.keys(objectivesCompleted).length;
+
+            // Check if minimum message count is met
+            const hasMinMessages = messageCount >= criteria.minMessages;
+
+            // Check if required objectives are met
+            const hasRequiredObjectives = completedCount >= criteria.objectivesRequired;
+
+            debugLog(`🎯 Completion check: Messages ${messageCount}/${criteria.minMessages}, Objectives ${completedCount}/${criteria.objectivesRequired}`);
+
+            // Auto-complete if both criteria are met
+            if (hasMinMessages && hasRequiredObjectives) {
+                debugLog('🎉 Stage auto-completion criteria met!');
+                setTimeout(() => {
+                    endStage();
+                }, 1500); // Small delay for better UX
+            }
+        }
+
+        function resetObjectiveTracking() {
+            objectivesCompleted = {};
+            messageCount = 0;
+            debugLog('🔄 Objective tracking reset');
+        }
+
         const dom = {
             authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
             placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
@@ -688,6 +804,7 @@
             questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
             chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
             sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
+            objectivesProgress: document.getElementById('objectives-progress'), objectivesCount: document.getElementById('objectives-count'),
             settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
             closeSettingsBtn: document.getElementById('close-settings-btn'), dialectSelect: document.getElementById('dialect-select'),
             formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
@@ -714,6 +831,8 @@
             originalSentenceEl: document.getElementById('original-sentence-el'), correctedSentenceEl: document.getElementById('corrected-sentence-el'),
             explanationContainer: document.getElementById('explanation-container'), explanationText: document.getElementById('explanation-text'),
             explainRuleBtn: document.getElementById('explain-rule-btn'), correctionLoading: document.getElementById('correction-loading'),
+            questObjectiveModal: document.getElementById('quest-objective-modal'), closeObjectiveModalBtn: document.getElementById('close-objective-modal-btn'),
+            objectiveQuestTitle: document.getElementById('objective-quest-title'), objectiveQuestText: document.getElementById('objective-quest-text'),
             placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
             questionText: document.getElementById('question-text'), quizOptions: document.getElementById('quiz-options'),
             currentQuestionNum: document.getElementById('current-question-num'), totalQuestions: document.getElementById('total-questions'),
@@ -919,6 +1038,8 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             isAutoPlayEnabled: false, // Toggle for auto-playing AI responses
             customSpeedMultiplier: 1.0, // User-controlled speed multiplier
             customPitchAdjustment: 0, // User-controlled pitch adjustment
+            isPlaying: false, // Track if audio is currently playing
+            currentAudio: null, // Reference to currently playing audio
 
             init() {
                 // Initialize Speech Recognition (Web Speech API)
@@ -1053,13 +1174,27 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             },
 
             async speak(text, language = 'es-MX', characterGender = null, characterName = null) {
+                // Prevent multiple simultaneous audio playback
+                if (this.isPlaying) {
+                    debugLog('🔊 Audio already playing, ignoring request');
+                    console.log('[TTS] Blocked: Audio is already playing');
+                    return;
+                }
+
                 try {
+                    this.isPlaying = true;
                     debugLog(`🔊 Generating natural speech for: ${characterName || 'character'}`);
                     console.log(`[TTS] Requesting speech for "${text.substring(0, 50)}..." with character: ${characterName}, gender: ${characterGender}`);
 
-                    // Cancel any ongoing speech
+                    // Cancel any ongoing speech synthesis
                     if (this.synthesis) {
                         this.synthesis.cancel();
+                    }
+
+                    // Stop any currently playing audio
+                    if (this.currentAudio) {
+                        this.currentAudio.pause();
+                        this.currentAudio = null;
                     }
 
                     // Call server-side Google Cloud TTS API with custom settings
@@ -1078,6 +1213,7 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                     if (!response.ok) {
                         console.error('[TTS] API request failed:', response.status);
                         debugLog('❌ TTS API request failed');
+                        this.isPlaying = false;
                         return;
                     }
 
@@ -1088,6 +1224,7 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                         const audioBlob = this.base64ToBlob(data.audioContent, 'audio/mp3');
                         const audioUrl = URL.createObjectURL(audioBlob);
                         const audio = new Audio(audioUrl);
+                        this.currentAudio = audio;
 
                         audio.onplay = () => {
                             debugLog(`🔊 Playing natural voice: ${data.voiceName}`);
@@ -1097,22 +1234,29 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                         audio.onended = () => {
                             debugLog('🔊 Speech ended');
                             URL.revokeObjectURL(audioUrl); // Clean up
+                            this.isPlaying = false;
+                            this.currentAudio = null;
                         };
 
                         audio.onerror = (error) => {
                             console.error('[TTS] Audio playback error:', error);
                             debugLog('❌ Audio playback error');
+                            this.isPlaying = false;
+                            this.currentAudio = null;
                         };
 
                         await audio.play();
                     } else {
                         console.error('[TTS] No audio content received');
                         debugLog('❌ No audio content received');
+                        this.isPlaying = false;
                     }
 
                 } catch (error) {
                     console.error('[TTS] Error:', error);
                     debugLog('❌ TTS error: ' + error.message);
+                    this.isPlaying = false;
+                    this.currentAudio = null;
                 }
             },
 
@@ -1627,6 +1771,12 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             dom.chatTitle.textContent = currentStage.characterName;
             dom.chatContainer.innerHTML = '';
 
+            // Reset objective tracking for new stage
+            resetObjectiveTracking();
+
+            // Initialize objectives UI
+            updateObjectivesUI();
+
             ensureStageImageForCurrentStage();
 
             addMessage(currentStage.initialMessage, 'ai');
@@ -1819,11 +1969,29 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                 const speakerBtn = document.createElement('button');
                 speakerBtn.className = 'speaker-btn text-xs text-gray-500 hover:text-blue-500 mt-1 ml-1';
                 speakerBtn.textContent = '🔊 Listen';
-                speakerBtn.addEventListener('click', (e) => {
+                speakerBtn.addEventListener('click', async (e) => {
                     e.stopPropagation(); // Prevent translation popup
+
+                    // Prevent clicking if audio is already playing
+                    if (SpeechManager.isPlaying) {
+                        return;
+                    }
+
+                    // Disable all speaker buttons while playing
+                    document.querySelectorAll('.speaker-btn').forEach(btn => {
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    });
+
                     const characterGender = currentStage?.characterGender || null;
                     const characterName = currentStage?.characterName || null;
-                    SpeechManager.speak(text, 'es-MX', characterGender, characterName);
+                    await SpeechManager.speak(text, 'es-MX', characterGender, characterName);
+
+                    // Re-enable all speaker buttons after playing
+                    document.querySelectorAll('.speaker-btn').forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    });
                 });
                 wrapper.appendChild(speakerBtn);
             }
@@ -1836,8 +2004,18 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             if (!userInput) return;
             addMessage(userInput, 'user');
             dom.chatInput.value = '';
+
+            // Increment message count for objective tracking
+            messageCount++;
+
+            // Check for objective completion in user message
+            checkObjectiveCompletion(userInput);
+
             const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
             addMessage(response, 'ai');
+
+            // Also check AI response for objective keywords (in case objective is achieved through NPC dialogue)
+            checkObjectiveCompletion(response);
 
             // Auto-play AI response if enabled
             if (SpeechManager.isAutoPlayEnabled && currentStage) {
@@ -1870,9 +2048,10 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
                  sessionStartTime = null;
              }
 
-             dom.clueText.textContent = "A clue appears!";
-             dom.xpGainText.textContent = `+50 XP`;
-             dom.stageCompleteModal.classList.remove('hidden');
+             // Return to main quest screen
+             dom.chatView.classList.add('hidden');
+             dom.chatView.classList.remove('flex');
+             dom.questView.style.display = 'flex';
         }
 
         function getUserDocRef(userId) {
@@ -2508,6 +2687,18 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             initPlacementTest();
         });
 
+        // Quest objective modal handlers
+        dom.objectivesProgress.addEventListener('click', () => {
+            if (currentQuest) {
+                dom.objectiveQuestTitle.textContent = currentQuest.title;
+                dom.objectiveQuestText.textContent = currentQuest.objective;
+                dom.questObjectiveModal.classList.remove('hidden');
+            }
+        });
+        dom.closeObjectiveModalBtn.addEventListener('click', () => {
+            dom.questObjectiveModal.classList.add('hidden');
+        });
+
         // Settings change listeners
         dom.dialectSelect.addEventListener('change', async (e) => {
             debugLog(`⚙️ Dialect changed to: ${e.target.value}`);
@@ -2531,7 +2722,12 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
         });
         dom.questView.addEventListener('click', e => {
             const card = e.target.closest('.quest-card');
-            if (card) showMapView(card.dataset.questId);
+            if (card) {
+                // Skip map view and show vignette directly
+                const questId = card.dataset.questId;
+                const firstStageId = '1'; // Start with stage 1
+                showVignette(questId, firstStageId);
+            }
         });
         dom.mapContainer.addEventListener('click', e => {
             const location = e.target.closest('.map-location');

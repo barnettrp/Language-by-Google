@@ -33,10 +33,8 @@ The project includes preconfigured workspace settings (`.vscode/settings.json`) 
 ```bash
 # Install dependencies
 npm install
-
 # Start development server
 npm run dev
-```
 
 The application will be available at `http://localhost:5173`
 
