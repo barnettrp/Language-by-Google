@@ -783,6 +783,7 @@
         function showHint(hintText, objectiveDescription) {
             const hintEl = document.createElement('div');
             hintEl.className = 'p-3 bg-yellow-50 border-2 border-yellow-400 text-yellow-900 rounded-lg mb-3 shadow';
+            hintEl.style.cssText = 'position: sticky; top: 0; z-index: 1000;';
             hintEl.innerHTML = `
                 <div class="flex items-start gap-2">
                     <span class="text-2xl">💡</span>
@@ -794,13 +795,10 @@
                 </div>
             `;
 
-            // Append to chat and scroll to bottom to make it visible
-            dom.chatContainer.appendChild(hintEl);
-
-            // Scroll to the hint smoothly
-            setTimeout(() => {
-                hintEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
+            // Insert at the beginning so it's visible at the top
+            dom.chatContainer.insertBefore(hintEl, dom.chatContainer.firstChild);
+            // Scroll to top to show the hint
+            dom.chatContainer.scrollTop = 0;
 
             debugLog(`💡 Hint shown: ${hintText}`);
         }
