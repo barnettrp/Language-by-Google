@@ -2039,9 +2039,110 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             container.insertBefore(wrapper, container.firstChild);
         }
 
+        // Detect if text is primarily English
+        async function detectEnglish(text) {
+            // Simple heuristic: check for common English words that don't exist in Spanish
+            const englishIndicators = [
+                'the', 'is', 'are', 'was', 'were', 'have', 'has', 'had',
+                'what', 'where', 'when', 'who', 'why', 'how',
+                'can', 'could', 'would', 'should', 'will',
+                'do', 'does', 'did', 'this', 'that', 'these', 'those'
+            ];
+
+            const words = text.toLowerCase().split(/\s+/);
+            const englishWordCount = words.filter(word =>
+                englishIndicators.some(indicator => word.includes(indicator))
+            ).length;
+
+            // If more than 30% of words are English indicators, consider it English
+            return englishWordCount / words.length > 0.3;
+        }
+
+        // Translate English text to Spanish
+        async function translateToSpanish(text) {
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        sourceLang: 'en',
+                        targetLang: 'es'
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error("Translation API Error");
+                    return "No se pudo traducir";
+                }
+
+                const result = await response.json();
+                return result.translatedText;
+            } catch (error) {
+                console.error("Translation Error:", error);
+                return "No se pudo traducir";
+            }
+        }
+
+        // Show language correction prompt
+        function showLanguageCorrection(englishText, spanishText) {
+            const correctionEl = document.createElement('div');
+            correctionEl.className = 'p-4 bg-blue-50 border-2 border-blue-400 text-blue-900 rounded-lg mb-3 shadow-lg';
+            correctionEl.style.cssText = 'position: sticky; top: 0; z-index: 1000; transition: opacity 0.3s ease-out;';
+            correctionEl.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="text-3xl">🗣️</span>
+                    <div class="flex-1">
+                        <div class="font-bold text-lg mb-2">Try saying it in Spanish!</div>
+                        <div class="text-sm mb-2">
+                            <span class="text-blue-700">You said:</span> <span class="italic">"${englishText}"</span>
+                        </div>
+                        <div class="text-sm mb-3">
+                            <span class="text-blue-700">In Spanish:</span> <span class="font-semibold">"${spanishText}"</span>
+                        </div>
+                        <div class="text-xs bg-blue-100 p-2 rounded">
+                            💡 Try typing the Spanish version to practice!
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insert at the beginning so it's visible at the top
+            dom.chatContainer.insertBefore(correctionEl, dom.chatContainer.firstChild);
+            // Scroll to top to show the correction
+            dom.chatContainer.scrollTop = 0;
+
+            debugLog(`🗣️ Language correction shown: ${englishText} → ${spanishText}`);
+
+            // Auto-dismiss after 8 seconds (longer than hints since there's more to read)
+            setTimeout(() => {
+                correctionEl.style.opacity = '0';
+                setTimeout(() => {
+                    correctionEl.remove();
+                    // Scroll back to bottom to show latest messages
+                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+                }, 300);
+            }, 8000);
+        }
+
         async function handleSendMessage() {
             const userInput = dom.chatInput.value.trim();
             if (!userInput) return;
+
+            // Check if user is typing in English
+            const isEnglish = await detectEnglish(userInput);
+            if (isEnglish) {
+                // Get Spanish translation
+                const spanishTranslation = await translateToSpanish(userInput);
+
+                // Show correction prompt
+                showLanguageCorrection(userInput, spanishTranslation);
+
+                // Clear input but don't add to messages
+                dom.chatInput.value = '';
+                return; // Don't send the English message
+            }
+
             addMessage(userInput, 'user');
             dom.chatInput.value = '';
 
