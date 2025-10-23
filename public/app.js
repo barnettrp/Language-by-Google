@@ -33,6 +33,11 @@ export function initializeApp() {
   let messages = [];
   let placementMessages = [];
 
+  // Objective tracking variables
+  let stageMessageCount = 0;
+  let completedObjectives = new Set();
+  let shownHints = new Set();
+
   // DOM elements
   const dom = {
     authContainer: document.getElementById('auth-container'),
@@ -71,6 +76,8 @@ export function initializeApp() {
     chatInput: document.getElementById('chat-input'),
     sendBtn: document.getElementById('send-btn'),
     hintBtn: document.getElementById('hint-btn'),
+    objectivesProgress: document.getElementById('objectives-progress'),
+    objectivesCount: document.getElementById('objectives-count'),
     submitSentenceBtn: document.getElementById('submit-sentence-btn'),
     translationPopover: document.getElementById('translation-popover'),
     correctionModal: document.getElementById('correction-modal'),
@@ -130,32 +137,35 @@ export function initializeApp() {
     }
   };
 
-  // Quest data structure
-  const quests = {
-    "missing-guitar": {
-      title: "The Missing Guitar",
-      objective: "A famous musician's guitar is missing. Find it before his show!",
-      mapImage: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop",
-      stages: {
-        "1": {
-          characterName: "Mateo, the Concierge",
-          vignette_en: "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen.",
-          systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
-          reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
-          nextStages: ["2a", "2b"],
-          initialMessage: "Good morning. How can I help you today?"
-        },
-        "2a": {
-          characterName: "Elena, the Vendor",
-          vignette_en: "You arrive at the bustling plaza. Your goal: Ask her if she saw Carlos.",
-          systemPrompt: "You are Elena, a chatty and knowledgeable street vendor.",
-          reward: { clue: "Carlos was seen with a rival musician, Javier.", xp: 75 },
-          nextStages: ["3"],
-          initialMessage: "¡Hola! ¿Buscas algo bonito?"
+  // Load quests from QUEST_DATABASE
+  function getQuests() {
+    if (typeof QUEST_DATABASE !== 'undefined' && QUEST_DATABASE.quests) {
+      return QUEST_DATABASE.quests;
+    }
+    // Fallback to inline quest if QUEST_DATABASE not loaded
+    return {
+      "missing-guitar": {
+        id: "missing-guitar",
+        title: "The Missing Guitar",
+        objective: "A famous musician's guitar is missing. Find it before his show!",
+        mapImage: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=1887&auto=format&fit=crop",
+        stages: {
+          "1": {
+            characterName: "Mateo, the Concierge",
+            vignette: { en: "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen." },
+            systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
+            objectives: [],
+            completionCriteria: { minMessages: 3, objectivesRequired: 0 },
+            reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
+            nextStages: [{ id: "2a", condition: "default" }],
+            initialMessage: "Good morning. How can I help you today?"
+          }
         }
       }
-    }
-  };
+    };
+  }
+
+  const quests = getQuests();
 
   // Utility functions
   function showView(viewId) {
@@ -279,6 +289,11 @@ export function initializeApp() {
     currentStage = "1";
     messages = [];
 
+    // Reset objective tracking
+    stageMessageCount = 0;
+    completedObjectives.clear();
+    shownHints.clear();
+
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
 
@@ -286,14 +301,20 @@ export function initializeApp() {
     dom.chatTitle.textContent = quest.title;
     dom.questTitle.textContent = quest.title;
     dom.questObjective.textContent = quest.objective;
-    dom.questMapImage.src = quest.mapImage;
+    dom.questMapImage.src = quest.mapImage || quest.thumbnailImage || '';
     dom.characterName.textContent = stage.characterName;
-    dom.vignette.textContent = stage.vignette_en;
+
+    // Handle vignette (support both old and new format)
+    const vignetteText = stage.vignette?.en || stage.vignette_en || '';
+    dom.vignette.textContent = vignetteText;
 
     dom.chatContainer.innerHTML = '';
     if (stage.initialMessage) {
       addMessage('npc', stage.initialMessage);
     }
+
+    // Update objectives UI
+    updateObjectivesUI();
 
     // Track quest start in dev mode
     if (typeof window.devTrackQuestStart === 'function') {
@@ -326,14 +347,30 @@ export function initializeApp() {
     dom.sendBtn.disabled = true;
     dom.sendBtn.textContent = 'Sending...';
 
+    // Increment message count
+    stageMessageCount++;
+
+    // Check objectives against user message
+    checkObjectives(message);
+
     try {
       const quest = quests[currentQuest];
       const stage = quest.stages[currentStage];
       const response = await AIManager.callAPI(stage.systemPrompt, [
         { role: "user", parts: [{ text: message }] }
       ]);
-      
+
       addMessage('npc', response);
+
+      // Update UI after response
+      updateObjectivesUI();
+
+      // Check if stage is complete
+      checkStageCompletion();
+
+      // Show hints if needed
+      checkAndShowHints();
+
     } catch (error) {
       console.error('Error sending message:', error);
       addMessage('npc', 'Sorry, I couldn\'t understand that. Could you try again?');
@@ -341,6 +378,120 @@ export function initializeApp() {
       dom.sendBtn.disabled = false;
       dom.sendBtn.textContent = 'Send';
     }
+  }
+
+  // Check if user message matches objective keywords
+  function checkObjectives(userMessage) {
+    const quest = quests[currentQuest];
+    const stage = quest.stages[currentStage];
+
+    if (!stage.objectives) return;
+
+    const messageLower = userMessage.toLowerCase();
+
+    stage.objectives.forEach(objective => {
+      // Skip if already completed
+      if (completedObjectives.has(objective.id)) return;
+
+      // Check if any keyword matches
+      const hasMatch = objective.keywords?.some(keyword =>
+        messageLower.includes(keyword.toLowerCase())
+      );
+
+      if (hasMatch) {
+        completedObjectives.add(objective.id);
+        console.log(`✅ Objective completed: ${objective.description}`);
+      }
+    });
+  }
+
+  // Update objectives progress UI
+  function updateObjectivesUI() {
+    const quest = quests[currentQuest];
+    const stage = quest.stages[currentStage];
+
+    if (!stage.objectives || stage.objectives.length === 0) {
+      dom.objectivesProgress.classList.add('hidden');
+      return;
+    }
+
+    const totalObjectives = stage.objectives.length;
+    const completed = completedObjectives.size;
+
+    dom.objectivesProgress.classList.remove('hidden');
+    dom.objectivesCount.textContent = `${completed}/${totalObjectives}`;
+  }
+
+  // Check if stage completion criteria are met
+  function checkStageCompletion() {
+    const quest = quests[currentQuest];
+    const stage = quest.stages[currentStage];
+
+    if (!stage.completionCriteria) return;
+
+    const criteria = stage.completionCriteria;
+    const minMessagesMet = stageMessageCount >= (criteria.minMessages || 0);
+    const objectivesMet = completedObjectives.size >= (criteria.objectivesRequired || 0);
+
+    if (minMessagesMet && objectivesMet) {
+      console.log('🎉 Stage completion criteria met!');
+      // TODO: Show completion notification and allow progression
+      showStageCompletionNotification();
+    }
+  }
+
+  // Show stage completion notification
+  function showStageCompletionNotification() {
+    const quest = quests[currentQuest];
+    const stage = quest.stages[currentStage];
+
+    const notification = document.createElement('div');
+    notification.className = 'p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg mb-2 animate-pulse';
+    notification.innerHTML = `
+      <div class="font-semibold">✅ Stage Complete!</div>
+      <div class="text-sm mt-1">You've completed all objectives for this stage.</div>
+      ${stage.reward?.clue ? `<div class="text-sm mt-2 italic">"${stage.reward.clue}"</div>` : ''}
+    `;
+
+    dom.chatContainer.appendChild(notification);
+    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+
+    // TODO: Add button to proceed to next stage
+  }
+
+  // Check and show hints if player is stuck
+  function checkAndShowHints() {
+    const quest = quests[currentQuest];
+    const stage = quest.stages[currentStage];
+
+    if (!stage.objectives) return;
+
+    // Show hint after 5 messages if no progress on required objectives
+    if (stageMessageCount >= 5) {
+      stage.objectives.forEach(objective => {
+        if (objective.required && !completedObjectives.has(objective.id)) {
+          // Show first hint that hasn't been shown yet
+          const hintKey = `${currentStage}-${objective.id}`;
+          if (!shownHints.has(hintKey) && objective.hints && objective.hints.length > 0) {
+            showHint(objective.hints[0]);
+            shownHints.add(hintKey);
+          }
+        }
+      });
+    }
+  }
+
+  // Display hint to user
+  function showHint(hintText) {
+    const hintEl = document.createElement('div');
+    hintEl.className = 'p-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg mb-2';
+    hintEl.innerHTML = `
+      <div class="font-semibold text-sm">💡 Hint</div>
+      <div class="text-sm mt-1">${hintText}</div>
+    `;
+
+    dom.chatContainer.appendChild(hintEl);
+    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
   }
 
   // Handle placement test
