@@ -99,7 +99,7 @@ const QUEST_DATABASE = {
 
           completionCriteria: {
             minMessages: 3,
-            objectivesRequired: 1, // At least 1 of 2 objectives
+            objectivesRequired: 2, // Must complete both objectives
             timeLimit: null
           },
 
