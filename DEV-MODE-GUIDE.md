@@ -1,5 +1,8 @@
 N# Developer Mode Guide
 
+> **⚠️ Note: Developer Mode is currently disabled in the UI.**
+> The visual developer panel has been removed from the application. This guide is maintained for reference purposes and in case the feature needs to be re-enabled in the future.
+
 ## Overview
 Developer Mode provides testing utilities to quickly move through quests without completing conversations, unlock all locations, and manipulate progress for testing purposes.
 
@@ -145,9 +148,23 @@ Dev mode bypasses all these requirements when you click "Unlock All".
 - Reset progress and unlock all again
 - Check browser console for errors
 
+## Re-enabling Developer Mode
+
+To re-enable the developer panel:
+1. Add the dev panel HTML back to index.html (see git history for the markup)
+2. Add the dev-mode.js script tag to index.html: `<script src="dev-mode.js"></script>`
+3. Add the initialization call to app.js after quest map initialization:
+```javascript
+// Initialize developer mode
+if (typeof window.initDevMode === 'function') {
+  window.initDevMode();
+  console.log('[ConvoQuest] Developer mode initialized');
+}
+```
+
 ## Disabling Developer Mode
 
-To disable the panel in production:
+To disable the panel again:
 1. Remove the dev panel HTML from index.html
 2. Remove the dev-mode.js script tag
 3. Remove initDevMode() call from app.js

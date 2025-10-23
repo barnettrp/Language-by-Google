@@ -452,13 +452,7 @@ export function initializeApp() {
     console.log('[ConvoQuest] Quest map initialized');
   }
 
-  // Initialize developer mode
-  if (typeof window.initDevMode === 'function') {
-    window.initDevMode();
-    console.log('[ConvoQuest] Developer mode initialized');
-  }
-
-  // Expose functions for quest map and dev mode
+  // Expose functions for quest map
   window.startQuest = startQuest;
   window.showQuestList = () => showView('main-app-view');
 
