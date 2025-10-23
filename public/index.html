@@ -1964,14 +1964,12 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             // Increment message count for objective tracking
             messageCount++;
 
-            // Check for objective completion in user message
+            // Check for objective completion in user message ONLY
+            // (User must demonstrate knowledge, not just trigger from NPC mentioning keywords)
             checkObjectiveCompletion(userInput);
 
             const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
             addMessage(response, 'ai');
-
-            // Also check AI response for objective keywords (in case objective is achieved through NPC dialogue)
-            checkObjectiveCompletion(response);
 
             // Auto-play AI response if enabled
             if (SpeechManager.isAutoPlayEnabled && currentStage) {
