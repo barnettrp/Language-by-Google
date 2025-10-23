@@ -1900,6 +1900,195 @@ const QUEST_DATABASE = {
           nextStages: []
         }
       }
+    },
+
+    // ========================================
+    // DAILY QUEST TEMPLATE: LA FARMACIA
+    // Quick 2-stage quest (10-15 min total)
+    // Adaptive difficulty, standalone scenario
+    // ========================================
+    "pharmacy-visit": {
+      id: "pharmacy-visit",
+      title: "La Farmacia",
+      objective: "Visit the local pharmacy to buy medicine for a headache and learn about health vocabulary.",
+
+      // Map Location (can be placed in any campaign)
+      mapLocation: {
+        id: "farmacia-central",
+        name: "Farmacia Central",
+        icon: "💊"
+      },
+
+      // Metadata
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 12, // minutes (shorter for daily practice)
+      category: "daily-life",
+      tags: ["health", "pharmacy", "medicine", "daily-routine", "adaptive"],
+
+      // Quest type classification
+      questType: "daily", // New field: "story" | "daily" | "mini-game"
+
+      // Media
+      thumbnailImage: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop",
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Ana, la Farmacéutica",
+          characterGender: "female",
+
+          stageImageGenerator: "pharmacy_stage1_counter",
+
+          systemPrompt: "You are Ana, a friendly and helpful pharmacist at Farmacia Central. You're patient with customers and want to make sure they understand how to take their medicine. When someone describes symptoms, you recommend appropriate over-the-counter medicine and explain the dosage clearly. Use health vocabulary naturally: dolor (pain), cabeza (head), pastilla (pill), medicina (medicine), tomar (to take). Be warm and professional.",
+
+          initialMessage: "Buenos días. ¿En qué puedo ayudarle hoy?",
+
+          // Learning objectives with grammar integration point
+          objectives: [
+            {
+              id: "describe_symptoms",
+              type: "extract_info",
+              description: "Describe your headache symptoms",
+              keywords: ["dolor", "cabeza", "duele", "me duele"],
+              required: true,
+              hints: [
+                "Try saying 'Me duele la cabeza' (My head hurts)",
+                "Or ask '¿Tiene algo para el dolor de cabeza?' (Do you have something for a headache?)"
+              ],
+              // NEW: Grammar integration point
+              grammarTip: {
+                rule: "doler-verb",
+                explanation: "The verb 'doler' (to hurt) works like 'gustar': Me duele = It hurts me. Use 'la cabeza' (the head) after 'duele'.",
+                example: "Me duele la cabeza = My head hurts"
+              }
+            },
+            {
+              id: "ask_for_medicine",
+              type: "extract_info",
+              description: "Ask for or discuss medicine",
+              keywords: ["medicina", "pastilla", "ibuprofeno", "aspirina", "paracetamol"],
+              required: true,
+              hints: [
+                "Ask '¿Qué medicina recomienda?' (What medicine do you recommend?)",
+                "Say 'Necesito algo para el dolor' (I need something for pain)"
+              ]
+            },
+            {
+              id: "understand_dosage",
+              type: "comprehension",
+              description: "Understand the dosage instructions",
+              keywords: ["tomar", "veces", "día", "horas", "cada"],
+              required: false, // Optional objective
+              hints: [
+                "Ask '¿Cómo debo tomarla?' (How should I take it?)",
+                "Ask '¿Cuántas veces al día?' (How many times per day?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2, // Must complete 2 of 3 objectives
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Ana recommends taking ibuprofen twice a day with food.",
+            xp: 30
+          },
+
+          nextStages: ["2"]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Ana, la Farmacéutica",
+          characterGender: "female",
+
+          stageImageGenerator: "pharmacy_stage2_payment",
+
+          systemPrompt: "You are Ana, continuing to help the customer. Now you're at the payment stage. State the price clearly (between 45-85 pesos). If they ask about how to take the medicine, explain: 'Tome una pastilla cada 8 horas con comida' (Take one pill every 8 hours with food). Be friendly and wish them well: '¡Que se mejore!' (Get well soon!)",
+
+          initialMessage: "Perfecto. Son 65 pesos, por favor. ¿Necesita saber cómo tomarlas?",
+
+          objectives: [
+            {
+              id: "understand_price",
+              type: "comprehension",
+              description: "Understand and confirm the price",
+              keywords: ["pesos", "precio", "cuesta", "65", "sesenta"],
+              required: true,
+              hints: [
+                "Ask '¿Cuánto cuesta?' (How much does it cost?)",
+                "Confirm 'Son 65 pesos, ¿verdad?' (It's 65 pesos, right?)"
+              ],
+              grammarTip: {
+                rule: "numbers-60-100",
+                explanation: "Numbers 60-100: sesenta (60), setenta (70), ochenta (80), noventa (90), cien (100). Add numbers 1-9: sesenta y cinco (65)",
+                example: "65 = sesenta y cinco"
+              }
+            },
+            {
+              id: "payment_interaction",
+              type: "social",
+              description: "Complete the payment transaction",
+              keywords: ["aquí", "tengo", "tarjeta", "efectivo", "gracias"],
+              required: true,
+              hints: [
+                "Say 'Aquí tiene' (Here you go)",
+                "Or '¿Aceptan tarjeta?' (Do you accept card?)"
+              ]
+            },
+            {
+              id: "usage_instructions",
+              type: "comprehension",
+              description: "Understand how to take the medicine",
+              keywords: ["tomar", "horas", "comida", "cada", "cómo"],
+              required: false,
+              hints: [
+                "Ask '¿Cómo debo tomar las pastillas?' (How should I take the pills?)",
+                "Ask '¿Cada cuántas horas?' (Every how many hours?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "You successfully bought medicine and learned health vocabulary!",
+            xp: 30
+          },
+
+          nextStages: []
+        }
+      }
     }
   }
 };
