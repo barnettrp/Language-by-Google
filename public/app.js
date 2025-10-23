@@ -59,7 +59,9 @@ export function initializeApp() {
     saveSettingsBtn: document.getElementById('save-settings-btn'),
     questList: document.getElementById('quest-list-container'),
     questView: document.getElementById('quest-view'),
-    backToQuestsBtn: document.getElementById('back-to-quests-btn'),
+    chatView: document.getElementById('chat-view'),
+    chatTitle: document.getElementById('chat-title'),
+    backToQuestsBtn: document.getElementById('end-session-btn'),
     questTitle: document.getElementById('quest-title'),
     questObjective: document.getElementById('quest-objective'),
     questMapImage: document.getElementById('quest-map-image'),
@@ -280,6 +282,8 @@ export function initializeApp() {
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
 
+    // Set all quest information
+    dom.chatTitle.textContent = quest.title;
     dom.questTitle.textContent = quest.title;
     dom.questObjective.textContent = quest.objective;
     dom.questMapImage.src = quest.mapImage;
@@ -296,7 +300,9 @@ export function initializeApp() {
       window.devTrackQuestStart(questKey, currentStage);
     }
 
-    showView('quest-view');
+    // Show chat view
+    dom.questView.style.display = 'none';
+    dom.chatView.style.display = 'flex';
   }
 
   // Add message to chat
@@ -378,7 +384,10 @@ export function initializeApp() {
   dom.signupBtn.addEventListener('click', handleSignup);
   dom.logoutBtn.addEventListener('click', handleLogout);
   
-  dom.backToQuestsBtn.addEventListener('click', () => showView('main-app-view'));
+  dom.backToQuestsBtn.addEventListener('click', () => {
+    dom.chatView.style.display = 'none';
+    dom.questView.style.display = 'flex';
+  });
   dom.sendBtn.addEventListener('click', sendChatMessage);
   dom.chatInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') sendChatMessage();
