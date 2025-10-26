@@ -1270,10 +1270,26 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
         // Use a getter function to ensure we get the latest value
         function getQuests() {
             debugLog(`🔍 getQuests called - QUEST_DATABASE exists: ${!!window.QUEST_DATABASE}`);
-            if (window.QUEST_DATABASE) {
-                debugLog(`✅ QUEST_DATABASE.quests keys: ${Object.keys(window.QUEST_DATABASE.quests || {}).join(', ')}`);
+            if (window.QUEST_DATABASE && window.QUEST_DATABASE.quests) {
+                const questKeys = Object.keys(window.QUEST_DATABASE.quests);
+                debugLog(`✅ QUEST_DATABASE.quests keys: ${questKeys.join(', ')}`);
+                if (questKeys.length > 0) {
+                    return window.QUEST_DATABASE.quests;
+                }
             }
-            return window.QUEST_DATABASE ? window.QUEST_DATABASE.quests : {};
+
+            // Fallback: return minimal test quest if QUEST_DATABASE didn't load
+            console.warn('⚠️ QUEST_DATABASE not loaded, using fallback quest');
+            return {
+                "test-quest": {
+                    id: "test-quest",
+                    title: "Test Quest - Data Loading",
+                    objective: "If you see this, quest data files didn't load. Check browser console for errors.",
+                    difficulty: "beginner",
+                    thumbnailImage: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=300&fit=crop",
+                    stages: {}
+                }
+            };
         }
 
         // For backward compatibility, keep quests as a reference
