@@ -239,6 +239,12 @@
           </div>
         </div>
 
+        <!-- Debug Panel (visible when there are issues) -->
+        <div id="debug-panel" class="hidden bg-yellow-50 border-2 border-yellow-400 p-4 m-4 rounded-lg">
+          <h3 class="font-bold text-yellow-800 mb-2">🔍 Debug Info</h3>
+          <div id="debug-info" class="text-xs font-mono space-y-1"></div>
+        </div>
+
         <!-- Quest List View (default) -->
         <div id="quest-list-container" class="flex-1 p-4 space-y-3 overflow-y-auto"></div>
 
@@ -1570,6 +1576,36 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             }
         }
 
+        function showDebugInfo() {
+            const debugPanel = document.getElementById('debug-panel');
+            const debugInfo = document.getElementById('debug-info');
+            if (!debugPanel || !debugInfo) return;
+
+            const info = [];
+            info.push(`<div class="text-gray-700"><b>QUEST_DATABASE:</b> ${window.QUEST_DATABASE ? '✅ Loaded' : '❌ NOT LOADED'}</div>`);
+
+            if (window.QUEST_DATABASE) {
+                const keys = Object.keys(window.QUEST_DATABASE.quests || {});
+                info.push(`<div class="text-gray-700"><b>Quest Count:</b> ${keys.length}</div>`);
+                info.push(`<div class="text-gray-700"><b>Quest IDs:</b> ${keys.join(', ') || 'none'}</div>`);
+            }
+
+            info.push(`<div class="text-gray-700"><b>QUEST_IMAGES:</b> ${window.QUEST_IMAGES ? '✅ Loaded' : '❌ NOT LOADED'}</div>`);
+            info.push(`<div class="text-gray-700"><b>MAP_LOCATIONS:</b> ${window.MAP_LOCATIONS ? '✅ Loaded' : '❌ NOT LOADED'}</div>`);
+
+            const scripts = document.querySelectorAll('script[src]');
+            const questScripts = Array.from(scripts).filter(s => s.src.includes('quest') || s.src.includes('map-locations'));
+            info.push(`<div class="text-gray-700 mt-2"><b>Quest Scripts Found:</b> ${questScripts.length}</div>`);
+            questScripts.forEach(s => {
+                const url = s.src;
+                const filename = url.split('/').pop();
+                info.push(`<div class="text-xs text-gray-600">- ${filename}</div>`);
+            });
+
+            debugInfo.innerHTML = info.join('');
+            debugPanel.classList.remove('hidden');
+        }
+
         function renderQuests() {
             debugLog('🎮 renderQuests called');
             // Refresh quests from QUEST_DATABASE in case it loaded after initial page load
@@ -1578,6 +1614,12 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             debugLog(`Quest container found: ${!!list}`);
             debugLog(`Number of quests: ${Object.keys(quests).length}`);
             debugLog(`Quests object: ${JSON.stringify(Object.keys(quests))}`);
+
+            // Show debug info if quest data didn't load
+            if (!window.QUEST_DATABASE || Object.keys(quests).length === 0 || quests['test-quest']) {
+                showDebugInfo();
+            }
+
             if (list) {
                 list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
                 debugLog(`✅ Quest cards rendered: ${list.children.length}`);
