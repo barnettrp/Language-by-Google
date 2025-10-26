@@ -29,7 +29,8 @@
       "Bash(git log --all -S \"calculateConfidence\" --oneline)",
       "Bash(xargs kill:*)",
       "Read(//tmp/**)",
-      "Bash(npm run dev:local:*)"
+      "Bash(npm run dev:local:*)",
+      "Bash(node -c:*)"
     ],
     "deny": [],
     "ask": []
