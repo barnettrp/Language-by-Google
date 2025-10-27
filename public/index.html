@@ -303,17 +303,27 @@
         </header>
 
         <!-- Quest Instructions Card -->
-        <div class="bg-white border-b border-gray-200 p-4 flex-shrink-0">
-          <div class="flex gap-4">
-            <img id="quest-map-image" src="" alt="Quest location" class="w-24 h-24 object-cover rounded-lg">
-            <div class="flex-1">
-              <h2 id="quest-title" class="text-lg font-bold text-gray-800 mb-1"></h2>
-              <p id="quest-objective" class="text-sm text-gray-600 mb-2"></p>
-              <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-                <p class="text-xs font-semibold text-blue-800 mb-1">Scene: <span id="character-name" class="font-normal"></span></p>
-                <p id="vignette" class="text-xs text-blue-700"></p>
+        <div id="quest-instructions-card" class="bg-white border-b border-gray-200 flex-shrink-0 transition-all duration-300">
+          <!-- Expanded State -->
+          <div id="quest-card-expanded" class="p-4">
+            <div class="flex gap-4">
+              <img id="character-image" src="" alt="Character" class="w-20 h-20 object-cover rounded-lg">
+              <div class="flex-1">
+                <h2 id="quest-title" class="text-lg font-bold text-gray-800 mb-1"></h2>
+                <p id="character-name-display" class="text-sm text-blue-600 font-semibold mb-2"></p>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
+                  <p id="quest-objective-display" class="text-xs text-blue-800"></p>
+                </div>
               </div>
             </div>
+          </div>
+
+          <!-- Minimized State -->
+          <div id="quest-card-minimized" class="hidden p-2 cursor-pointer hover:bg-gray-50" onclick="expandQuestCard()">
+            <p class="text-xs text-gray-700">
+              <span class="font-semibold">Quest:</span> <span id="quest-objective-mini"></span>
+              <span class="text-blue-500 ml-2">▼</span>
+            </p>
           </div>
         </div>
 
@@ -725,16 +735,100 @@
             // Auto-complete if both criteria are met
             if (hasMinMessages && hasRequiredObjectives) {
                 debugLog('🎉 Stage auto-completion criteria met!');
-                setTimeout(() => {
-                    endStage();
-                }, 1500); // Small delay for better UX
+                showStageCompletionNotification();
+                setTimeout(async () => {
+                    await endStage();
+                }, 4000); // Longer delay to read completion message
             }
         }
 
         function resetObjectiveTracking() {
             objectivesCompleted = {};
             messageCount = 0;
+            shownHints = new Set();
             debugLog('🔄 Objective tracking reset');
+        }
+
+        // Show stage completion notification
+        function showStageCompletionNotification() {
+            if (!currentStage) return;
+
+            const notification = document.createElement('div');
+            notification.className = 'p-4 bg-green-100 border-2 border-green-500 text-green-800 rounded-lg mb-3 shadow-lg';
+            notification.style.cssText = 'position: sticky; top: 0; z-index: 1000; animation: slideIn 0.3s ease-out;';
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">✅</span>
+                    <div class="flex-1">
+                        <div class="font-bold text-lg">Stage Complete!</div>
+                        <div class="text-sm mt-1">You've completed all objectives for this stage.</div>
+                        ${currentStage.reward?.clue ? `<div class="text-sm mt-2 italic bg-green-50 p-2 rounded border-l-4 border-green-600">"${currentStage.reward.clue}"</div>` : ''}
+                        ${currentStage.reward?.xp ? `<div class="text-xs mt-2 font-semibold">+${currentStage.reward.xp} XP</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            // Insert at the beginning so it's visible at the top
+            dom.chatContainer.insertBefore(notification, dom.chatContainer.firstChild);
+            // Scroll to top to show the notification
+            dom.chatContainer.scrollTop = 0;
+
+            debugLog('✅ Stage completion notification displayed');
+        }
+
+        // Check and show hints if player is stuck
+        let shownHints = new Set();
+
+        function checkAndShowHints() {
+            if (!currentStage || !currentStage.objectives) return;
+
+            // Show hint after 5 messages if no progress on required objectives
+            if (messageCount >= 5) {
+                currentStage.objectives.forEach(objective => {
+                    if (objective.required && !objectivesCompleted[objective.id]) {
+                        // Show first hint that hasn't been shown yet
+                        const hintKey = `${currentStage.id}-${objective.id}`;
+                        if (!shownHints.has(hintKey) && objective.hints && objective.hints.length > 0) {
+                            showHint(objective.hints[0], objective.description);
+                            shownHints.add(hintKey);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Display hint to user
+        function showHint(hintText, objectiveDescription) {
+            const hintEl = document.createElement('div');
+            hintEl.className = 'p-3 bg-yellow-50 border-2 border-yellow-400 text-yellow-900 rounded-lg mb-3 shadow';
+            hintEl.style.cssText = 'position: sticky; top: 0; z-index: 1000; transition: opacity 0.3s ease-out;';
+            hintEl.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="text-2xl">💡</span>
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm">Hint</div>
+                        ${objectiveDescription ? `<div class="text-xs text-yellow-700 mt-1">Objective: ${objectiveDescription}</div>` : ''}
+                        <div class="text-sm mt-2">${hintText}</div>
+                    </div>
+                </div>
+            `;
+
+            // Insert at the beginning so it's visible at the top
+            dom.chatContainer.insertBefore(hintEl, dom.chatContainer.firstChild);
+            // Scroll to top to show the hint
+            dom.chatContainer.scrollTop = 0;
+
+            debugLog(`💡 Hint shown: ${hintText}`);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                hintEl.style.opacity = '0';
+                setTimeout(() => {
+                    hintEl.remove();
+                    // Scroll back to bottom to show latest messages
+                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+                }, 300); // Wait for fade out animation
+            }, 5000);
         }
 
         const dom = {
@@ -1781,6 +1875,43 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             }
         }
 
+        // Quest card expand/minimize functions
+        function populateQuestCard() {
+            if (!currentQuest || !currentStage) return;
+
+            // Get character/scene image - use stageImage or hide
+            const characterImg = document.getElementById('character-image');
+            if (currentStage.stageImage) {
+                characterImg.src = currentStage.stageImage;
+                characterImg.style.display = 'block';
+            } else {
+                characterImg.style.display = 'none';
+            }
+
+            // Populate quest info
+            document.getElementById('quest-title').textContent = currentQuest.title || 'Quest';
+            document.getElementById('character-name-display').textContent = currentStage.characterName || '';
+
+            // Get objective text
+            const objectiveText = currentStage.objective || currentQuest.objective || 'Complete the conversation';
+            document.getElementById('quest-objective-display').textContent = objectiveText;
+            document.getElementById('quest-objective-mini').textContent = objectiveText;
+
+            debugLog('📋 Quest card populated');
+        }
+
+        function minimizeQuestCard() {
+            document.getElementById('quest-card-expanded').classList.add('hidden');
+            document.getElementById('quest-card-minimized').classList.remove('hidden');
+            debugLog('⬆️ Quest card minimized');
+        }
+
+        function expandQuestCard() {
+            document.getElementById('quest-card-expanded').classList.remove('hidden');
+            document.getElementById('quest-card-minimized').classList.add('hidden');
+            debugLog('⬇️ Quest card expanded');
+        }
+
         function startStage() {
             if (!currentStage) return;
             messages = [];
@@ -1794,6 +1925,15 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             updateObjectivesUI();
 
             ensureStageImageForCurrentStage();
+
+            // Populate and show quest card
+            populateQuestCard();
+            expandQuestCard();
+
+            // Auto-minimize after 5 seconds
+            setTimeout(() => {
+                minimizeQuestCard();
+            }, 5000);
 
             addMessage(currentStage.initialMessage, 'ai');
             dom.vignetteModal.classList.add('hidden');
@@ -2015,9 +2155,110 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             container.insertBefore(wrapper, container.firstChild);
         }
 
+        // Detect if text is primarily English
+        async function detectEnglish(text) {
+            // Simple heuristic: check for common English words that don't exist in Spanish
+            const englishIndicators = [
+                'the', 'is', 'are', 'was', 'were', 'have', 'has', 'had',
+                'what', 'where', 'when', 'who', 'why', 'how',
+                'can', 'could', 'would', 'should', 'will',
+                'do', 'does', 'did', 'this', 'that', 'these', 'those'
+            ];
+
+            const words = text.toLowerCase().split(/\s+/);
+            const englishWordCount = words.filter(word =>
+                englishIndicators.some(indicator => word.includes(indicator))
+            ).length;
+
+            // If more than 30% of words are English indicators, consider it English
+            return englishWordCount / words.length > 0.3;
+        }
+
+        // Translate English text to Spanish
+        async function translateToSpanish(text) {
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        sourceLang: 'en',
+                        targetLang: 'es'
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error("Translation API Error");
+                    return "No se pudo traducir";
+                }
+
+                const result = await response.json();
+                return result.translatedText;
+            } catch (error) {
+                console.error("Translation Error:", error);
+                return "No se pudo traducir";
+            }
+        }
+
+        // Show language correction prompt
+        function showLanguageCorrection(englishText, spanishText) {
+            const correctionEl = document.createElement('div');
+            correctionEl.className = 'p-4 bg-blue-50 border-2 border-blue-400 text-blue-900 rounded-lg mb-3 shadow-lg';
+            correctionEl.style.cssText = 'position: sticky; top: 0; z-index: 1000; transition: opacity 0.3s ease-out;';
+            correctionEl.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="text-3xl">🗣️</span>
+                    <div class="flex-1">
+                        <div class="font-bold text-lg mb-2">Try saying it in Spanish!</div>
+                        <div class="text-sm mb-2">
+                            <span class="text-blue-700">You said:</span> <span class="italic">"${englishText}"</span>
+                        </div>
+                        <div class="text-sm mb-3">
+                            <span class="text-blue-700">In Spanish:</span> <span class="font-semibold">"${spanishText}"</span>
+                        </div>
+                        <div class="text-xs bg-blue-100 p-2 rounded">
+                            💡 Try typing the Spanish version to practice!
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insert at the beginning so it's visible at the top
+            dom.chatContainer.insertBefore(correctionEl, dom.chatContainer.firstChild);
+            // Scroll to top to show the correction
+            dom.chatContainer.scrollTop = 0;
+
+            debugLog(`🗣️ Language correction shown: ${englishText} → ${spanishText}`);
+
+            // Auto-dismiss after 8 seconds (longer than hints since there's more to read)
+            setTimeout(() => {
+                correctionEl.style.opacity = '0';
+                setTimeout(() => {
+                    correctionEl.remove();
+                    // Scroll back to bottom to show latest messages
+                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+                }, 300);
+            }, 8000);
+        }
+
         async function handleSendMessage() {
             const userInput = dom.chatInput.value.trim();
             if (!userInput) return;
+
+            // Check if user is typing in English
+            const isEnglish = await detectEnglish(userInput);
+            if (isEnglish) {
+                // Get Spanish translation
+                const spanishTranslation = await translateToSpanish(userInput);
+
+                // Show correction prompt
+                showLanguageCorrection(userInput, spanishTranslation);
+
+                // Clear input but don't add to messages
+                dom.chatInput.value = '';
+                return; // Don't send the English message
+            }
+
             addMessage(userInput, 'user');
             dom.chatInput.value = '';
 
@@ -2027,6 +2268,9 @@ Then add a brief explanation in simple Spanish about what was wrong. Keep it con
             // Check for objective completion in user message ONLY
             // (User must demonstrate knowledge, not just trigger from NPC mentioning keywords)
             checkObjectiveCompletion(userInput);
+
+            // Check if hints should be shown
+            checkAndShowHints();
 
             const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
             addMessage(response, 'ai');

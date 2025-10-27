@@ -53,7 +53,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Mateo, a professional but worried hotel concierge at Hotel Colonial in Puerto Esperanza. A famous musician named Carlos has lost his guitar and he's staying at your hotel. You're very concerned about the hotel's reputation. Speak naturally and show your worry. Answer questions about Carlos and mention that he was last seen at the plaza.",
 
-          initialMessage: "Good morning. How can I help you today?",
+          initialMessage: "Buenos días. ¿En qué puedo ayudarle hoy?",
 
           // Stage objectives for tracking
           objectives: [
@@ -99,7 +99,7 @@ const QUEST_DATABASE = {
 
           completionCriteria: {
             minMessages: 3,
-            objectivesRequired: 1, // At least 1 of 2 objectives
+            objectivesRequired: 2, // Must complete both objectives
             timeLimit: null
           },
 
@@ -139,7 +139,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Elena, a chatty and knowledgeable street vendor in La Plaza Central of Puerto Esperanza. You sell handmade crafts and know everyone in the area. You saw Carlos yesterday with another musician named Javier - they seemed to be arguing. You're friendly and love to talk, but customers need to ask you specific questions. Speak naturally with some local coastal expressions.",
 
-          initialMessage: "¡Hola! ¿Buscas algo bonito? I have beautiful handmade crafts!",
+          initialMessage: "¡Hola! ¿Buscas algo bonito? ¡Tengo artesanías hermosas!",
 
           objectives: [
             {
@@ -218,7 +218,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Roberto, a passionate chef at the hotel restaurant. You remember Carlos came for breakfast yesterday morning and seemed nervous. He mentioned having a big performance tonight and something about a rival musician. You're busy but willing to help if asked nicely. Speak with pride about your food.",
 
-          initialMessage: "Bienvenido! Welcome to our restaurant. Are you here for lunch?",
+          initialMessage: "¡Bienvenido! ¿Vienes para el almuerzo?",
 
           objectives: [
             {
@@ -600,7 +600,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are María, a kind fruit vendor at the market in Puerto Esperanza. You need help counting and organizing fruits for the big market day tomorrow. You teach the player fruit names and numbers in Spanish naturally through conversation. Be patient and encouraging. At your stand you have: 8 red apples (manzanas rojas), 12 oranges (naranjas), 6 bananas (plátanos), 15 strawberries (fresas), and 3 watermelons (sandías). When they need to count specific fruits, refer to the image showing your fruit stand above with the exact inventory.",
 
-          initialMessage: "¡Buenos días! I need help preparing for tomorrow's big market. Can you help me? Look at my fruit stand above - I need to count everything!",
+          initialMessage: "¡Buenos días! Necesito ayuda preparando para el gran mercado de mañana. ¿Puedes ayudarme? Mira mi puesto de frutas arriba - ¡necesito contar todo!",
 
           objectives: [
             {
@@ -679,7 +679,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are María. Now you're teaching the player about colors while organizing a colorful fruit display. Be enthusiastic about making the stand look beautiful. Use colors and adjectives naturally. Point out specific fruits in the colorful display above: red section (rojo) has apples and strawberries, yellow section (amarillo) has bananas and lemons, orange section (naranja) has oranges, green section (verde) has watermelon, purple section (morado) has grapes, and pink section (rosa) has peaches.",
 
-          initialMessage: "Perfect! Now let's make the stand beautiful with colors. Look at the colorful display above! Which fruits are red?",
+          initialMessage: "¡Perfecto! Ahora vamos a hacer el puesto hermoso con colores. ¡Mira la exhibición colorida arriba! ¿Cuáles frutas son rojas?",
 
           objectives: [
             {
@@ -1049,7 +1049,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Sofia, an enthusiastic barista at La Café del Puerto in Puerto Esperanza. You love your job and help customers understand the menu. You offer coffee (café), latte (café con leche), cappuccino, juice (jugo), and tea (té) in small (pequeño), medium (mediano), and large (grande) sizes. Prices range from 25 to 60 pesos. Be patient and encouraging with Spanish learners.",
 
-          initialMessage: "¡Bienvenido! Welcome to La Café del Puerto! What can I get you today?",
+          initialMessage: "¡Bienvenido a La Café del Puerto! ¿Qué te puedo ofrecer hoy?",
 
           objectives: [
             {
@@ -1124,7 +1124,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Sofia. The customer has ordered and now needs to pay. State the price clearly (between 25-60 pesos depending on their order). Help them with numbers if needed. Accept payment and give change if necessary. Be encouraging about their Spanish.",
 
-          initialMessage: "Perfecto! Your order is ready. That will be 45 pesos, por favor.",
+          initialMessage: "¡Perfecto! Tu orden está lista. Son 45 pesos, por favor.",
 
           objectives: [
             {
@@ -1199,7 +1199,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Miguel, a friendly regular at La Café del Puerto. You work nearby and come here every day. You're curious about newcomers and love to make small talk about Puerto Esperanza. Ask about where they're from, why they're here, and recommend places to visit. Keep it casual and friendly.",
 
-          initialMessage: "¡Hola! I haven't seen you here before. Are you new to Puerto Esperanza?",
+          initialMessage: "¡Hola! No te he visto aquí antes. ¿Eres nuevo en Puerto Esperanza?",
 
           objectives: [
             {
@@ -1297,7 +1297,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Andrés, an experienced and enthusiastic surf instructor at La Playa in Puerto Esperanza. You've been surfing for 15 years and love teaching beginners. Introduce yourself and show the equipment: surfboard (tabla de surf), wetsuit (traje de neopreno), wax (cera), leash (correa). Be encouraging and safety-focused.",
 
-          initialMessage: "¡Hola amigo! Welcome to your first surf lesson. Ready to catch some waves?",
+          initialMessage: "¡Hola amigo! Bienvenido a tu primera lección de surf. ¿Listo para atrapar algunas olas?",
 
           objectives: [
             {
@@ -1372,7 +1372,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Andrés giving a safety briefing. Use clear imperatives (commands): watch out for rocks (cuidado con las rocas), stay close to shore (quédate cerca de la orilla), raise your hand if you need help (levanta la mano si necesitas ayuda), don't surf alone (no surfees solo). Make sure the student understands and can repeat key safety rules.",
 
-          initialMessage: "Okay, before we go in the water, let's talk about safety. It's very important. Listen carefully!",
+          initialMessage: "Bueno, antes de entrar al agua, vamos a hablar de la seguridad. Es muy importante. ¡Escucha con atención!",
 
           objectives: [
             {
@@ -1447,7 +1447,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Andrés coaching during practice. Give clear commands: bend your knees (dobla las rodillas), keep your arms out (mantén los brazos extendidos), look forward (mira adelante), lie on your belly (acuéstate boca abajo), jump up (salta). Encourage the student and correct their form positively.",
 
-          initialMessage: "¡Perfecto! Now let's practice on the sand first. Get on the board and lie down.",
+          initialMessage: "¡Perfecto! Ahora vamos a practicar en la arena primero. Súbete a la tabla y acuéstate.",
 
           objectives: [
             {
@@ -1522,7 +1522,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Andrés wrapping up the lesson. Ask the student how they felt, what they learned, and if they want to come back. Encourage them to use past tense (fue divertido, aprendí, me gustó). Be proud of their progress and invite them to future sessions.",
 
-          initialMessage: "¡Excelente trabajo! How was your first surf lesson? Tell me about it!",
+          initialMessage: "¡Excelente trabajo! ¿Cómo estuvo tu primera lección de surf? ¡Cuéntame!",
 
           objectives: [
             {
@@ -1695,7 +1695,7 @@ const QUEST_DATABASE = {
 
           systemPrompt: "You are Don Pedro showing fishing equipment: fishing rod (caña de pescar), hook (anzuelo), bait (carnada), net (red), bucket (cubeta). Then discuss weather: it's sunny (hace sol), the sea is calm (el mar está tranquilo), perfect conditions (condiciones perfectas). Teach weather expressions naturally.",
 
-          initialMessage: "Mira, here's the equipment we'll use. First, la caña de pescar - the fishing rod.",
+          initialMessage: "Mira, aquí está el equipo que vamos a usar. Primero, la caña de pescar.",
 
           objectives: [
             {
@@ -1895,6 +1895,948 @@ const QUEST_DATABASE = {
             achievements: ["master_angler", "quest_complete_fishing"],
             unlockedContent: ["escuela-musica"],
             items: ["fresh_robalo", "fishing_wisdom"]
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    // ========================================
+    // DAILY QUEST TEMPLATE: LA FARMACIA
+    // Quick 2-stage quest (10-15 min total)
+    // Adaptive difficulty, standalone scenario
+    // ========================================
+    "pharmacy-visit": {
+      id: "pharmacy-visit",
+      title: "La Farmacia",
+      objective: "Visit the local pharmacy to buy medicine for a headache and learn about health vocabulary.",
+
+      // Map Location (can be placed in any campaign)
+      mapLocation: {
+        id: "farmacia-central",
+        name: "Farmacia Central",
+        icon: "💊"
+      },
+
+      // Metadata
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 12, // minutes (shorter for daily practice)
+      category: "daily-life",
+      tags: ["health", "pharmacy", "medicine", "daily-routine", "adaptive"],
+
+      // Quest type classification
+      questType: "daily", // New field: "story" | "daily" | "mini-game"
+
+      // Media
+      thumbnailImage: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop",
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Ana, la Farmacéutica",
+          characterGender: "female",
+
+          stageImageGenerator: "pharmacy_stage1_counter",
+
+          systemPrompt: "You are Ana, a friendly and helpful pharmacist at Farmacia Central. You're patient with customers and want to make sure they understand how to take their medicine. When someone describes symptoms, you recommend appropriate over-the-counter medicine and explain the dosage clearly. Use health vocabulary naturally: dolor (pain), cabeza (head), pastilla (pill), medicina (medicine), tomar (to take). Be warm and professional.",
+
+          initialMessage: "Buenos días. ¿En qué puedo ayudarle hoy?",
+
+          // Learning objectives with grammar integration point
+          objectives: [
+            {
+              id: "describe_symptoms",
+              type: "extract_info",
+              description: "Describe your headache symptoms",
+              keywords: ["dolor", "cabeza", "duele", "me duele"],
+              required: true,
+              hints: [
+                "Try saying 'Me duele la cabeza' (My head hurts)",
+                "Or ask '¿Tiene algo para el dolor de cabeza?' (Do you have something for a headache?)"
+              ],
+              // NEW: Grammar integration point
+              grammarTip: {
+                rule: "doler-verb",
+                explanation: "The verb 'doler' (to hurt) works like 'gustar': Me duele = It hurts me. Use 'la cabeza' (the head) after 'duele'.",
+                example: "Me duele la cabeza = My head hurts"
+              }
+            },
+            {
+              id: "ask_for_medicine",
+              type: "extract_info",
+              description: "Ask for or discuss medicine",
+              keywords: ["medicina", "pastilla", "ibuprofeno", "aspirina", "paracetamol"],
+              required: true,
+              hints: [
+                "Ask '¿Qué medicina recomienda?' (What medicine do you recommend?)",
+                "Say 'Necesito algo para el dolor' (I need something for pain)"
+              ]
+            },
+            {
+              id: "understand_dosage",
+              type: "comprehension",
+              description: "Understand the dosage instructions",
+              keywords: ["tomar", "veces", "día", "horas", "cada"],
+              required: false, // Optional objective
+              hints: [
+                "Ask '¿Cómo debo tomarla?' (How should I take it?)",
+                "Ask '¿Cuántas veces al día?' (How many times per day?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2, // Must complete 2 of 3 objectives
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Ana recommends taking ibuprofen twice a day with food.",
+            xp: 30
+          },
+
+          nextStages: ["2"]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Ana, la Farmacéutica",
+          characterGender: "female",
+
+          stageImageGenerator: "pharmacy_stage2_payment",
+
+          systemPrompt: "You are Ana, continuing to help the customer. Now you're at the payment stage. State the price clearly (between 45-85 pesos). If they ask about how to take the medicine, explain: 'Tome una pastilla cada 8 horas con comida' (Take one pill every 8 hours with food). Be friendly and wish them well: '¡Que se mejore!' (Get well soon!)",
+
+          initialMessage: "Perfecto. Son 65 pesos, por favor. ¿Necesita saber cómo tomarlas?",
+
+          objectives: [
+            {
+              id: "understand_price",
+              type: "comprehension",
+              description: "Understand and confirm the price",
+              keywords: ["pesos", "precio", "cuesta", "65", "sesenta"],
+              required: true,
+              hints: [
+                "Ask '¿Cuánto cuesta?' (How much does it cost?)",
+                "Confirm 'Son 65 pesos, ¿verdad?' (It's 65 pesos, right?)"
+              ],
+              grammarTip: {
+                rule: "numbers-60-100",
+                explanation: "Numbers 60-100: sesenta (60), setenta (70), ochenta (80), noventa (90), cien (100). Add numbers 1-9: sesenta y cinco (65)",
+                example: "65 = sesenta y cinco"
+              }
+            },
+            {
+              id: "payment_interaction",
+              type: "social",
+              description: "Complete the payment transaction",
+              keywords: ["aquí", "tengo", "tarjeta", "efectivo", "gracias"],
+              required: true,
+              hints: [
+                "Say 'Aquí tiene' (Here you go)",
+                "Or '¿Aceptan tarjeta?' (Do you accept card?)"
+              ]
+            },
+            {
+              id: "usage_instructions",
+              type: "comprehension",
+              description: "Understand how to take the medicine",
+              keywords: ["tomar", "horas", "comida", "cada", "cómo"],
+              required: false,
+              hints: [
+                "Ask '¿Cómo debo tomar las pastillas?' (How should I take the pills?)",
+                "Ask '¿Cada cuántas horas?' (Every how many hours?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "You successfully bought medicine and learned health vocabulary!",
+            xp: 30
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    // ========================================
+    // DAILY QUEST: TAXI RIDE
+    // Quick 2-stage quest (10-15 min total)
+    // Adaptive difficulty, standalone scenario
+    // ========================================
+    "taxi-ride": {
+      id: "taxi-ride",
+      title: "El Taxi",
+      objective: "Take a taxi ride to your destination and practice transportation vocabulary.",
+
+      // Map Location (can be placed in any campaign)
+      mapLocation: {
+        id: "taxi-stand",
+        name: "Parada de Taxis",
+        icon: "🚕"
+      },
+
+      // Metadata
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 12, // minutes (shorter for daily practice)
+      category: "daily-life",
+      tags: ["transportation", "taxi", "directions", "travel", "adaptive"],
+
+      // Quest type classification
+      questType: "daily", // "story" | "daily" | "mini-game"
+
+      // Media
+      thumbnailImage: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=300&fit=crop",
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Miguel, el Taxista",
+          characterGender: "male",
+
+          stageImageGenerator: "taxi_stage1_street",
+
+          systemPrompt: "You are Miguel, a friendly taxi driver in Puerto Esperanza. You're waiting for passengers and ready to take them wherever they need to go. You're conversational and ask follow-up questions about their destination. Use transportation vocabulary naturally: taxi, destino (destination), llevar (to take), ir (to go), dirección (address). Ask clarifying questions if the destination isn't clear. Be warm and helpful.",
+
+          initialMessage: "¡Buenos días! ¿A dónde quiere ir?",
+
+          // Learning objectives with grammar integration point
+          objectives: [
+            {
+              id: "state_destination",
+              type: "extract_info",
+              description: "Tell the driver where you want to go",
+              keywords: ["hotel", "playa", "centro", "mercado", "ir", "llevar", "quiero"],
+              required: true,
+              hints: [
+                "Try saying 'Quiero ir al hotel' (I want to go to the hotel)",
+                "Or 'Lléveme al centro, por favor' (Take me downtown, please)"
+              ],
+              grammarTip: {
+                rule: "ir-a-location",
+                explanation: "Use 'ir a' (to go to) + location. Add 'al' for masculine places (al hotel, al mercado) and 'a la' for feminine places (a la playa, a la farmacia).",
+                example: "Quiero ir al hotel = I want to go to the hotel"
+              }
+            },
+            {
+              id: "confirm_destination",
+              type: "social",
+              description: "Confirm or provide details about your destination",
+              keywords: ["sí", "correcto", "cerca", "lejos", "conoce", "sabe"],
+              required: true,
+              hints: [
+                "Say 'Sí, correcto' (Yes, correct) when he confirms",
+                "Ask '¿Está lejos?' (Is it far?)"
+              ]
+            },
+            {
+              id: "small_talk",
+              type: "social",
+              description: "Make small talk during the ride",
+              keywords: ["gracias", "tiempo", "tráfico", "rápido", "día", "cómo"],
+              required: false, // Optional objective
+              hints: [
+                "Say '¿Cómo está el tráfico hoy?' (How's the traffic today?)",
+                "Ask '¿Cuánto tiempo tarda?' (How long does it take?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2, // Must complete 2 of 3 objectives
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Miguel takes you safely to your destination through the city streets.",
+            xp: 30
+          },
+
+          nextStages: ["2"]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Miguel, el Taxista",
+          characterGender: "male",
+
+          stageImageGenerator: "taxi_stage2_arrival",
+
+          systemPrompt: "You are Miguel, arriving at the passenger's destination. State the fare clearly (between 80-120 pesos). Be conversational about the ride - mention if there was traffic or if it was a quick trip. If they ask about payment methods, say you accept cash ('efectivo') or card ('tarjeta'). Thank them and wish them well: '¡Que tenga un buen día!' (Have a good day!)",
+
+          initialMessage: "Ya llegamos. Son 95 pesos, por favor.",
+
+          objectives: [
+            {
+              id: "understand_fare",
+              type: "comprehension",
+              description: "Understand and acknowledge the fare",
+              keywords: ["pesos", "precio", "cuesta", "95", "noventa"],
+              required: true,
+              hints: [
+                "Ask '¿Cuánto es?' (How much is it?)",
+                "Say 'Perfecto, aquí tiene' (Perfect, here you go)"
+              ],
+              grammarTip: {
+                rule: "numbers-80-120",
+                explanation: "Numbers: ochenta (80), noventa (90), cien (100), ciento diez (110), ciento veinte (120). Combine: noventa y cinco (95).",
+                example: "95 = noventa y cinco pesos"
+              }
+            },
+            {
+              id: "complete_payment",
+              type: "social",
+              description: "Pay and complete the transaction",
+              keywords: ["aquí", "tengo", "tarjeta", "efectivo", "gracias", "cambio"],
+              required: true,
+              hints: [
+                "Say 'Aquí tiene' (Here you go)",
+                "Ask '¿Acepta tarjeta?' (Do you accept card?)",
+                "Say 'Quédese con el cambio' (Keep the change)"
+              ]
+            },
+            {
+              id: "thank_driver",
+              type: "social",
+              description: "Thank the driver and say goodbye",
+              keywords: ["gracias", "adiós", "hasta", "luego", "buen", "día"],
+              required: false,
+              hints: [
+                "Say 'Muchas gracias' (Thank you very much)",
+                "Say '¡Hasta luego!' (See you later!)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "You successfully completed your taxi ride and learned transportation vocabulary!",
+            xp: 30
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    // ========================================
+    // DAILY QUEST: LIBRARY VISIT
+    // Quick 2-stage quest (10-15 min total)
+    // Adaptive difficulty, standalone scenario
+    // ========================================
+    "library-visit": {
+      id: "library-visit",
+      title: "La Biblioteca",
+      objective: "Visit the local library to find a book and practice asking for information.",
+
+      // Map Location (can be placed in any campaign)
+      mapLocation: {
+        id: "biblioteca-municipal",
+        name: "Biblioteca Municipal",
+        icon: "📚"
+      },
+
+      // Metadata
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 12, // minutes (shorter for daily practice)
+      category: "daily-life",
+      tags: ["library", "books", "reading", "culture", "adaptive"],
+
+      // Quest type classification
+      questType: "daily", // "story" | "daily" | "mini-game"
+
+      // Media
+      thumbnailImage: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400&h=300&fit=crop",
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Rosa, la Bibliotecaria",
+          characterGender: "female",
+
+          stageImageGenerator: "library_stage1_desk",
+
+          systemPrompt: "You are Rosa, a helpful librarian at the Municipal Library. You love helping people find books and enjoy recommending good reads. You know the library well and can direct people to different sections. Use library vocabulary naturally: libro (book), buscar (to look for), encontrar (to find), sección (section), autor (author), título (title). Ask what kind of book they're looking for and offer suggestions. Be warm and encouraging about reading.",
+
+          initialMessage: "Buenas tardes. Bienvenido a la biblioteca. ¿En qué puedo ayudarle?",
+
+          // Learning objectives with grammar integration point
+          objectives: [
+            {
+              id: "explain_what_looking_for",
+              type: "extract_info",
+              description: "Explain what kind of book you're looking for",
+              keywords: ["libro", "busco", "necesito", "quiero", "historia", "novela", "ficción"],
+              required: true,
+              hints: [
+                "Try saying 'Busco un libro de historia' (I'm looking for a history book)",
+                "Or 'Necesito un libro sobre México' (I need a book about Mexico)"
+              ],
+              grammarTip: {
+                rule: "buscar-necesitar",
+                explanation: "Use 'buscar' (to look for) or 'necesitar' (to need) + 'un libro de/sobre' (a book of/about). 'De' is for general topics, 'sobre' is for specific subjects.",
+                example: "Busco un libro de aventuras = I'm looking for an adventure book"
+              }
+            },
+            {
+              id: "ask_about_location",
+              type: "extract_info",
+              description: "Ask where to find the book or section",
+              keywords: ["dónde", "está", "sección", "encontrar", "buscar"],
+              required: true,
+              hints: [
+                "Ask '¿Dónde está la sección de historia?' (Where is the history section?)",
+                "Say '¿Dónde puedo encontrar ese libro?' (Where can I find that book?)"
+              ]
+            },
+            {
+              id: "library_card_question",
+              type: "social",
+              description: "Ask about getting a library card or borrowing",
+              keywords: ["tarjeta", "préstamo", "llevar", "sacar", "cuánto tiempo", "días"],
+              required: false, // Optional objective
+              hints: [
+                "Ask '¿Necesito una tarjeta?' (Do I need a card?)",
+                "Say '¿Puedo sacar libros?' (Can I take out books?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2, // Must complete 2 of 3 objectives
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Rosa helps you find the perfect book in the library.",
+            xp: 30
+          },
+
+          nextStages: ["2"]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Rosa, la Bibliotecaria",
+          characterGender: "female",
+
+          stageImageGenerator: "library_stage2_checkout",
+
+          systemPrompt: "You are Rosa, helping the visitor check out a book. Explain that they can borrow books for 14 days ('dos semanas' or 'catorce días'). If they ask about a library card, explain they need one and it's free. Be encouraging about their choice of book and wish them happy reading: '¡Que disfrute la lectura!' (Enjoy the reading!). Mention they can renew online if needed.",
+
+          initialMessage: "Perfecto, encontré el libro. ¿Quiere llevarlo prestado?",
+
+          objectives: [
+            {
+              id: "confirm_checkout",
+              type: "social",
+              description: "Confirm you want to borrow the book",
+              keywords: ["sí", "quiero", "llevar", "prestado", "sacar"],
+              required: true,
+              hints: [
+                "Say 'Sí, por favor' (Yes, please)",
+                "Say 'Quiero llevarlo' (I want to take it)"
+              ]
+            },
+            {
+              id: "understand_loan_period",
+              type: "comprehension",
+              description: "Understand how long you can keep the book",
+              keywords: ["días", "semanas", "14", "catorce", "dos", "devolver", "tiempo"],
+              required: true,
+              hints: [
+                "Ask '¿Por cuánto tiempo?' (For how long?)",
+                "Ask '¿Cuándo debo devolverlo?' (When should I return it?)"
+              ],
+              grammarTip: {
+                rule: "time-duration",
+                explanation: "Use 'por' + time period for duration: por dos semanas (for two weeks), por tres días (for three days). 'Devolver' means to return/give back.",
+                example: "Puede llevarlo por dos semanas = You can take it for two weeks"
+              }
+            },
+            {
+              id: "express_gratitude",
+              type: "social",
+              description: "Thank the librarian for their help",
+              keywords: ["gracias", "muchas", "amable", "ayuda", "hasta", "adiós"],
+              required: false,
+              hints: [
+                "Say 'Muchas gracias por su ayuda' (Thank you very much for your help)",
+                "Say '¡Hasta luego!' (See you later!)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "You successfully borrowed a book and learned library vocabulary!",
+            xp: 30
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    // ========================================
+    // DAILY QUEST: GROCERY SHOPPING
+    // Quick 2-stage quest (10-15 min total)
+    // Adaptive difficulty, standalone scenario
+    // ========================================
+    "grocery-shopping": {
+      id: "grocery-shopping",
+      title: "El Supermercado",
+      objective: "Go grocery shopping and practice food vocabulary and prices.",
+
+      // Map Location (can be placed in any campaign)
+      mapLocation: {
+        id: "supermercado-lopez",
+        name: "Supermercado López",
+        icon: "🛒"
+      },
+
+      // Metadata
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 12, // minutes (shorter for daily practice)
+      category: "daily-life",
+      tags: ["shopping", "food", "grocery", "prices", "adaptive"],
+
+      // Quest type classification
+      questType: "daily", // "story" | "daily" | "mini-game"
+
+      // Media
+      thumbnailImage: "https://images.unsplash.com/photo-1534723452862-4c874018d66d?w=400&h=300&fit=crop",
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Juan, el Empleado",
+          characterGender: "male",
+
+          stageImageGenerator: "grocery_stage1_aisle",
+
+          systemPrompt: "You are Juan, a friendly grocery store employee at Supermercado López. You help customers find items and answer questions about products and prices. Use grocery vocabulary naturally: frutas (fruits), verduras (vegetables), pan (bread), leche (milk), huevos (eggs), carne (meat), pescado (fish), dónde está (where is). Be helpful in directing customers to the right sections of the store. Be friendly and patient.",
+
+          initialMessage: "Buenos días. ¿Busca algo en particular?",
+
+          // Learning objectives with grammar integration point
+          objectives: [
+            {
+              id: "ask_for_items",
+              type: "extract_info",
+              description: "Ask for or mention specific food items you need",
+              keywords: ["pan", "leche", "huevos", "frutas", "verduras", "queso", "carne", "busco", "necesito"],
+              required: true,
+              hints: [
+                "Try saying 'Busco pan fresco' (I'm looking for fresh bread)",
+                "Ask '¿Dónde están las frutas?' (Where are the fruits?)"
+              ],
+              grammarTip: {
+                rule: "food-nouns",
+                explanation: "Common food nouns: el pan (bread), la leche (milk), los huevos (eggs), las frutas (fruits), las verduras (vegetables). Notice masculine/feminine and singular/plural.",
+                example: "Necesito pan y leche = I need bread and milk"
+              }
+            },
+            {
+              id: "ask_location_items",
+              type: "extract_info",
+              description: "Ask where to find items in the store",
+              keywords: ["dónde", "está", "están", "sección", "pasillo", "encontrar"],
+              required: true,
+              hints: [
+                "Ask '¿Dónde está el pan?' (Where is the bread?)",
+                "Say '¿En qué pasillo están las frutas?' (In which aisle are the fruits?)"
+              ]
+            },
+            {
+              id: "ask_about_freshness",
+              type: "social",
+              description: "Ask about freshness or quality of items",
+              keywords: ["fresco", "bueno", "calidad", "hoy", "cuándo", "recién"],
+              required: false, // Optional objective
+              hints: [
+                "Ask '¿El pan es fresco?' (Is the bread fresh?)",
+                "Say '¿Tienen frutas frescas hoy?' (Do you have fresh fruit today?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2, // Must complete 2 of 3 objectives
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Juan helps you find all the items on your shopping list.",
+            xp: 30
+          },
+
+          nextStages: ["2"]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Carmen, la Cajera",
+          characterGender: "female",
+
+          stageImageGenerator: "grocery_stage2_checkout",
+
+          systemPrompt: "You are Carmen, a friendly cashier at Supermercado López. You're ringing up the customer's groceries. State the total clearly (between 150-250 pesos). Ask if they have a loyalty card ('tarjeta de cliente'). Ask if they want a bag ('¿Necesita bolsa?'). Be friendly and efficient. Thank them: 'Gracias por su compra. ¡Que tenga buen día!' (Thanks for your purchase. Have a good day!)",
+
+          initialMessage: "Buenas tardes. Voy a escanear sus productos... Son 185 pesos en total.",
+
+          objectives: [
+            {
+              id: "understand_total",
+              type: "comprehension",
+              description: "Understand the total cost",
+              keywords: ["pesos", "total", "185", "ciento", "ochenta"],
+              required: true,
+              hints: [
+                "Ask '¿Cuánto es en total?' (How much is the total?)",
+                "Say 'Perfecto' to acknowledge"
+              ],
+              grammarTip: {
+                rule: "numbers-100-300",
+                explanation: "Numbers over 100: ciento ochenta y cinco (185), doscientos (200), doscientos cincuenta (250). Use 'ciento' (not 'cien') when followed by other numbers.",
+                example: "185 = ciento ochenta y cinco pesos"
+              }
+            },
+            {
+              id: "payment_method",
+              type: "social",
+              description: "Indicate your payment method",
+              keywords: ["efectivo", "tarjeta", "aquí", "tengo", "pago"],
+              required: true,
+              hints: [
+                "Say '¿Acepta tarjeta?' (Do you accept card?)",
+                "Say 'Pago con efectivo' (I'll pay with cash)"
+              ]
+            },
+            {
+              id: "bag_question",
+              type: "comprehension",
+              description: "Respond to question about needing a bag",
+              keywords: ["bolsa", "sí", "no", "necesito", "gracias"],
+              required: false,
+              hints: [
+                "Say 'Sí, por favor' (Yes, please)",
+                "Say 'No, gracias. Tengo una bolsa' (No thanks, I have a bag)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "You successfully completed your grocery shopping and learned food vocabulary!",
+            xp: 30
+          },
+
+          nextStages: []
+        }
+      }
+    },
+
+    // ========================================
+    // DAILY QUEST: PHONE CALL
+    // Quick 2-stage quest (10-15 min total)
+    // Adaptive difficulty, standalone scenario
+    // ========================================
+    "phone-call": {
+      id: "phone-call",
+      title: "La Llamada Telefónica",
+      objective: "Make a phone call to schedule a doctor's appointment and practice phone etiquette.",
+
+      // Map Location (can be placed in any campaign)
+      mapLocation: {
+        id: "clinica-salud",
+        name: "Clínica de Salud",
+        icon: "📞"
+      },
+
+      // Metadata
+      difficulty: "beginner",
+      requiredLevel: "A1",
+      estimatedDuration: 12, // minutes (shorter for daily practice)
+      category: "daily-life",
+      tags: ["phone", "appointment", "health", "communication", "adaptive"],
+
+      // Quest type classification
+      questType: "daily", // "story" | "daily" | "mini-game"
+
+      // Media
+      thumbnailImage: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=400&h=300&fit=crop",
+
+      stages: {
+        "1": {
+          id: "1",
+          characterName: "Luisa, la Recepcionista",
+          characterGender: "female",
+
+          stageImageGenerator: "phone_stage1_greeting",
+
+          systemPrompt: "You are Luisa, a professional receptionist at Clínica de Salud. You answer phone calls to schedule appointments. Use phone etiquette vocabulary naturally: ¿diga? / ¿bueno? (hello on phone), ¿en qué puedo ayudarle? (how can I help you?), cita (appointment), horario (schedule), disponible (available). Ask what type of appointment they need and when they'd prefer to come in. Be professional but warm.",
+
+          initialMessage: "Clínica de Salud, buenos días. Habla Luisa. ¿En qué puedo ayudarle?",
+
+          // Learning objectives with grammar integration point
+          objectives: [
+            {
+              id: "state_purpose",
+              type: "extract_info",
+              description: "Explain why you're calling",
+              keywords: ["cita", "consulta", "médico", "doctor", "necesito", "quiero"],
+              required: true,
+              hints: [
+                "Try saying 'Necesito hacer una cita' (I need to make an appointment)",
+                "Say 'Quiero una consulta con el doctor' (I want a consultation with the doctor)"
+              ],
+              grammarTip: {
+                rule: "phone-greetings",
+                explanation: "Phone greetings in Spanish: '¿Diga?' or '¿Bueno?' to answer, 'Habla [name]' (This is [name] speaking). To make requests use 'Necesito' (I need) or 'Quiero' (I want).",
+                example: "Necesito hacer una cita = I need to make an appointment"
+              }
+            },
+            {
+              id: "suggest_time",
+              type: "extract_info",
+              description: "Suggest a preferred day or time",
+              keywords: ["lunes", "martes", "miércoles", "jueves", "viernes", "mañana", "tarde", "hora", "cuándo"],
+              required: true,
+              hints: [
+                "Say 'El martes por la mañana' (Tuesday morning)",
+                "Ask '¿Qué días tienen disponibles?' (What days do you have available?)"
+              ]
+            },
+            {
+              id: "ask_about_insurance",
+              type: "social",
+              description: "Ask about insurance or payment",
+              keywords: ["seguro", "acepta", "costo", "precio", "pagar"],
+              required: false, // Optional objective
+              hints: [
+                "Ask '¿Aceptan seguro médico?' (Do you accept medical insurance?)",
+                "Ask '¿Cuánto cuesta la consulta?' (How much does the consultation cost?)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2, // Must complete 2 of 3 objectives
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "Luisa checks the schedule and finds available appointments.",
+            xp: 30
+          },
+
+          nextStages: ["2"]
+        },
+
+        "2": {
+          id: "2",
+          characterName: "Luisa, la Recepcionista",
+          characterGender: "female",
+
+          stageImageGenerator: "phone_stage2_confirmation",
+
+          systemPrompt: "You are Luisa, confirming the appointment details. Offer a specific time (e.g., 'El martes a las 10 de la mañana' - Tuesday at 10 AM). Ask for their full name ('nombre completo') and phone number to confirm the appointment. End professionally: 'Perfecto. Su cita está confirmada. ¡Que tenga buen día!' (Perfect. Your appointment is confirmed. Have a good day!)",
+
+          initialMessage: "Perfecto. Tengo disponibilidad el martes a las 10 de la mañana. ¿Le viene bien esa hora?",
+
+          objectives: [
+            {
+              id: "confirm_appointment",
+              type: "social",
+              description: "Confirm the proposed appointment time",
+              keywords: ["sí", "perfecto", "bien", "está bien", "de acuerdo"],
+              required: true,
+              hints: [
+                "Say 'Sí, está bien' (Yes, that's fine)",
+                "Say 'Perfecto, el martes a las 10' (Perfect, Tuesday at 10)"
+              ],
+              grammarTip: {
+                rule: "time-expressions",
+                explanation: "Time expressions: 'a las + number' (at + time), 'por la mañana' (in the morning), 'por la tarde' (in the afternoon). Days: lunes, martes, miércoles, jueves, viernes.",
+                example: "El martes a las 10 de la mañana = Tuesday at 10 in the morning"
+              }
+            },
+            {
+              id: "provide_name",
+              type: "extract_info",
+              description: "Provide your name when asked",
+              keywords: ["nombre", "me llamo", "soy", "apellido"],
+              required: true,
+              hints: [
+                "Say 'Me llamo [your name]' (My name is [your name])",
+                "Say 'Mi nombre es [name]' (My name is [name])"
+              ]
+            },
+            {
+              id: "thank_and_goodbye",
+              type: "social",
+              description: "Thank them and say goodbye",
+              keywords: ["gracias", "muchas", "adiós", "hasta", "luego", "buen día"],
+              required: false,
+              hints: [
+                "Say 'Muchas gracias' (Thank you very much)",
+                "Say '¡Hasta luego!' (See you later!)"
+              ]
+            }
+          ],
+
+          difficultyModifiers: {
+            "A1": { aiPatience: "very_high", vocabularyLevel: "basic", responseLength: "short" },
+            "A2": { aiPatience: "high", vocabularyLevel: "basic", responseLength: "short" },
+            "B1": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "B2": { aiPatience: "medium", vocabularyLevel: "intermediate", responseLength: "medium" },
+            "C1": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" },
+            "C2": { aiPatience: "low", vocabularyLevel: "advanced", responseLength: "long" }
+          },
+
+          stageType: "conversation",
+
+          completionCriteria: {
+            minMessages: 3,
+            objectivesRequired: 2,
+            timeLimit: null
+          },
+
+          reward: {
+            clue: "You successfully scheduled an appointment and learned phone etiquette!",
+            xp: 30
           },
 
           nextStages: []

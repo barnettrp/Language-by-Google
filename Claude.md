@@ -363,3 +363,172 @@ async function handleCompletePlacement() {
 ✅ All 180 questions available across 6 CEFR levels
 ✅ Sophisticated placement algorithm working again
 
+---
+
+## Date: 2025-01-24
+
+### Phase 2 Complete: 4 New Daily Quests Created
+
+**Context:**
+Continuing the quest system optimization project documented in QUEST-IMPROVEMENTS.md. Phase 1 (Objective Tracking System) was already complete. Phase 2 goal was to create 3-5 new "quick quests" optimized for 10-15 minute daily practice sessions.
+
+**What Was Done:**
+
+Created **4 new daily quests** using the "La Farmacia" template established in the previous session:
+
+1. **El Taxi (Taxi Ride)** - `taxi-ride`
+   - Stage 1: Hailing taxi & stating destination
+   - Stage 2: Arrival & payment
+   - Grammar: ir a + location, numbers 80-120
+   - Vocabulary: Transportation (taxi, destino, llevar, ir, dirección)
+
+2. **La Biblioteca (Library Visit)** - `library-visit`
+   - Stage 1: Finding a book
+   - Stage 2: Checkout process
+   - Grammar: buscar/necesitar, time duration (por + time)
+   - Vocabulary: Books (libro, buscar, encontrar, sección, préstamo)
+
+3. **El Supermercado (Grocery Shopping)** - `grocery-shopping`
+   - Stage 1: Finding grocery items
+   - Stage 2: Checkout & payment
+   - Grammar: food nouns (masculine/feminine), numbers 100-300
+   - Vocabulary: Food (frutas, verduras, pan, leche, huevos, carne)
+
+4. **La Llamada Telefónica (Phone Call)** - `phone-call`
+   - Stage 1: Making doctor appointment
+   - Stage 2: Confirming appointment details
+   - Grammar: phone etiquette, time expressions
+   - Vocabulary: Appointments (cita, consulta, horario, disponible)
+
+**Daily Quest Template Features:**
+- 2 stages (12 minutes total, 6 min per stage)
+- questType: "daily" for filtering
+- 3 objectives per stage (2 required, 1 optional)
+- minMessages: 3 (faster completion than story quests)
+- 30 XP per stage (60 total)
+- Grammar tips integrated into objectives
+- Adaptive difficulty (A1-C2)
+- Real-world practical scenarios
+
+**Files Modified:**
+- `public/quest-data.js` - Added 753 lines (4 new quests)
+- `QUEST-IMPROVEMENTS.md` - Updated Phase 2 section with completion details
+
+**Current Quest Database:**
+- **Total Quests:** 10
+- **Story Quests (longer):** 5 quests
+  - missing-guitar (25 min)
+  - market-day (25 min)
+  - cafe-order (15 min)
+  - surf-lesson (20 min)
+  - fishing-don-pedro (20 min)
+- **Daily Quests (optimized):** 5 quests
+  - pharmacy-visit (12 min)
+  - taxi-ride (12 min)
+  - library-visit (12 min)
+  - grocery-shopping (12 min)
+  - phone-call (12 min)
+- **Total Content:** 172 minutes (~2.9 hours)
+
+**Current State:**
+- ✅ Phase 1: Objective Tracking System - COMPLETE
+- ✅ Phase 2: Create 3-5 New Quick Quests - COMPLETE
+- 📋 Phase 3: Restructure Existing Quests - NOT STARTED
+- 📋 Phase 4: Engagement Mechanics - NOT STARTED
+
+**Dev Server Status:**
+- Running at http://localhost:3000
+- All 10 quests available for testing
+- Background process ID: 6dfb2e
+
+**Changes Not Yet Committed:**
+- Modified: `.claude/settings.local.json`
+- Modified: `QUEST-IMPROVEMENTS.md`
+- Modified: `public/quest-data.js`
+- Untracked backups: `public/*.backup-before-restore`, `public/quest-data.js.backup`
+
+---
+
+## NEXT SESSION: What To Do
+
+### Immediate Options:
+
+**Option 1: Test New Quests (Recommended)**
+Before committing, test the 4 new daily quests in the browser:
+1. Open http://localhost:3000
+2. Login or complete placement test
+3. Try each new quest: taxi-ride, library-visit, grocery-shopping, phone-call
+4. Verify objectives tracking works
+5. Check completion notifications
+6. Fix any bugs found
+
+**Option 2: Commit Current Work**
+If testing looks good, commit with message:
+```
+Add 4 new daily quests: Taxi, Library, Grocery, Phone Call
+
+Created 4 new daily quests using the La Farmacia template:
+- El Taxi (taxi-ride): Transportation vocabulary, 2 stages, 12 min
+- La Biblioteca (library-visit): Books & library, 2 stages, 12 min
+- El Supermercado (grocery-shopping): Food & shopping, 2 stages, 12 min
+- La Llamada Telefónica (phone-call): Phone etiquette, 2 stages, 12 min
+
+All quests follow daily quest template:
+- 2 stages optimized for 10-15 minute sessions
+- 3 objectives per stage (2 required, 1 optional)
+- Grammar tips integrated into objectives
+- Adaptive difficulty (A1-C2)
+- Real-world practical scenarios
+
+Total quest database now contains 10 quests (5 story + 5 daily).
+
+Phase 2 of Quest System Improvements complete.
+```
+
+**Option 3: Proceed to Phase 3 - Restructure Existing Quests**
+Goal: Reduce the 5 longer story quests from 20-25 minutes down to 10-15 minutes
+
+**Quests to shorten:**
+1. The Missing Guitar - 25 min → 15 min (6 stages → 3-4 stages)
+2. Market Day - 25 min → 15 min (5 stages → 3 stages)
+3. Surf Lesson - 20 min → 15 min (4 stages → 3 stages)
+4. Fishing with Don Pedro - 20 min → 15 min (4 stages → 3 stages)
+5. Café Order - 15 min (already optimal? or reduce to 12 min?)
+
+**Approach for Phase 3:**
+1. Read through each quest's stages in `public/quest-data.js`
+2. Identify stages that can be consolidated without losing story coherence
+3. Merge objectives from multiple stages into fewer stages
+4. Maintain narrative flow
+5. Keep total around 3 stages per quest
+6. Test after each quest restructure
+
+**Option 4: Deploy to Production**
+If quests are tested and working:
+1. Start dev server: `npm run dev` (or `node dev-server.js`)
+2. Build for production: `npm run build`
+3. Deploy to Vercel: `vercel --prod --yes`
+
+---
+
+### Reference: Project Structure
+
+**Key Files:**
+- `public/quest-data.js` - Quest database (2909 lines)
+- `public/index.html` - Quest UI with objective tracking
+- `public/app.js` - Quest logic and Firebase integration
+- `QUEST-IMPROVEMENTS.md` - Phase-by-phase improvement documentation
+- `Claude.md` - Session-by-session development log (this file)
+- `DEVELOPMENT.md` - General development guide
+
+**Dev Commands:**
+- Start server: `node dev-server.js` (port 3000)
+- Build: `npm run build`
+- Deploy: `vercel --prod --yes`
+- Kill server: `pkill -f "node dev-server.js"`
+
+**Environment Variables (already set):**
+- GEMINI_API_KEY ✓
+- GOOGLE_TRANSLATE_API_KEY ✓
+- VITE_FIREBASE_* (all Firebase vars) ✓
+
