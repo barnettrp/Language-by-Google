@@ -225,7 +225,9 @@ export function initializeApp() {
           dialect: 'Mexico',
           formality: 'Casual'
         },
-        placementCompleted: false
+        placementCompleted: false,
+        onboardingQuestCompleted: false,
+        completedQuests: []
       });
       
       // onAuthStateChanged will handle the UI update
@@ -254,7 +256,11 @@ export function initializeApp() {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        userSettings = userData.settings || { dialect: 'Mexico', formality: 'Casual' };
+        userSettings = {
+          ...userSettings, // Keep defaults
+          ...userData.settings,
+          completedQuests: userData.completedQuests || []
+        };
         
         // Update UI with user settings
         dom.dialectSelect.value = userSettings.dialect;
@@ -271,14 +277,35 @@ export function initializeApp() {
   // Render quest list
   function renderQuests() {
     dom.questList.innerHTML = '';
+    const completedQuests = userSettings.completedQuests || [];
+
     Object.entries(quests).forEach(([questKey, quest]) => {
+      // Skip onboarding quest from the main list
+      if (questKey === 'quest-zero-onboarding') return;
+
+      const prerequisites = quest.prerequisites || [];
+      const isLocked = !prerequisites.every(prereq => completedQuests.includes(prereq));
+      const isCompleted = completedQuests.includes(questKey);
+
       const questEl = document.createElement('div');
-      questEl.className = 'quest-card p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer';
+      questEl.className = `quest-card p-4 bg-white rounded-lg shadow transition-all ${
+        isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md cursor-pointer'
+      }`;
+      
       questEl.innerHTML = `
-        <h3 class="text-lg font-semibold">${quest.title}</h3>
+        <div class="flex justify-between items-start">
+          <h3 class="text-lg font-semibold ${isLocked ? 'text-gray-500' : ''}">${quest.title}</h3>
+          ${isCompleted ? '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Completed</span>' : ''}
+          ${isLocked ? '<span class="text-2xl">🔒</span>' : ''}
+        </div>
         <p class="text-gray-600 text-sm mt-1">${quest.objective}</p>
+        ${isLocked ? `<p class="text-xs text-red-500 mt-2">Requires completion of: ${prerequisites.join(', ')}</p>` : ''}
       `;
-      questEl.addEventListener('click', () => startQuest(questKey));
+
+      if (!isLocked) {
+        questEl.addEventListener('click', () => startQuest(questKey));
+      }
+      
       dom.questList.appendChild(questEl);
     });
   }
@@ -445,6 +472,17 @@ export function initializeApp() {
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
 
+    // If this is the onboarding quest, mark it as complete
+    if (currentQuest === 'quest-zero-onboarding') {
+      completeOnboardingQuest();
+    }
+
+    // If this is the last stage of a quest, mark the quest as complete
+    const nextStages = stage.nextStages || [];
+    if (nextStages.length === 0) {
+      completeQuest(currentQuest);
+    }
+
     const notification = document.createElement('div');
     notification.className = 'p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg mb-2 animate-pulse';
     notification.innerHTML = `
@@ -457,6 +495,45 @@ export function initializeApp() {
     dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
 
     // TODO: Add button to proceed to next stage
+  }
+
+  // Mark the onboarding quest as complete in Firestore
+  async function completeOnboardingQuest() {
+    if (!currentUser) return;
+    try {
+      await setDoc(doc(db, 'users', currentUser.uid), {
+        onboardingQuestCompleted: true
+      }, { merge: true });
+      console.log('[ConvoQuest] Onboarding quest marked as complete for user.');
+    } catch (error) {
+      console.error('Error updating user document for onboarding:', error);
+    }
+  }
+
+  // Mark a quest as complete in Firestore
+  async function completeQuest(questId) {
+    if (!currentUser) return;
+
+    // Add questId to the local state to prevent duplicates
+    if (!userSettings.completedQuests.includes(questId)) {
+      userSettings.completedQuests.push(questId);
+    }
+
+    try {
+      await setDoc(doc(db, 'users', currentUser.uid), {
+        completedQuests: userSettings.completedQuests
+      }, { merge: true });
+      console.log(`[ConvoQuest] Quest '${questId}' marked as complete.`);
+      
+      // Re-render quests to reflect the change
+      renderQuests();
+      if (typeof window.updateUserProgress === 'function') {
+        window.updateUserProgress({ completedQuests: userSettings.completedQuests });
+      }
+
+    } catch (error) {
+      console.error(`Error updating completed quests for ${questId}:`, error);
+    }
   }
 
   // Check and show hints if player is stuck
@@ -586,9 +663,19 @@ export function initializeApp() {
       // Load user data
       const userData = await loadUserData(user);
       
+      // Pass user progress to the quest map
+      if (typeof window.updateUserProgress === 'function') {
+        window.updateUserProgress({
+          completedQuests: userSettings.completedQuests || []
+        });
+      }
+      
       // Check if placement test is needed
       if (!userData || !userData.placementCompleted) {
         showView('placement-view');
+      } else if (!userData.onboardingQuestCompleted) {
+        // If placement is done but onboarding is not, start Quest Zero
+        startQuest('quest-zero-onboarding');
       } else {
         showView('main-app-view');
       }

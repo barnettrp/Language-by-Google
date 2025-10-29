@@ -280,35 +280,43 @@ function renderLocationQuests(location) {
  */
 function createQuestCard(quest) {
   const card = document.createElement('div');
-  card.className = 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer';
-
-  // Check if quest is completed
+  
+  // Check if quest is completed or locked
   const isCompleted = userProgress.completedQuests.includes(quest.id);
+  const prerequisites = quest.prerequisites || [];
+  const isLocked = !prerequisites.every(prereq => userProgress.completedQuests.includes(prereq));
+
+  card.className = `bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 transition-all ${
+    isLocked ? 'opacity-60' : 'hover:shadow-md cursor-pointer'
+  }`;
 
   card.innerHTML = `
     <div class="flex items-start justify-between mb-2">
       <h4 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-        ${quest.title}
-        ${isCompleted ? '<span class="text-green-500">✓</span>' : ''}
+        ${isLocked ? '🔒' : ''} ${quest.title}
       </h4>
-      <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">${quest.requiredLevel}</span>
+      ${isCompleted ? '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓</span>' : `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">${quest.requiredLevel}</span>`}
     </div>
     <p class="text-xs text-gray-600 mb-2">${quest.objective}</p>
-    <div class="flex items-center justify-between text-xs">
-      <span class="text-gray-500">⏱️ ${quest.estimatedDuration} min</span>
-      <span class="text-blue-600 font-medium">${isCompleted ? 'Replay' : 'Start'} →</span>
-    </div>
+    ${isLocked 
+      ? `<div class="text-xs text-red-500 font-semibold">Locked</div>`
+      : `<div class="flex items-center justify-between text-xs">
+          <span class="text-gray-500">⏱️ ${quest.estimatedDuration} min</span>
+          <span class="text-blue-600 font-medium">${isCompleted ? 'Replay' : 'Start'} →</span>
+        </div>`
+    }
   `;
 
-  // Add click handler (you'll need to connect this to your existing quest start logic)
-  card.addEventListener('click', () => {
-    console.log('[QuestMap] Starting quest:', quest.id);
-    closeLocationPanel();
-    // TODO: Connect to existing startQuest function
-    if (typeof window.startQuest === 'function') {
-      window.startQuest(quest.id);
-    }
-  });
+  // Add click handler only if quest is not locked
+  if (!isLocked) {
+    card.addEventListener('click', () => {
+      console.log('[QuestMap] Starting quest:', quest.id);
+      closeLocationPanel();
+      if (typeof window.startQuest === 'function') {
+        window.startQuest(quest.id);
+      }
+    });
+  }
 
   return card;
 }
