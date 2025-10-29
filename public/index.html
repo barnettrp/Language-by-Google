@@ -82,10 +82,14 @@
       max-width: 450px;
       margin-left: auto;
       margin-right: auto;
+      /* Mobile: Use dynamic viewport height to account for browser UI */
+      height: 100vh; /* Fallback for older browsers */
+      height: 100dvh; /* Dynamic viewport height - excludes mobile browser chrome */
     }
     @media (min-width: 768px) {
       #app-container {
         height: 90vh;
+        height: 90dvh;
         max-height: 800px;
       }
     }
@@ -202,8 +206,8 @@
     </div>
 
     <!-- MAIN APP VIEW -->
-    <div id="main-app-view" class="main-view flex-col h-full">
-      <div id="quest-view" class="flex flex-col h-full">
+    <div id="main-app-view" class="main-view flex-col h-full" style="min-height: 0;">
+      <div id="quest-view" class="flex flex-col h-full" style="min-height: 0;">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <div class="flex items-center gap-3">
             <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
@@ -238,7 +242,7 @@
         </div>
 
         <!-- Quest List View (default) -->
-        <div id="quest-list-container" class="p-4 space-y-3 overflow-y-auto"></div>
+        <div id="quest-list-container" class="flex-1 p-4 space-y-3 overflow-y-auto" style="min-height: 0;"></div>
 
         <!-- Quest Map View (hidden by default) -->
         <div id="quest-map-container" class="hidden flex-1 overflow-hidden relative">
