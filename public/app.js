@@ -99,7 +99,7 @@ export function initializeApp() {
 
   // AI Manager for secure backend communication
   const AIManager = {
-    async callAPI(systemInstruction, contents) {
+    async callAPI(systemInstruction, contents, retries = 3, delay = 1000) {
       try {
         const response = await fetch('/api/gemini', {
           method: 'POST',
@@ -107,10 +107,18 @@ export function initializeApp() {
           body: JSON.stringify({ systemInstruction, contents })
         });
 
+        if (response.status === 429 && retries > 0) {
+          console.warn(`[AIManager] Rate limited. Retrying in ${delay / 1000}s... (${retries} retries left)`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return this.callAPI(systemInstruction, contents, retries - 1, delay * 2); // Exponential backoff
+        }
+
         if (!response.ok) {
           const errorBody = await response.json();
           console.error("API Error:", errorBody);
-          return `Error: ${errorBody.error || 'Unknown API error'}`;
+          const errorMessage = `Error: ${errorBody.error || 'Unknown API error'}. Please try again later.`;
+          addMessage('system', errorMessage); // Notify user of the error
+          return null; // Return null to indicate failure
         }
 
         const result = await response.json();
@@ -126,7 +134,9 @@ export function initializeApp() {
         }
       } catch (error) {
         console.error("Fetch Error:", error);
-        return "Sorry, there was a network error. Please try again.";
+        const errorMessage = "Sorry, there was a network error. Please check your connection and try again.";
+        addMessage('system', errorMessage); // Notify user of the error
+        return null; // Return null to indicate failure
       }
     },
 
@@ -356,9 +366,17 @@ export function initializeApp() {
   // Add message to chat
   function addMessage(sender, text) {
     const messageEl = document.createElement('div');
-    messageEl.className = `message ${sender}-message p-3 rounded-lg mb-2 ${
-      sender === 'user' ? 'bg-blue-100 ml-8' : 'bg-gray-100 mr-8'
-    }`;
+    let senderClass = 'npc-message';
+    let bgClass = 'bg-gray-100 mr-8';
+    if (sender === 'user') {
+      senderClass = 'user-message';
+      bgClass = 'bg-blue-100 ml-8';
+    } else if (sender === 'system') {
+      senderClass = 'system-message';
+      bgClass = 'bg-red-100 text-red-800 text-sm mx-auto';
+    }
+    
+    messageEl.className = `message ${senderClass} p-3 rounded-lg mb-2 ${bgClass}`;
     messageEl.textContent = text;
     dom.chatContainer.appendChild(messageEl);
     dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
@@ -386,6 +404,9 @@ export function initializeApp() {
       const response = await AIManager.callAPI(stage.systemPrompt, [
         { role: "user", parts: [{ text: message }] }
       ]);
+
+      // If callAPI returned null (due to an error), stop processing
+      if (response === null) return;
 
       addMessage('npc', response);
 
@@ -655,40 +676,78 @@ export function initializeApp() {
   });
 
   // Auth state listener
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      dom.userDisplayName.textContent = user.displayName || 'User';
-      
-      // Load user data
-      const userData = await loadUserData(user);
-      
-      // Pass user progress to the quest map
-      if (typeof window.updateUserProgress === 'function') {
-        window.updateUserProgress({
-          completedQuests: userSettings.completedQuests || []
-        });
-      }
-      
-      // Check if placement test is needed
-      if (!userData || !userData.placementCompleted) {
-        showView('placement-view');
-      } else if (!userData.onboardingQuestCompleted) {
-        // If placement is done but onboarding is not, start Quest Zero
-        startQuest('quest-zero-onboarding');
-      } else {
-        showView('main-app-view');
-      }
-      
-      dom.authContainer.style.display = 'none';
-      document.querySelector('.main-content').style.display = 'block';
-    } else {
-      currentUser = null;
-      dom.authContainer.style.display = 'flex';
-      document.querySelector('.main-content').style.display = 'none';
-      showView('login-view');
+  
+  // DEV MODE: Bypass Firebase Auth for local development
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.warn('[DEV MODE] Bypassing Firebase Auth. Using mock user.');
+    currentUser = {
+      uid: 'dev-user',
+      displayName: 'Test User',
+      email: 'test@example.com'
+    };
+    
+    // Simulate a new user who has completed placement but not onboarding
+    const mockUserData = {
+      placementCompleted: true,
+      onboardingQuestCompleted: false,
+      completedQuests: []
+    };
+
+    // Setup the UI for the mock user
+    dom.userDisplayName.textContent = currentUser.displayName;
+    dom.authContainer.style.display = 'none';
+    document.querySelector('.main-content').style.display = 'block';
+    
+    // Directly call the logic that runs after user data is loaded
+    if (typeof window.updateUserProgress === 'function') {
+      window.updateUserProgress({ completedQuests: mockUserData.completedQuests });
     }
-  });
+    
+    if (!mockUserData.placementCompleted) {
+      showView('placement-view');
+    } else if (!mockUserData.onboardingQuestCompleted) {
+      startQuest('quest-zero-onboarding');
+    } else {
+      showView('main-app-view');
+    }
+
+  } else {
+    // PRODUCTION: Use real Firebase Auth
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        dom.userDisplayName.textContent = user.displayName || 'User';
+        
+        // Load user data
+        const userData = await loadUserData(user);
+        
+        // Pass user progress to the quest map
+        if (typeof window.updateUserProgress === 'function') {
+          window.updateUserProgress({
+            completedQuests: userSettings.completedQuests || []
+          });
+        }
+        
+        // Check if placement test is needed
+        if (!userData || !userData.placementCompleted) {
+          showView('placement-view');
+        } else if (!userData.onboardingQuestCompleted) {
+          // If placement is done but onboarding is not, start Quest Zero
+          startQuest('quest-zero-onboarding');
+        } else {
+          showView('main-app-view');
+        }
+        
+        dom.authContainer.style.display = 'none';
+        document.querySelector('.main-content').style.display = 'block';
+      } else {
+        currentUser = null;
+        dom.authContainer.style.display = 'flex';
+        document.querySelector('.main-content').style.display = 'none';
+        showView('login-view');
+      }
+    });
+  }
 
   // Initialize quest list
   renderQuests();
