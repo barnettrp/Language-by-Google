@@ -393,3 +393,33 @@ Based on "La Farmacia" template, all daily quests share these characteristics:
 **Phase 1 Status:** ✅ COMPLETE
 **Phase 2 Status:** ✅ COMPLETE
 **Next Phase:** Phase 3 - Restructure Existing Quests
+
+---
+
+## Phase 5: Progression System & Onboarding (Implemented by Gemini)
+
+**Goal:** Establish a clear progression path for users, preventing them from accessing advanced quests too early and providing a structured onboarding experience.
+
+**Status:** ✅ COMPLETE
+
+### Implementation Summary
+
+#### 1. Quest Prerequisites & Locking
+- **`quest-data.js`:** Quests now support a `prerequisites` array, listing the `id`s of quests that must be completed first.
+- **`app.js` & `quest-map.js`:** The UI now checks these prerequisites against the user's completed quests.
+- **Visual State:** Locked quests are visually distinct (grayed out, lock icon 🔒) and are not clickable, providing clear feedback to the user. Tooltips or text indicates the requirements.
+
+#### 2. Onboarding "Quest Zero"
+- **New Quest:** A special introductory quest, `quest-zero-onboarding`, has been created.
+- **Purpose:** It serves as a tutorial, introducing the user to the conversation interface and the story's premise.
+- **Flow:** New users who have completed the placement test are now directed to this quest automatically before accessing the main quest map/list.
+
+#### 3. User Progress Tracking in Firestore
+- **`app.js`:** User progression is now saved to their Firestore document.
+- **New Fields:**
+    - `completedQuests`: An array of quest `id`s that the user has finished.
+    - `onboardingQuestCompleted`: A boolean flag set to `true` after completing "Quest Zero".
+- **Persistence:** This ensures that a user's progress is saved across sessions and devices.
+
+### Key Commits
+- **a25466e** - feat: Implement quest progression and onboarding
