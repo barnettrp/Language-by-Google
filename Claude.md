@@ -532,3 +532,111 @@ If quests are tested and working:
 - GOOGLE_TRANSLATE_API_KEY ✓
 - VITE_FIREBASE_* (all Firebase vars) ✓
 
+---
+
+## Date: 2025-10-29
+
+### Issue: Cloud Translation API Using Wrong Project
+
+**Problem:**
+- Cloud Translation API was configured under the wrong Google Cloud project
+- Translation feature was failing with 403 errors in production
+- The API key was associated with project 259630637016, but needed to use spanish-ai-project (788393465858)
+- Serverless functions for `/api/translate` and `/api/tts` were missing from main branch
+
+**Root Cause:**
+- `.env` file had old API key: `AIzaSyAI2uCr1goMuO7SIOgzgmi7-RU4_yLWhY4` (wrong project)
+- The correct Firebase project API key: `AIzaSyDWksau146D5uebmg47Cq4FMrpvB8etABM` (spanish-ai-project)
+- Translation and TTS serverless functions existed only on branch `origin/claude/prepare-vercel-deployment-011CUV4d7AF5kNLayRp3qtH6` and were never merged to main
+- Without these API endpoints, production site couldn't support click-to-translate or text-to-speech
+
+**Solution:**
+
+1. **Updated `.env` file:**
+   ```bash
+   # Changed from old key to Firebase project key
+   GOOGLE_TRANSLATE_API_KEY=AIzaSyDWksau146D5uebmg47Cq4FMrpvB8etABM
+   ```
+
+2. **Created missing serverless functions:**
+   - `api/translate.js` - Google Cloud Translation API endpoint
+   - `api/tts.js` - Google Cloud Text-to-Speech API endpoint
+
+3. **Tested locally:**
+   ```bash
+   # Verified environment loaded correctly
+   node test-translate-api.js
+   # Result: ✅ Translation successful (Hola → Hello)
+   ```
+
+4. **Committed and deployed:**
+   ```bash
+   git add api/translate.js api/tts.js
+   git commit -m "Add serverless functions for Cloud Translation and Text-to-Speech APIs"
+   git push origin main
+   ```
+
+**Key Technical Details:**
+
+**Environment Variable Caching Issue:**
+- The shell environment had cached the old `GOOGLE_TRANSLATE_API_KEY` value
+- Even though `.env` was updated, Node.js processes loaded the cached shell variable
+- Solution: Restart dev server with `unset GOOGLE_TRANSLATE_API_KEY` to force reload from `.env`
+
+**Missing API Endpoints:**
+The live Vercel deployment was missing two critical serverless functions:
+
+1. **api/translate.js** - Translation endpoint
+   - Uses Google Cloud Translation API v2
+   - Requires `GOOGLE_TRANSLATE_API_KEY` environment variable
+   - Endpoint: `POST /api/translate`
+   - Request: `{text, sourceLang, targetLang}`
+   - Response: `{translatedText}`
+
+2. **api/tts.js** - Text-to-Speech endpoint
+   - Uses Google Cloud Text-to-Speech API
+   - Character voice mapping for different ages/genders
+   - Requires `GOOGLE_CLOUD_TTS_API_KEY` or `GEMINI_API_KEY`
+   - Endpoint: `POST /api/tts`
+   - Request: `{text, characterName, characterGender, speedMultiplier, pitchAdjustment}`
+   - Response: `{audioContent, voiceName}`
+
+**Vercel Environment Variables:**
+Updated in Vercel Dashboard → Settings → Environment Variables:
+- `GOOGLE_TRANSLATE_API_KEY` = `AIzaSyDWksau146D5uebmg47Cq4FMrpvB8etABM`
+- `GOOGLE_CLOUD_TTS_API_KEY` = `AIzaSyDWksau146D5uebmg47Cq4FMrpvB8etABM` (optional, falls back to GEMINI_API_KEY)
+
+**Files Modified:**
+- `.env` - Updated `GOOGLE_TRANSLATE_API_KEY` with correct project key
+- `api/translate.js` - NEW: Google Cloud Translation serverless function
+- `api/tts.js` - NEW: Google Cloud Text-to-Speech serverless function
+
+**Commit Hash:** `f8d129b`
+
+**Result:**
+✅ Cloud Translation API now uses correct project (788393465858)
+✅ Translation endpoint working locally and deployed to production
+✅ Text-to-Speech endpoint available for character voice generation
+✅ Click-to-translate feature functional
+✅ Vercel deployment includes all necessary API endpoints
+
+**Testing Commands:**
+```bash
+# Test translation locally
+node test-translate-api.js
+
+# Start dev server
+node dev-server.js
+# Server runs at http://localhost:3000 with all APIs functional
+
+# Test translation endpoint
+curl -X POST http://localhost:3000/api/translate \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hola","sourceLang":"es","targetLang":"en"}'
+```
+
+**Production URL:** https://language-by-google.vercel.app
+- Click-to-translate: Select Spanish text in conversations
+- Text-to-Speech: AI character responses include audio playback
+
+---

@@ -91,6 +91,23 @@ npm run format      # Format all files in public/
 
 3. The development server will automatically load these variables
 
+#### Required Environment Variables
+
+**Firebase Configuration (Client-side - VITE_* prefix):**
+- `VITE_FIREBASE_API_KEY` - Firebase project API key
+- `VITE_FIREBASE_AUTH_DOMAIN` - Firebase auth domain
+- `VITE_FIREBASE_PROJECT_ID` - Firebase project ID
+- `VITE_FIREBASE_STORAGE_BUCKET` - Firebase storage bucket
+- `VITE_FIREBASE_MESSAGING_SENDER_ID` - Firebase messaging sender ID
+- `VITE_FIREBASE_APP_ID` - Firebase app ID
+
+**API Keys (Server-side):**
+- `GEMINI_API_KEY` - Google Gemini AI API key for chat functionality
+- `GOOGLE_TRANSLATE_API_KEY` - Google Cloud Translation API key for click-to-translate feature
+- `GOOGLE_CLOUD_TTS_API_KEY` - (Optional) Google Cloud Text-to-Speech API key for character voices (falls back to GEMINI_API_KEY if not set)
+
+**Important:** For the Cloud Translation and Text-to-Speech APIs to work, ensure these APIs are enabled in your Google Cloud Console for the correct project.
+
 ### Build and Deploy
 
 ```bash
@@ -103,6 +120,76 @@ npm run preview
 # Deploy to Vercel (if Vercel CLI is installed)
 vercel
 ```
+
+### API Endpoints and Serverless Functions
+
+The application includes three serverless functions in the `api/` directory for Vercel deployment:
+
+#### 1. `/api/gemini` - AI Chat Endpoint
+- **File:** `api/gemini.js`
+- **Method:** POST
+- **Purpose:** Handles AI chat conversations with Gemini
+- **Environment Variable:** `GEMINI_API_KEY`
+- **Request Body:**
+  ```json
+  {
+    "systemInstruction": "string (optional)",
+    "contents": [{"role": "user", "parts": [{"text": "message"}]}]
+  }
+  ```
+
+#### 2. `/api/translate` - Translation Endpoint
+- **File:** `api/translate.js`
+- **Method:** POST
+- **Purpose:** Translates text using Google Cloud Translation API
+- **Environment Variable:** `GOOGLE_TRANSLATE_API_KEY`
+- **Request Body:**
+  ```json
+  {
+    "text": "string",
+    "sourceLang": "es",
+    "targetLang": "en"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "translatedText": "translated string"
+  }
+  ```
+- **Used For:** Click-to-translate feature in quest conversations
+
+#### 3. `/api/tts` - Text-to-Speech Endpoint
+- **File:** `api/tts.js`
+- **Method:** POST
+- **Purpose:** Generates audio using Google Cloud Text-to-Speech API
+- **Environment Variable:** `GOOGLE_CLOUD_TTS_API_KEY` or `GEMINI_API_KEY`
+- **Request Body:**
+  ```json
+  {
+    "text": "string",
+    "characterName": "string (optional)",
+    "characterGender": "male|female (optional)",
+    "speedMultiplier": 1.0,
+    "pitchAdjustment": 0
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "audioContent": "base64 encoded MP3",
+    "voiceName": "es-US-Neural2-A"
+  }
+  ```
+- **Used For:** Character voice generation in quest conversations
+
+**Local Development:**
+- The `dev-server.js` file provides local equivalents of these endpoints
+- Run `node dev-server.js` to test all API endpoints locally
+
+**Google Cloud APIs Required:**
+- Cloud Translation API: https://console.cloud.google.com/apis/library/translate.googleapis.com
+- Cloud Text-to-Speech API: https://console.cloud.google.com/apis/library/texttospeech.googleapis.com
 
 ### Troubleshooting
 
