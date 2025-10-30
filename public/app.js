@@ -540,13 +540,16 @@ export function initializeApp() {
         }
       }
 
-      // Show results and redirect to quest view
+      // Show results
       alert(`Placement Test Complete!\n\nYour Spanish level: ${finalLevel}\n\nLet's start your language adventure!`);
 
-      // Redirect to quest view
+      // Hide placement view and start onboarding quest
       if (dom.placementView) dom.placementView.style.display = 'none';
       if (dom.mainAppView) dom.mainAppView.style.display = 'flex';
-      renderQuests();
+
+      // Always start with the onboarding quest after placement
+      debugLog('[PlacementTest] Starting onboarding quest');
+      startQuest('quest-zero-onboarding');
     }
   };
 
