@@ -77,6 +77,13 @@ export function initializeApp() {
   let autoplayEnabled = true;
   let currentAudio = null;
 
+  // Placement test state
+  let placementQuestions = [];
+  let currentQuestionIndex = 0;
+  let selectedAnswer = null;
+  let placementAnswers = [];
+  let placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+
   // DOM elements (defined early to ensure availability)
   debugLog('🔍 Looking up DOM elements...');
   const dom = {
@@ -131,6 +138,13 @@ export function initializeApp() {
     correctionLoading: document.getElementById('correction-loading'),
     placementQuizView: document.getElementById('placement-quiz-view'),
     submitQuizBtn: document.getElementById('submit-quiz-btn'),
+    completePlacementBtn: document.getElementById('complete-placement-btn'),
+    questionText: document.getElementById('question-text'),
+    quizOptions: document.getElementById('quiz-options'),
+    currentQuestionNum: document.getElementById('current-question-num'),
+    totalQuestions: document.getElementById('total-questions'),
+    placementProgressBar: document.getElementById('placement-progress-bar'),
+    estimatedLevel: document.getElementById('estimated-level'),
     placementChatView: document.getElementById('placement-chat-view'),
     placementChatContainer: document.getElementById('placement-chat-container'),
     placementChatInput: document.getElementById('placement-chat-input'),
@@ -309,6 +323,223 @@ export function initializeApp() {
     }
   };
 
+  // Placement Test Manager
+  const PlacementTestManager = {
+    // Initialize the placement test with adaptive questions
+    init() {
+      if (typeof PLACEMENT_QUESTIONS === 'undefined') {
+        console.error('[PlacementTest] PLACEMENT_QUESTIONS not loaded!');
+        debugLog('❌ PLACEMENT_QUESTIONS not loaded');
+        return false;
+      }
+
+      // Reset state
+      placementQuestions = [];
+      currentQuestionIndex = 0;
+      selectedAnswer = null;
+      placementAnswers = [];
+      placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+
+      // Start with A1 questions (3 questions per level)
+      this.selectQuestionsForLevel('A1', 3);
+
+      // Update UI
+      if (dom.totalQuestions) dom.totalQuestions.textContent = '15';
+      if (dom.currentQuestionNum) dom.currentQuestionNum.textContent = '1';
+
+      // Display first question
+      this.displayQuestion();
+
+      debugLog('✅ Placement test initialized');
+      return true;
+    },
+
+    // Select random questions from a specific level
+    selectQuestionsForLevel(level, count) {
+      const levelQuestions = PLACEMENT_QUESTIONS[level] || [];
+      const shuffled = [...levelQuestions].sort(() => Math.random() - 0.5);
+      const selected = shuffled.slice(0, count);
+
+      selected.forEach(q => {
+        placementQuestions.push({ ...q, level });
+      });
+    },
+
+    // Display current question
+    displayQuestion() {
+      const question = placementQuestions[currentQuestionIndex];
+      if (!question) {
+        console.error('[PlacementTest] No question at index', currentQuestionIndex);
+        return;
+      }
+
+      // Update question text
+      if (dom.questionText) {
+        dom.questionText.textContent = question.q;
+      }
+
+      // Update progress
+      if (dom.currentQuestionNum) {
+        dom.currentQuestionNum.textContent = currentQuestionIndex + 1;
+      }
+      if (dom.placementProgressBar) {
+        const progress = ((currentQuestionIndex + 1) / placementQuestions.length) * 100;
+        dom.placementProgressBar.style.width = `${progress}%`;
+      }
+
+      // Clear selected answer
+      selectedAnswer = null;
+
+      // Render options
+      if (dom.quizOptions) {
+        dom.quizOptions.innerHTML = '';
+        question.opts.forEach((option, index) => {
+          const optionBtn = document.createElement('button');
+          optionBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all';
+          optionBtn.textContent = option;
+          optionBtn.addEventListener('click', () => this.selectOption(index, optionBtn));
+          dom.quizOptions.appendChild(optionBtn);
+        });
+      }
+
+      // Disable submit button until an option is selected
+      if (dom.submitQuizBtn) {
+        dom.submitQuizBtn.disabled = true;
+      }
+
+      // Update estimated level display
+      this.updateEstimatedLevel();
+    },
+
+    // Handle option selection
+    selectOption(index, buttonElement) {
+      selectedAnswer = index;
+
+      // Remove selection from all options
+      const allOptions = dom.quizOptions.querySelectorAll('button');
+      allOptions.forEach(btn => {
+        btn.classList.remove('border-blue-500', 'bg-blue-100');
+        btn.classList.add('border-gray-200');
+      });
+
+      // Highlight selected option
+      buttonElement.classList.remove('border-gray-200');
+      buttonElement.classList.add('border-blue-500', 'bg-blue-100');
+
+      // Enable submit button
+      if (dom.submitQuizBtn) {
+        dom.submitQuizBtn.disabled = false;
+      }
+    },
+
+    // Submit answer and move to next question
+    submitAnswer() {
+      if (selectedAnswer === null) return;
+
+      const question = placementQuestions[currentQuestionIndex];
+      const isCorrect = selectedAnswer === question.ans;
+
+      // Record answer
+      placementAnswers.push({
+        question: question.q,
+        selectedAnswer,
+        correctAnswer: question.ans,
+        isCorrect,
+        level: question.level
+      });
+
+      // Update score
+      if (isCorrect) {
+        placementScore[question.level]++;
+      }
+
+      // Move to next question
+      currentQuestionIndex++;
+
+      // Adaptive logic: Add questions based on performance
+      if (currentQuestionIndex === 3 && isCorrect) {
+        // If doing well on A1, add A2 questions
+        this.selectQuestionsForLevel('A2', 3);
+      } else if (currentQuestionIndex === 6 && placementScore.A2 >= 2) {
+        // If doing well on A2, add B1 questions
+        this.selectQuestionsForLevel('B1', 3);
+      } else if (currentQuestionIndex === 9 && placementScore.B1 >= 2) {
+        // If doing well on B1, add B2 questions
+        this.selectQuestionsForLevel('B2', 3);
+      } else if (currentQuestionIndex === 12 && placementScore.B2 >= 2) {
+        // If doing well on B2, add C1 questions
+        this.selectQuestionsForLevel('C1', 3);
+      }
+
+      // Check if test is complete
+      if (currentQuestionIndex >= placementQuestions.length || currentQuestionIndex >= 15) {
+        this.completeTest();
+      } else {
+        this.displayQuestion();
+      }
+    },
+
+    // Update estimated level display
+    updateEstimatedLevel() {
+      if (!dom.estimatedLevel) return;
+
+      const level = this.calculateCurrentLevel();
+      dom.estimatedLevel.textContent = level ? `Estimated: ${level}` : '';
+    },
+
+    // Calculate current estimated level
+    calculateCurrentLevel() {
+      const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      let estimatedLevel = 'A1';
+
+      for (const level of levels) {
+        const levelAnswers = placementAnswers.filter(a => a.level === level);
+        const correctCount = levelAnswers.filter(a => a.isCorrect).length;
+        const accuracy = levelAnswers.length > 0 ? correctCount / levelAnswers.length : 0;
+
+        if (accuracy >= 0.6) {
+          estimatedLevel = level;
+        } else {
+          break; // Stop if accuracy drops below 60%
+        }
+      }
+
+      return estimatedLevel;
+    },
+
+    // Complete the placement test
+    async completeTest() {
+      const finalLevel = this.calculateCurrentLevel();
+      debugLog(`✅ Placement test complete. Level: ${finalLevel}`);
+
+      // Save to Firebase
+      if (currentUser && currentUser.uid) {
+        try {
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          await setDoc(userDocRef, {
+            placementLevel: finalLevel,
+            placementCompleted: true,
+            placementDate: serverTimestamp(),
+            placementAnswers: placementAnswers.length,
+            placementScore: placementScore
+          }, { merge: true });
+
+          console.log('[PlacementTest] Results saved to Firebase');
+        } catch (error) {
+          console.error('[PlacementTest] Error saving results:', error);
+        }
+      }
+
+      // Show results and redirect to quest view
+      alert(`Placement Test Complete!\n\nYour Spanish level: ${finalLevel}\n\nLet's start your language adventure!`);
+
+      // Redirect to quest view
+      if (dom.placementView) dom.placementView.style.display = 'none';
+      if (dom.mainAppView) dom.mainAppView.style.display = 'flex';
+      renderQuests();
+    }
+  };
+
   // Load quests from QUEST_DATABASE
   function getQuests() {
     if (typeof QUEST_DATABASE !== 'undefined' && QUEST_DATABASE.quests) {
@@ -348,6 +579,13 @@ export function initializeApp() {
     document.querySelectorAll('.main-view').forEach(view => {
       view.style.display = view.id === viewId ? 'flex' : 'none';
     });
+
+    // Initialize placement test when showing placement view
+    if (viewId === 'placement-view') {
+      setTimeout(() => {
+        PlacementTestManager.init();
+      }, 100);
+    }
   }
 
   // Authentication functions
@@ -1069,6 +1307,18 @@ export function initializeApp() {
       });
     }
     debugLog('✅ Chat event listeners set');
+
+    // Placement test quiz buttons
+    if (dom.submitQuizBtn) {
+      dom.submitQuizBtn.addEventListener('click', () => {
+        PlacementTestManager.submitAnswer();
+      });
+    }
+    if (dom.completePlacementBtn) {
+      dom.completePlacementBtn.addEventListener('click', () => {
+        PlacementTestManager.completeTest();
+      });
+    }
 
     if (dom.placementSendBtn) dom.placementSendBtn.addEventListener('click', handlePlacementSend);
     if (dom.placementChatInput) {
