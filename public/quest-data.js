@@ -266,7 +266,7 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
       focusVocabulary: ["music instruments", "locations", "descriptions", "time expressions"],
 
       // Prerequisites
-      prerequisites: [],
+      prerequisites: ["quest-zero-onboarding"],
 
       // Stages
       stages: {
@@ -820,7 +820,7 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
       focusGrammar: ["numbers", "colors", "adjectives", "imperatives", "future tense"],
       focusVocabulary: ["fruits", "vegetables", "colors", "prices", "negotiations", "community events"],
 
-      prerequisites: [],
+      prerequisites: ["quest-zero-onboarding"],
 
       stages: {
         "1": {
@@ -2172,6 +2172,9 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
       // Quest type classification
       questType: "daily", // New field: "story" | "daily" | "mini-game"
 
+      // Prerequisites
+      prerequisites: ["quest-zero-onboarding"],
+
       // Media
       thumbnailImage: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop",
 
@@ -2360,6 +2363,9 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
       // Quest type classification
       questType: "daily", // "story" | "daily" | "mini-game"
+
+      // Prerequisites
+      prerequisites: ["quest-zero-onboarding"],
 
       // Media
       thumbnailImage: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=300&fit=crop",
@@ -2550,6 +2556,9 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
       // Quest type classification
       questType: "daily", // "story" | "daily" | "mini-game"
 
+      // Prerequisites
+      prerequisites: ["quest-zero-onboarding"],
+
       // Media
       thumbnailImage: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400&h=300&fit=crop",
 
@@ -2738,6 +2747,9 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
       // Quest type classification
       questType: "daily", // "story" | "daily" | "mini-game"
 
+      // Prerequisites
+      prerequisites: ["quest-zero-onboarding"],
+
       // Media
       thumbnailImage: "https://images.unsplash.com/photo-1534723452862-4c874018d66d?w=400&h=300&fit=crop",
 
@@ -2925,6 +2937,9 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
       // Quest type classification
       questType: "daily", // "story" | "daily" | "mini-game"
+
+      // Prerequisites
+      prerequisites: ["quest-zero-onboarding"],
 
       // Media
       thumbnailImage: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=400&h=300&fit=crop",
