@@ -590,7 +590,14 @@ export function initializeApp() {
   function showView(viewId) {
     debugLog(`🔄 showView called with: ${viewId}`);
     document.querySelectorAll('.main-view').forEach(view => {
-      view.style.display = view.id === viewId ? 'flex' : 'none';
+      if (view.id === viewId) {
+        view.style.display = 'flex';
+        view.classList.add('active');
+        debugLog(`✅ Showing view: ${viewId}`);
+      } else {
+        view.style.display = 'none';
+        view.classList.remove('active');
+      }
     });
 
     // Initialize placement test when showing placement view
@@ -1456,27 +1463,36 @@ export function initializeApp() {
           debugLog('✅ Auth container hidden');
         }
 
-        // Load user data
-        const userData = await loadUserData(user);
-        
-        // Pass user progress to the quest map
-        if (typeof window.updateUserProgress === 'function') {
-          window.updateUserProgress({
-            completedQuests: userSettings.completedQuests || []
-          });
-        }
-        
-        // Check if placement test is needed
-        if (!userData || !userData.placementCompleted) {
-          debugLog('[PRODUCTION MODE] Showing placement-view.');
+        try {
+          // Load user data
+          const userData = await loadUserData(user);
+          debugLog(`📊 User data loaded: ${JSON.stringify(userData ? { placementCompleted: userData.placementCompleted, onboardingQuestCompleted: userData.onboardingQuestCompleted } : 'null')}`);
+
+          // Pass user progress to the quest map
+          if (typeof window.updateUserProgress === 'function') {
+            window.updateUserProgress({
+              completedQuests: userSettings.completedQuests || []
+            });
+          }
+
+          // Check if placement test is needed
+          if (!userData || !userData.placementCompleted) {
+            debugLog('[PRODUCTION MODE] Showing placement-view.');
+            showView('placement-view');
+          } else if (!userData.onboardingQuestCompleted) {
+            // If placement is done but onboarding is not, start Quest Zero
+            debugLog('[PRODUCTION MODE] Starting quest-zero-onboarding.');
+            if (dom.mainAppView) dom.mainAppView.style.display = 'flex';
+            startQuest('quest-zero-onboarding');
+          } else {
+            debugLog('[PRODUCTION MODE] Showing main-app-view.');
+            showView('main-app-view');
+          }
+        } catch (error) {
+          console.error('[PRODUCTION MODE] Error in auth flow:', error);
+          debugLog(`❌ Error in auth flow: ${error.message}`);
+          // Fallback to placement test if there's an error
           showView('placement-view');
-        } else if (!userData.onboardingQuestCompleted) {
-          // If placement is done but onboarding is not, start Quest Zero
-          debugLog('[PRODUCTION MODE] Starting quest-zero-onboarding.');
-          startQuest('quest-zero-onboarding');
-        } else {
-          debugLog('[PRODUCTION MODE] Showing main-app-view.');
-          showView('main-app-view');
         }
         
       } else {
@@ -1485,6 +1501,7 @@ export function initializeApp() {
         // Show auth container when logged out
         if (dom.authContainer) {
           dom.authContainer.style.display = 'flex';
+          dom.authContainer.classList.add('active');
           debugLog('✅ Auth container shown');
         }
 
