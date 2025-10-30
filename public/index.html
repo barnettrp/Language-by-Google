@@ -5,24 +5,151 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ConvoQuest</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Import map for Firebase ES modules -->
+  <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+      }
+    }
+  </script>
   <style>
-    body { 
-      background: #a7c5ad; /* Fallback */
-      background-image: linear-gradient(to top, #a7c5ad 0%, #a7c5ad 1%, #e4e6e9 100%);
+    /* Modern Font Stack */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      /* Vibrant gaming-inspired gradient */
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background-size: 400% 400%;
+      animation: gradient-shift 15s ease infinite;
       min-height: 100vh;
     }
-    .contained-area {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-    .auth-input, #chat-input, #placement-chat-input { font-size: 16px; }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .animate-shimmer {
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes scale-in {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .animate-scale-in {
+      animation: scale-in 0.4s ease-out;
+    }
+
+    /* XP Progress Bar Minimized State */
+    #xp-progress-bar {
+      transition: all 0.5s ease-out;
+      max-height: 200px;
+      overflow: hidden;
+    }
+
+    #xp-progress-bar.minimized {
+      max-height: 8px;
+      padding: 0;
+      border: none;
+    }
+
+    #xp-progress-bar.minimized > *:not(.w-full) {
+      display: none;
+    }
+
+    #xp-progress-bar:hover.minimized {
+      max-height: 200px;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgb(221 214 254);
+    }
+
+    #xp-progress-bar:hover.minimized > * {
+      display: block !important;
+      display: flex !important;
+    }
+
+    .contained-area {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    .auth-input, #chat-input, #placement-chat-input {
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    .auth-input:focus, #chat-input:focus, #placement-chat-input:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    /* Message Animations */
     @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes slide-in-left {
+      0% { transform: translateX(-20px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slide-in-right {
+      0% { transform: translateX(20px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+
     .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
-    .chat-bubble { max-width: 75%; animation: pop-in 0.3s ease-out forwards; }
-    .chat-bubble-user { background-color: #dbeafe; }
-    .chat-bubble-ai { background-color: #e5e7eb; }
+
+    /* Modern Chat Bubbles */
+    .message {
+      animation: pop-in 0.3s ease-out;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .user-message {
+      animation: slide-in-right 0.3s ease-out;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      color: white !important;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      border-radius: 18px 18px 4px 18px;
+      padding: 12px 16px;
+      margin-left: auto;
+      margin-right: 8px;
+    }
+
+    .npc-message {
+      animation: slide-in-left 0.3s ease-out;
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
+      color: #1f2937 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 18px 18px 18px 4px;
+      padding: 12px 16px;
+      margin-right: auto;
+      margin-left: 8px;
+    }
+
+    .system-message {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+      color: #92400e !important;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 8px auto;
+      max-width: 90%;
+      font-size: 0.875rem;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+    }
     .modal-bg { background-color: rgba(0, 0, 0, 0.5); }
     .mic-active { color: #ef4444; }
     .map-location { cursor: pointer; transition: transform 0.2s, filter 0.2s; }
@@ -101,9 +228,10 @@
 
   <!-- UI FIX: Removed mt-10 from this container -->
   <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden relative">
-    <!-- Debug Console (disabled by default) -->
-    <!-- To enable: Uncomment the line below -->
-    <!-- <div id="debug-console" style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; max-height: 100px; overflow-y: auto; font-size: 10px; font-family: monospace; z-index: 9999; opacity: 0.8;"></div> -->
+    <!-- Debug Console (disabled - uncomment to enable for troubleshooting) -->
+    <!-- <div id="debug-console" style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; max-height: 150px; overflow-y: auto; font-size: 11px; font-family: monospace; z-index: 9999; opacity: 0.95; border-top: 2px solid lime;">
+      <div style="color: yellow; font-weight: bold; margin-bottom: 5px;">🐛 DEBUG LOG (scroll for more)</div>
+    </div> -->
 
     <!-- AUTH VIEW -->
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center">
@@ -298,32 +426,74 @@
           </div>
         </header>
 
-        <!-- Quest Instructions Card -->
-        <div id="quest-instructions-card" class="bg-white border-b border-gray-200 flex-shrink-0 transition-all duration-300">
+        <!-- XP Progress Bar -->
+        <div id="xp-progress-bar" class="bg-gradient-to-r from-purple-50 via-blue-50 to-teal-50 px-4 py-3 border-b border-purple-100 flex-shrink-0">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">⭐</span>
+              <div>
+                <p class="text-xs font-semibold text-gray-700">Level <span id="user-level">1</span></p>
+                <p class="text-xs text-gray-500"><span id="current-xp">0</span> / <span id="next-level-xp">100</span> XP</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <p class="text-xs font-semibold text-gray-700">Streak</p>
+                <p class="text-sm font-bold text-orange-600">🔥 <span id="user-streak">0</span></p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-semibold text-gray-700">Quests</p>
+                <p class="text-sm font-bold text-purple-600">🏆 <span id="quests-completed">0</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+            <div id="xp-bar-fill" class="bg-gradient-to-r from-purple-500 via-blue-500 to-teal-500 h-3 rounded-full transition-all duration-700 ease-out relative overflow-hidden" style="width: 0%">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quest Instructions Card - Compact Version -->
+        <div id="quest-instructions-card" class="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-purple-200 flex-shrink-0 transition-all duration-300">
+          <!-- Minimized State (Default) -->
+          <div id="quest-card-minimized" class="p-3 cursor-pointer hover:bg-purple-100/50 transition-colors" onclick="toggleQuestCard()">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span id="character-emoji-mini" class="text-2xl">🎭</span>
+                <div>
+                  <p class="text-xs font-semibold text-gray-700"><span id="character-name-mini"></span></p>
+                  <p class="text-xs text-gray-600"><span id="quest-objective-mini"></span></p>
+                </div>
+              </div>
+              <button class="text-blue-600 text-sm font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-white/50">
+                ℹ️ Details
+              </button>
+            </div>
+          </div>
+
           <!-- Expanded State -->
-          <div id="quest-card-expanded" class="p-4">
-            <div class="flex gap-4">
-              <img id="character-image" src="" alt="Character" class="w-20 h-20 object-cover rounded-lg">
+          <div id="quest-card-expanded" class="hidden p-4">
+            <div class="flex items-start justify-between mb-3">
+              <h3 class="text-sm font-bold text-gray-800">Quest Details</h3>
+              <button onclick="toggleQuestCard()" class="text-gray-500 hover:text-gray-700 text-lg leading-none">×</button>
+            </div>
+            <div class="flex gap-3">
+              <div class="flex-shrink-0">
+                <div id="character-avatar-expanded" class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-3xl shadow-lg"></div>
+              </div>
               <div class="flex-1">
-                <h2 id="quest-title" class="text-lg font-bold text-gray-800 mb-1"></h2>
-                <p id="character-name-display" class="text-sm text-blue-600 font-semibold mb-2"></p>
+                <h2 id="quest-title" class="text-base font-bold text-gray-800 mb-1"></h2>
+                <p id="character-name-display" class="text-sm text-purple-600 font-semibold mb-2"></p>
                 <div class="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
                   <p id="quest-objective-display" class="text-xs text-blue-800"></p>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Minimized State -->
-          <div id="quest-card-minimized" class="hidden p-2 cursor-pointer hover:bg-gray-50" onclick="expandQuestCard()">
-            <p class="text-xs text-gray-700">
-              <span class="font-semibold">Quest:</span> <span id="quest-objective-mini"></span>
-              <span class="text-blue-500 ml-2">▼</span>
-            </p>
-          </div>
         </div>
 
-        <div id="chat-container" class="flex flex-col-reverse flex-1 p-4 space-y-4 space-y-reverse overflow-y-auto" style="min-height: 0;"></div>
+        <div id="chat-container" class="flex-1 p-4 space-y-2 overflow-y-auto" style="min-height: 0;"></div>
         <div class="p-2 border-t bg-white/50 flex-shrink-0" style="margin-bottom: 110px;">
           <div class="flex items-center space-x-2">
             <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
@@ -532,14 +702,10 @@
   <!-- Quest Map UI -->
   <script src="/quest-map.js"></script>
 
-  <!-- Firebase Compat SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- Firebase init -->
+  <!-- Firebase configuration for dev server -->
   <script>
-    const firebaseConfig = {
+    // Make Firebase config available for ES modules (used by dev-server.js)
+    window.__FIREBASE_CONFIG__ = {
       apiKey: "AIzaSyDWksau146D5uebmg47Cq4FMrpvB8etABM",
       authDomain: "spanish-ai-project.firebaseapp.com",
       projectId: "spanish-ai-project",
@@ -548,2584 +714,61 @@
       appId: "1:788393465858:web:ad0770073d59fa88a7af1b"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // Toggle quest card between minimized and expanded states
+    function toggleQuestCard() {
+      const minimized = document.getElementById('quest-card-minimized');
+      const expanded = document.getElementById('quest-card-expanded');
 
-    // Make available globally for the app
-    window.firebaseInstances = { app: firebase.app(), auth, db };
-  </script>
-  
-  <!-- Main app logic -->
-  <script>
-    // Debug logging helper
-    // Logs to browser console (always) and optional on-screen debug console
-    // To enable on-screen console: uncomment the debug-console div in HTML above
-    function debugLog(msg) {
-        // Log to browser console (F12 Developer Tools)
-        console.log(msg);
-
-        // Log to on-screen debug console (if enabled)
-        const debugConsole = document.getElementById('debug-console');
-        if (debugConsole) {
-            const timestamp = new Date().toLocaleTimeString();
-            debugConsole.innerHTML += `[${timestamp}] ${msg}<br>`;
-            debugConsole.scrollTop = debugConsole.scrollHeight;
+      if (minimized && expanded) {
+        if (minimized.classList.contains('hidden')) {
+          minimized.classList.remove('hidden');
+          expanded.classList.add('hidden');
+        } else {
+          minimized.classList.add('hidden');
+          expanded.classList.remove('hidden');
         }
-
-        // TEMPORARY: Log to visible debug panel
-        const debugOutput = document.getElementById('debug-output');
-        if (debugOutput) {
-            const timestamp = new Date().toLocaleTimeString();
-            debugOutput.innerHTML += `[${timestamp}] ${msg}<br>`;
-            const panel = document.getElementById('debug-panel');
-            if (panel) panel.scrollTop = panel.scrollHeight;
-        }
+      }
     }
 
-    function main() {
-        debugLog('🚀 App starting...');
-        debugLog(`📦 QUEST_DATABASE loaded: ${!!window.QUEST_DATABASE}`);
-        debugLog(`📦 QUEST_IMAGES loaded: ${!!window.QUEST_IMAGES}`);
-        debugLog(`📦 PLACEMENT_QUESTIONS loaded: ${!!window.PLACEMENT_QUESTIONS}`);
-        if (window.QUEST_DATABASE) {
-            debugLog(`📊 QUEST_DATABASE has ${Object.keys(window.QUEST_DATABASE.quests || {}).length} quests`);
-        }
-
-        if (!window.firebaseInstances) {
-            debugLog('❌ Firebase did not initialize');
-            document.body.innerHTML = '<div style="color: red; text-align: center; margin-top: 50px;">Critical Error: App could not load. Firebase is not configured correctly.</div>';
-            return;
-        }
-
-        debugLog('✅ Firebase instances loaded');
-        const { auth, db } = window.firebaseInstances;
-        debugLog('✅ Auth and DB extracted');
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        let currentUser = null;
-        let userSettings = {};
-        let currentQuest = null;
-        let currentStage = null;
-        let messages = [];
-        let selectedAvatar = '👤'; // Default avatar
-        let sessionStartTime = null; // Track when user starts a stage
-        let objectivesCompleted = {}; // Track completed objectives for current stage
-        let messageCount = 0; // Track number of messages in current stage
-
-        // Available avatars - safe, emoji-based options
-        const avatarOptions = [
-            '😊', '😎', '🤓', '😇', '🥳', '🤠', '🧐', '🤗',
-            '😺', '🐶', '🐼', '🦊', '🐨', '🐸', '🦁', '🐯',
-            '🌟', '🌈', '🔥', '⚡', '🎨', '🎭', '🎪', '🎮',
-            '🚀', '🌍', '🏆', '⚽', '🎸', '📚', '🎓', '💡'
-        ];
-
-        const CEFR_LEVELS_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-
-        function getUserLevel() {
-            return userSettings?.proficiencyLevel || 'A1';
-        }
-
-        function isLevelAtLeast(level) {
-            const current = getUserLevel();
-            const currentIdx = CEFR_LEVELS_ORDER.indexOf(current);
-            const targetIdx = CEFR_LEVELS_ORDER.indexOf(level);
-            if (currentIdx === -1) return false;
-            if (targetIdx === -1) return false;
-            return currentIdx >= targetIdx;
-        }
-
-        function prefersSpanishOnly() {
-            return isLevelAtLeast('B1');
-        }
-
-        function getPreferredNarrativeLangKey() {
-            if (prefersSpanishOnly()) return 'es';
-            const explicitPreference = userSettings?.vignetteLanguage;
-            if (explicitPreference === 'Spanish') return 'es';
-            if (explicitPreference === 'English') return 'en';
-            return 'en';
-        }
-
-        /* ---------------- Objective Tracking System ------------------- */
-        function checkObjectiveCompletion(text) {
-            if (!currentStage || !currentStage.objectives) return;
-
-            const lowerText = text.toLowerCase();
-
-            // Check each objective for keyword matches
-            currentStage.objectives.forEach(objective => {
-                // Skip if already completed
-                if (objectivesCompleted[objective.id]) return;
-
-                // Check if any keywords are present in the text
-                const hasKeyword = objective.keywords.some(keyword =>
-                    lowerText.includes(keyword.toLowerCase())
-                );
-
-                if (hasKeyword) {
-                    objectivesCompleted[objective.id] = true;
-                    debugLog(`✅ Objective completed: ${objective.description}`);
-                    console.log(`[Objectives] Completed: ${objective.id} - ${objective.description}`);
-
-                    // Update UI to show progress
-                    updateObjectivesUI();
-                }
-            });
-
-            // Check if stage should auto-complete
-            checkStageCompletion();
-        }
-
-        function updateObjectivesUI() {
-            if (!currentStage || !currentStage.objectives) {
-                // Hide objectives UI if no objectives exist
-                if (dom.objectivesProgress) {
-                    dom.objectivesProgress.classList.add('hidden');
-                }
-                return;
-            }
-
-            const completed = Object.keys(objectivesCompleted).length;
-            const total = currentStage.objectives.length;
-            debugLog(`📊 Objectives Progress: ${completed}/${total}`);
-
-            // Update UI elements
-            if (dom.objectivesCount) {
-                dom.objectivesCount.textContent = `${completed}/${total}`;
-            }
-
-            if (dom.objectivesProgress) {
-                dom.objectivesProgress.classList.remove('hidden');
-
-                // Add visual feedback when objective is completed
-                if (completed > 0) {
-                    dom.objectivesProgress.classList.add('text-green-600');
-                    dom.objectivesProgress.classList.remove('text-blue-600');
-                }
-
-                // Change to success color when all completed
-                if (completed === total) {
-                    dom.objectivesProgress.innerHTML = `
-                        <span class="text-green-600 font-bold">✓ All objectives completed! Stage will end soon...</span>
-                    `;
-                }
-            }
-        }
-
-        function checkStageCompletion() {
-            if (!currentStage || !currentStage.completionCriteria) return;
-
-            const criteria = currentStage.completionCriteria;
-            const completedCount = Object.keys(objectivesCompleted).length;
-
-            // Check if minimum message count is met
-            const hasMinMessages = messageCount >= criteria.minMessages;
-
-            // Check if required objectives are met
-            const hasRequiredObjectives = completedCount >= criteria.objectivesRequired;
-
-            debugLog(`🎯 Completion check: Messages ${messageCount}/${criteria.minMessages}, Objectives ${completedCount}/${criteria.objectivesRequired}`);
-
-            // Auto-complete if both criteria are met
-            if (hasMinMessages && hasRequiredObjectives) {
-                debugLog('🎉 Stage auto-completion criteria met!');
-                showStageCompletionNotification();
-                setTimeout(async () => {
-                    await endStage();
-                }, 4000); // Longer delay to read completion message
-            }
-        }
-
-        function resetObjectiveTracking() {
-            objectivesCompleted = {};
-            messageCount = 0;
-            shownHints = new Set();
-            debugLog('🔄 Objective tracking reset');
-        }
-
-        // Show stage completion notification
-        function showStageCompletionNotification() {
-            if (!currentStage) return;
-
-            const notification = document.createElement('div');
-            notification.className = 'p-4 bg-green-100 border-2 border-green-500 text-green-800 rounded-lg mb-3 shadow-lg';
-            notification.style.cssText = 'position: sticky; top: 0; z-index: 1000; animation: slideIn 0.3s ease-out;';
-            notification.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-3xl">✅</span>
-                    <div class="flex-1">
-                        <div class="font-bold text-lg">Stage Complete!</div>
-                        <div class="text-sm mt-1">You've completed all objectives for this stage.</div>
-                        ${currentStage.reward?.clue ? `<div class="text-sm mt-2 italic bg-green-50 p-2 rounded border-l-4 border-green-600">"${currentStage.reward.clue}"</div>` : ''}
-                        ${currentStage.reward?.xp ? `<div class="text-xs mt-2 font-semibold">+${currentStage.reward.xp} XP</div>` : ''}
-                    </div>
-                </div>
-            `;
-
-            // Insert at the beginning so it's visible at the top
-            dom.chatContainer.insertBefore(notification, dom.chatContainer.firstChild);
-            // Scroll to top to show the notification
-            dom.chatContainer.scrollTop = 0;
-
-            debugLog('✅ Stage completion notification displayed');
-        }
-
-        // Check and show hints if player is stuck
-        let shownHints = new Set();
-
-        function checkAndShowHints() {
-            if (!currentStage || !currentStage.objectives) return;
-
-            // Show hint after 5 messages if no progress on required objectives
-            if (messageCount >= 5) {
-                currentStage.objectives.forEach(objective => {
-                    if (objective.required && !objectivesCompleted[objective.id]) {
-                        // Show first hint that hasn't been shown yet
-                        const hintKey = `${currentStage.id}-${objective.id}`;
-                        if (!shownHints.has(hintKey) && objective.hints && objective.hints.length > 0) {
-                            showHint(objective.hints[0], objective.description);
-                            shownHints.add(hintKey);
-                        }
-                    }
-                });
-            }
-        }
-
-        // Display hint to user
-        function showHint(hintText, objectiveDescription) {
-            const hintEl = document.createElement('div');
-            hintEl.className = 'p-3 bg-yellow-50 border-2 border-yellow-400 text-yellow-900 rounded-lg mb-3 shadow';
-            hintEl.style.cssText = 'position: sticky; top: 0; z-index: 1000; transition: opacity 0.3s ease-out;';
-            hintEl.innerHTML = `
-                <div class="flex items-start gap-2">
-                    <span class="text-2xl">💡</span>
-                    <div class="flex-1">
-                        <div class="font-semibold text-sm">Hint</div>
-                        ${objectiveDescription ? `<div class="text-xs text-yellow-700 mt-1">Objective: ${objectiveDescription}</div>` : ''}
-                        <div class="text-sm mt-2">${hintText}</div>
-                    </div>
-                </div>
-            `;
-
-            // Insert at the beginning so it's visible at the top
-            dom.chatContainer.insertBefore(hintEl, dom.chatContainer.firstChild);
-            // Scroll to top to show the hint
-            dom.chatContainer.scrollTop = 0;
-
-            debugLog(`💡 Hint shown: ${hintText}`);
-
-            // Auto-dismiss after 5 seconds
-            setTimeout(() => {
-                hintEl.style.opacity = '0';
-                setTimeout(() => {
-                    hintEl.remove();
-                    // Scroll back to bottom to show latest messages
-                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
-                }, 300); // Wait for fade out animation
-            }, 5000);
-        }
-
-        const dom = {
-            authContainer: document.getElementById('auth-container'), mainAppView: document.getElementById('main-app-view'),
-            placementView: document.getElementById('placement-view'), loginView: document.getElementById('login-view'),
-            signupView: document.getElementById('signup-view'), emailVerificationView: document.getElementById('email-verification-view'),
-            verificationEmail: document.getElementById('verification-email'), resendVerificationBtn: document.getElementById('resend-verification-btn'),
-            checkVerificationBtn: document.getElementById('check-verification-btn'), verificationLogoutBtn: document.getElementById('verification-logout-btn'),
-            verificationError: document.getElementById('verification-error'), verificationSuccess: document.getElementById('verification-success'),
-            loginEmailInput: document.getElementById('login-email-input'),
-            loginPasswordInput: document.getElementById('login-password-input'), loginBtn: document.getElementById('login-btn'),
-            showSignupBtn: document.getElementById('show-signup-btn'), loginError: document.getElementById('login-error'),
-            forgotPasswordBtn: document.getElementById('forgot-password-btn'), forgotPasswordModal: document.getElementById('forgot-password-modal'),
-            closeForgotPasswordBtn: document.getElementById('close-forgot-password-btn'), resetEmailInput: document.getElementById('reset-email-input'),
-            resetPasswordInput: document.getElementById('reset-password-input'), resetPasswordConfirmInput: document.getElementById('reset-password-confirm-input'),
-            resetReqLength: document.getElementById('reset-req-length'), resetReqUppercase: document.getElementById('reset-req-uppercase'),
-            resetReqNumberSymbol: document.getElementById('reset-req-number-symbol'),
-            sendResetBtn: document.getElementById('send-reset-btn'), resetError: document.getElementById('reset-error'),
-            resetSuccess: document.getElementById('reset-success'),
-            selectAvatarBtn: document.getElementById('select-avatar-btn'), selectedAvatarDisplay: document.getElementById('selected-avatar-display'),
-            avatarSelectorModal: document.getElementById('avatar-selector-modal'), closeAvatarSelectorBtn: document.getElementById('close-avatar-selector-btn'),
-            cancelAvatarBtn: document.getElementById('cancel-avatar-btn'),
-            avatarGrid: document.getElementById('avatar-grid'), confirmAvatarBtn: document.getElementById('confirm-avatar-btn'),
-            signupNameInput: document.getElementById('signup-name-input'), signupEmailInput: document.getElementById('signup-email-input'),
-            signupPasswordInput: document.getElementById('signup-password-input'), signupPasswordConfirmInput: document.getElementById('signup-password-confirm-input'),
-            reqLength: document.getElementById('req-length'), reqUppercase: document.getElementById('req-uppercase'),
-            reqNumberSymbol: document.getElementById('req-number-symbol'),
-            signupBtn: document.getElementById('signup-btn'),
-            showLoginBtn: document.getElementById('show-login-btn'), signupError: document.getElementById('signup-error'),
-            logoutBtn: document.getElementById('logout-btn'), welcomeMessage: document.getElementById('welcome-message'),
-            questView: document.getElementById('quest-view'), chatView: document.getElementById('chat-view'),
-            chatContainer: document.getElementById('chat-container'), chatInput: document.getElementById('chat-input'),
-            sendBtn: document.getElementById('send-btn'), chatTitle: document.getElementById('chat-title'),
-            objectivesProgress: document.getElementById('objectives-progress'), objectivesCount: document.getElementById('objectives-count'),
-            settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
-            closeSettingsBtn: document.getElementById('close-settings-btn'), dialectSelect: document.getElementById('dialect-select'),
-            formalitySelect: document.getElementById('formality-select'), vignetteLangSelect: document.getElementById('vignette-lang-select'),
-            settingsAvatarDisplay: document.getElementById('settings-avatar-display'), changeAvatarBtn: document.getElementById('change-avatar-btn'),
-            dailyGoalInput: document.getElementById('daily-goal-input'),
-            autoplaySetting: document.getElementById('autoplay-setting'),
-            voiceSpeedSlider: document.getElementById('voice-speed-slider'), voiceSpeedValue: document.getElementById('voice-speed-value'),
-            voicePitchSlider: document.getElementById('voice-pitch-slider'), voicePitchValue: document.getElementById('voice-pitch-value'),
-            testVoiceBtn: document.getElementById('test-voice-btn'),
-            dailyTracker: document.getElementById('daily-tracker'), currentMinutes: document.getElementById('current-minutes'),
-            goalMinutes: document.getElementById('goal-minutes'), streakCount: document.getElementById('streak-count'),
-            progressBar: document.getElementById('progress-bar'),
-            micBtn: document.getElementById('mic-btn'), endSessionBtn: document.getElementById('end-session-btn'),
-            autoplayToggleBtn: document.getElementById('autoplay-toggle-btn'),
-            translationPopover: document.getElementById('translation-popover'), vignetteModal: document.getElementById('vignette-modal'),
-            vignetteTitle: document.getElementById('vignette-title'), vignetteText: document.getElementById('vignette-text'),
-            startStageBtn: document.getElementById('start-stage-btn'), mapModal: document.getElementById('map-modal'),
-            mapTitle: document.getElementById('map-title'), mapObjective: document.getElementById('map-objective'),
-            mapContainer: document.getElementById('map-container'), mapImage: document.getElementById('map-image'),
-            stageCompleteModal: document.getElementById('stage-complete-modal'), clueText: document.getElementById('clue-text'),
-            xpGainText: document.getElementById('xp-gain-text'), continueQuestBtn: document.getElementById('continue-quest-btn'),
-            hintBtn: document.getElementById('hint-btn'), hintPopover: document.getElementById('hint-popover'),
-            correctionModal: document.getElementById('correction-modal'), closeCorrectionBtn: document.getElementById('close-correction-btn'),
-            originalSentenceEl: document.getElementById('original-sentence-el'), correctedSentenceEl: document.getElementById('corrected-sentence-el'),
-            explanationContainer: document.getElementById('explanation-container'), explanationText: document.getElementById('explanation-text'),
-            explainRuleBtn: document.getElementById('explain-rule-btn'), correctionLoading: document.getElementById('correction-loading'),
-            questObjectiveModal: document.getElementById('quest-objective-modal'), closeObjectiveModalBtn: document.getElementById('close-objective-modal-btn'),
-            objectiveQuestTitle: document.getElementById('objective-quest-title'), objectiveQuestText: document.getElementById('objective-quest-text'),
-            placementQuizView: document.getElementById('placement-quiz-view'), submitQuizBtn: document.getElementById('submit-quiz-btn'),
-            questionText: document.getElementById('question-text'), quizOptions: document.getElementById('quiz-options'),
-            currentQuestionNum: document.getElementById('current-question-num'), totalQuestions: document.getElementById('total-questions'),
-            estimatedLevel: document.getElementById('estimated-level'), placementProgressBar: document.getElementById('placement-progress-bar'),
-            retakePlacementBtn: document.getElementById('retake-placement-btn'),
-            completePlacementBtn: document.getElementById('complete-placement-btn'),
-        };
-
-        /* ---------------- AIManager (Secure Backend) ------------------- */
-        const AIManager = {
-            async callAPI(systemInstruction, contents) {
-                try {
-                    debugLog('🔌 Calling /api/gemini...');
-                    debugLog(`📝 System instruction length: ${systemInstruction?.length || 0}`);
-                    const response = await fetch('/api/gemini', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ systemInstruction, contents })
-                    });
-
-                    debugLog(`📡 API Response status: ${response.status}`);
-                    if (!response.ok) {
-                        const errorBody = await response.json();
-                        console.error("API Error:", errorBody);
-                        debugLog(`❌ API Error: ${JSON.stringify(errorBody)}`);
-                        const errorMessage = typeof errorBody.error === 'string'
-                            ? errorBody.error
-                            : (errorBody.error?.message || errorBody.message || JSON.stringify(errorBody));
-                        return `Error: ${errorMessage}`;
-                    }
-
-                    const result = await response.json();
-
-                    // CHAT FIX: Safely access the response text
-                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
-                        return result.candidates[0].content.parts[0].text;
-                    } else {
-                        // Handle cases where the API returns a response with no candidates (e.g., due to safety filters)
-                        console.warn("API returned no candidates. Full response:", result);
-                        return "I'm sorry, I couldn't generate a response for that. Please try something else.";
-                    }
-
-                } catch (error) {
-                    console.error("Fetch Error:", error);
-                    debugLog(`❌ Fetch Error: ${error.message || error}`);
-                    return `Sorry, I couldn't connect to the AI service. ${error.message || ''}`;
-                }
-            },
-            async getResponse(history, stage, settings) {
-                const level = getUserLevel();
-                debugLog(`🌍 User level: ${level}, Getting AI response...`);
-                // ALWAYS use Spanish for dialogue, with scaffolding based on level
-                const scaffoldingGuidance = {
-                    'A1': 'Use very simple Spanish with basic vocabulary. Speak slowly (short sentences). When introducing new words, use cognates when possible. Repeat key phrases.',
-                    'A2': 'Use simple Spanish with common vocabulary. Keep sentences clear and direct. Use present tense primarily. Introduce basic past tense gradually.',
-                    'B1': 'Use natural conversational Spanish with some complexity. Include common idioms. Use varied tenses. Speak at a normal pace.',
-                    'B2': 'Use natural Spanish with nuanced expressions. Include cultural references and idioms. Use all tenses fluidly.',
-                    'C1': 'Use sophisticated Spanish with advanced vocabulary. Include subtle cultural nuances and complex grammatical structures.',
-                    'C2': 'Use native-level Spanish with literary expressions, regional variations, and complex discourse.'
-                }[level] || 'Use simple Spanish appropriate for beginners.';
-
-                const systemInstruction = `You are a helpful language tutor in a role-playing game. The user is in a scenario called "${stage.characterName}". Your persona is: "${stage.systemPrompt}". The user's target language dialect is ${settings.dialect}. The learner's CEFR level is ${level}.
-
-CRITICAL: You MUST respond ONLY in Spanish. Never use English in your responses. The user has access to a click-to-translate feature if they need help understanding.
-
-Scaffolding for ${level} learners: ${scaffoldingGuidance}
-
-Provide natural corrections by modeling correct usage in your responses (don't explicitly say "you should say X"). Stay in character and keep responses concise (1-3 sentences).`;
-                debugLog('🇪🇸 Spanish-only system instruction prepared');
-                const contents = history.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', parts: m.parts }));
-                return this.callAPI(systemInstruction, contents);
-            },
-            async getCorrection(text) {
-                const level = getUserLevel();
-                const systemInstruction = `You are a helpful language correction tool for Spanish learners at ${level} level. Analyze the user's Spanish text and provide a correction if needed.
-
-CRITICAL: Respond ONLY in Spanish.
-
-If the text is correct, respond: "¡Correcto!"
-If it needs correction, respond: "Corrección: [corrected text]"
-
-Then add a brief explanation in simple Spanish about what was wrong. Keep it concise and educational.`;
-                const contents = [{ role: "user", parts: [{ text }] }];
-                return this.callAPI(systemInstruction, contents);
-            },
-            // ... other AI manager functions can be updated similarly
-        };
-
-        /* ---------------- Translation Manager ------------------- */
-        const TranslationManager = {
-            async translate(text) {
-                try {
-                    const response = await fetch('/api/translate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            text: text,
-                            sourceLang: 'es',
-                            targetLang: 'en'
-                        })
-                    });
-
-                    if (!response.ok) {
-                        console.error("Translation API Error");
-                        return null;
-                    }
-
-                    const result = await response.json();
-                    return result.translatedText;
-                } catch (error) {
-                    console.error("Translation Error:", error);
-                    return null;
-                }
-            },
-
-            async showTranslation(text, x, y) {
-                const popover = dom.translationPopover;
-                if (!popover) return;
-
-                // Show loading state with improved UI
-                popover.innerHTML = '<span style="opacity: 0.7;">⏳ Translating...</span>';
-                popover.classList.add('loading');
-                popover.classList.remove('hidden');
-
-                // Get the chat container bounds
-                const chatContainer = dom.chatContainer;
-                const containerRect = chatContainer.getBoundingClientRect();
-                const appContainerRect = document.getElementById('app-container').getBoundingClientRect();
-
-                // Set initial position (centered on the word)
-                popover.style.left = `${x}px`;
-                popover.style.top = `${y}px`;
-                popover.style.transform = 'translateX(-50%)';
-
-                // Wait a tick for the popover to render so we can get its dimensions
-                await new Promise(resolve => setTimeout(resolve, 0));
-
-                // Get popover dimensions
-                const popoverRect = popover.getBoundingClientRect();
-                const popoverWidth = popoverRect.width;
-                const popoverHeight = popoverRect.height;
-
-                // Calculate boundaries (relative to app-container)
-                const chatLeft = containerRect.left - appContainerRect.left;
-                const chatRight = containerRect.right - appContainerRect.left;
-                const chatTop = containerRect.top - appContainerRect.top;
-                const chatBottom = containerRect.bottom - appContainerRect.top;
-
-                // Adjust horizontal position if needed
-                let adjustedX = x;
-                const popoverLeft = x - (popoverWidth / 2);
-                const popoverRight = x + (popoverWidth / 2);
-
-                if (popoverLeft < chatLeft) {
-                    // Too far left - align with left edge + padding
-                    adjustedX = chatLeft + (popoverWidth / 2) + 10;
-                    popover.style.left = `${adjustedX}px`;
-                } else if (popoverRight > chatRight) {
-                    // Too far right - align with right edge - padding
-                    adjustedX = chatRight - (popoverWidth / 2) - 10;
-                    popover.style.left = `${adjustedX}px`;
-                }
-
-                // Adjust vertical position if needed
-                let adjustedY = y;
-                const popoverTop = y - popoverHeight;
-
-                if (popoverTop < chatTop) {
-                    // Would go above chat container - show below the word instead
-                    adjustedY = y + 30; // Position below the word
-                    popover.style.top = `${adjustedY}px`;
-                }
-
-                // Get translation
-                const translation = await this.translate(text);
-
-                if (translation) {
-                    popover.classList.remove('loading');
-                    // Show both the selected text and its translation
-                    popover.innerHTML = `
-                        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px; color: #9ca3af;">Selected:</div>
-                        <div style="font-style: italic; margin-bottom: 4px; color: #60a5fa;">"${text}"</div>
-                        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px; color: #9ca3af;">Translation:</div>
-                        <div style="font-weight: 600;">${translation}</div>
-                    `;
-                } else {
-                    popover.innerHTML = '<span style="color: #ef4444;">❌ Translation unavailable</span>';
-                }
-            },
-
-            hideTranslation() {
-                if (dom.translationPopover) {
-                    dom.translationPopover.classList.add('hidden');
-                }
-            }
-        };
-
-        /* ---------------- Speech Manager ------------------- */
-        const SpeechManager = {
-            recognition: null,
-            synthesis: window.speechSynthesis,
-            isRecording: false,
-            isAutoPlayEnabled: false, // Toggle for auto-playing AI responses
-            customSpeedMultiplier: 1.0, // User-controlled speed multiplier
-            customPitchAdjustment: 0, // User-controlled pitch adjustment
-            isPlaying: false, // Track if audio is currently playing
-            currentAudio: null, // Reference to currently playing audio
-
-            init() {
-                // Initialize Speech Recognition (Web Speech API)
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (SpeechRecognition) {
-                    this.recognition = new SpeechRecognition();
-                    this.recognition.lang = 'es-ES'; // Spanish recognition
-                    this.recognition.continuous = false;
-                    this.recognition.interimResults = true; // Enable interim results for feedback
-                    this.recognition.maxAlternatives = 1;
-
-                    // Event: Speech recognition starts
-                    this.recognition.onstart = () => {
-                        debugLog('🎤 Speech recognition started');
-                        console.log('[SpeechRecognition] Started listening');
-                    };
-
-                    // Event: Audio starts being captured
-                    this.recognition.onaudiostart = () => {
-                        debugLog('🎤 Audio capture started');
-                        console.log('[SpeechRecognition] Audio capture started');
-                    };
-
-                    // Event: Audio ends
-                    this.recognition.onaudioend = () => {
-                        debugLog('🎤 Audio capture ended');
-                        console.log('[SpeechRecognition] Audio capture ended');
-                    };
-
-                    // Event: Speech starts being detected
-                    this.recognition.onspeechstart = () => {
-                        debugLog('🎤 Speech detected!');
-                        console.log('[SpeechRecognition] Speech detected');
-                        dom.chatInput.placeholder = 'Listening... (speaking detected)';
-                    };
-
-                    // Event: Speech ends
-                    this.recognition.onspeechend = () => {
-                        debugLog('🎤 Speech ended');
-                        console.log('[SpeechRecognition] Speech ended');
-                    };
-
-                    // Event: Results received
-                    this.recognition.onresult = (event) => {
-                        console.log('[SpeechRecognition] Result event:', event);
-
-                        // Get the transcript
-                        let transcript = '';
-                        for (let i = event.resultIndex; i < event.results.length; i++) {
-                            transcript = event.results[i][0].transcript;
-                            const isFinal = event.results[i].isFinal;
-
-                            if (isFinal) {
-                                debugLog(`🎤 Final transcript: ${transcript}`);
-                                console.log('[SpeechRecognition] Final:', transcript);
-                                dom.chatInput.value = transcript;
-                                this.stopRecording();
-                            } else {
-                                debugLog(`🎤 Interim: ${transcript}`);
-                                console.log('[SpeechRecognition] Interim:', transcript);
-                                // Show interim results in placeholder
-                                dom.chatInput.placeholder = `Hearing: "${transcript}"`;
-                            }
-                        }
-                    };
-
-                    // Event: Error occurred
-                    this.recognition.onerror = (event) => {
-                        console.error('[SpeechRecognition] Error:', event.error, event);
-                        debugLog(`🎤 Error: ${event.error}`);
-                        this.stopRecording();
-
-                        if (event.error === 'no-speech') {
-                            alert('No speech was detected. Please try speaking again.');
-                        } else if (event.error === 'not-allowed') {
-                            alert('Microphone access denied. Please enable microphone permissions in your browser settings.');
-                        } else if (event.error === 'aborted') {
-                            debugLog('🎤 Recognition aborted');
-                        } else {
-                            alert(`Speech recognition error: ${event.error}`);
-                        }
-                    };
-
-                    // Event: Recognition ends
-                    this.recognition.onend = () => {
-                        debugLog('🎤 Recognition ended');
-                        console.log('[SpeechRecognition] Recognition ended');
-                        this.stopRecording();
-                    };
-
-                    debugLog('✅ Speech recognition initialized');
-                    console.log('[SpeechRecognition] Initialized with language:', this.recognition.lang);
-                } else {
-                    debugLog('❌ Speech recognition not supported in this browser');
-                    console.error('[SpeechRecognition] API not available');
-                }
-            },
-
-            startRecording() {
-                if (!this.recognition) {
-                    alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
-                    return;
-                }
-
-                if (this.isRecording) {
-                    this.stopRecording();
-                    return;
-                }
-
-                try {
-                    this.isRecording = true;
-                    dom.micBtn.classList.add('mic-active');
-                    dom.micBtn.style.color = '#ef4444'; // Red when recording
-                    dom.chatInput.placeholder = 'Listening...';
-                    this.recognition.start();
-                    debugLog('🎤 Recording started');
-                } catch (error) {
-                    console.error('Error starting recording:', error);
-                    this.stopRecording();
-                }
-            },
-
-            stopRecording() {
-                if (this.recognition && this.isRecording) {
-                    this.recognition.stop();
-                }
-                this.isRecording = false;
-                dom.micBtn.classList.remove('mic-active');
-                dom.micBtn.style.color = ''; // Reset color
-                dom.chatInput.placeholder = 'Type your reply...';
-                debugLog('🎤 Recording stopped');
-            },
-
-            async speak(text, language = 'es-MX', characterGender = null, characterName = null) {
-                // Prevent multiple simultaneous audio playback
-                if (this.isPlaying) {
-                    debugLog('🔊 Audio already playing, ignoring request');
-                    console.log('[TTS] Blocked: Audio is already playing');
-                    return;
-                }
-
-                try {
-                    this.isPlaying = true;
-                    debugLog(`🔊 Generating natural speech for: ${characterName || 'character'}`);
-                    console.log(`[TTS] Requesting speech for "${text.substring(0, 50)}..." with character: ${characterName}, gender: ${characterGender}`);
-
-                    // Cancel any ongoing speech synthesis
-                    if (this.synthesis) {
-                        this.synthesis.cancel();
-                    }
-
-                    // Stop any currently playing audio
-                    if (this.currentAudio) {
-                        this.currentAudio.pause();
-                        this.currentAudio = null;
-                    }
-
-                    // Call server-side Google Cloud TTS API with custom settings
-                    const response = await fetch('/api/tts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            text: text,
-                            characterName: characterName,
-                            characterGender: characterGender,
-                            speedMultiplier: this.customSpeedMultiplier,
-                            pitchAdjustment: this.customPitchAdjustment
-                        })
-                    });
-
-                    if (!response.ok) {
-                        console.error('[TTS] API request failed:', response.status);
-                        debugLog('❌ TTS API request failed');
-                        this.isPlaying = false;
-                        return;
-                    }
-
-                    const data = await response.json();
-
-                    if (data.audioContent) {
-                        // Convert base64 audio to blob and play
-                        const audioBlob = this.base64ToBlob(data.audioContent, 'audio/mp3');
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        const audio = new Audio(audioUrl);
-                        this.currentAudio = audio;
-
-                        audio.onplay = () => {
-                            debugLog(`🔊 Playing natural voice: ${data.voiceName}`);
-                            console.log(`[TTS] Playing voice: ${data.voiceName}`);
-                        };
-
-                        audio.onended = () => {
-                            debugLog('🔊 Speech ended');
-                            URL.revokeObjectURL(audioUrl); // Clean up
-                            this.isPlaying = false;
-                            this.currentAudio = null;
-                        };
-
-                        audio.onerror = (error) => {
-                            console.error('[TTS] Audio playback error:', error);
-                            debugLog('❌ Audio playback error');
-                            this.isPlaying = false;
-                            this.currentAudio = null;
-                        };
-
-                        await audio.play();
-                    } else {
-                        console.error('[TTS] No audio content received');
-                        debugLog('❌ No audio content received');
-                        this.isPlaying = false;
-                    }
-
-                } catch (error) {
-                    console.error('[TTS] Error:', error);
-                    debugLog('❌ TTS error: ' + error.message);
-                    this.isPlaying = false;
-                    this.currentAudio = null;
-                }
-            },
-
-            // Helper function to convert base64 to blob
-            base64ToBlob(base64, contentType) {
-                const byteCharacters = atob(base64);
-                const byteArrays = [];
-
-                for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-                    const slice = byteCharacters.slice(offset, offset + 512);
-                    const byteNumbers = new Array(slice.length);
-                    for (let i = 0; i < slice.length; i++) {
-                        byteNumbers[i] = slice.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    byteArrays.push(byteArray);
-                }
-
-                return new Blob(byteArrays, { type: contentType });
-            },
-
-            // Helper function to match voice name with gender
-            matchesGender(voiceName, gender) {
-                const lowerName = voiceName.toLowerCase();
-                if (gender === 'female') {
-                    // Common female voice indicators
-                    return lowerName.includes('female') ||
-                           lowerName.includes('woman') ||
-                           lowerName.includes('monica') ||
-                           lowerName.includes('paulina') ||
-                           lowerName.includes('angelica') ||
-                           lowerName.includes('maria') ||
-                           lowerName.includes('lucia');
-                } else if (gender === 'male') {
-                    // Common male voice indicators
-                    return lowerName.includes('male') ||
-                           lowerName.includes('man') ||
-                           lowerName.includes('juan') ||
-                           lowerName.includes('diego') ||
-                           lowerName.includes('jorge');
-                }
-                return false;
-            },
-
-            toggleAutoPlay() {
-                this.isAutoPlayEnabled = !this.isAutoPlayEnabled;
-                debugLog(`🔊 Auto-play ${this.isAutoPlayEnabled ? 'enabled' : 'disabled'}`);
-                return this.isAutoPlayEnabled;
-            }
-        };
-
-        // Load quests from the external quest database
-        // Use a getter function to ensure we get the latest value
-        function getQuests() {
-            debugLog(`🔍 getQuests called - QUEST_DATABASE exists: ${!!window.QUEST_DATABASE}`);
-            if (window.QUEST_DATABASE) {
-                debugLog(`✅ QUEST_DATABASE.quests keys: ${Object.keys(window.QUEST_DATABASE.quests || {}).join(', ')}`);
-            }
-            return window.QUEST_DATABASE ? window.QUEST_DATABASE.quests : {};
-        }
-
-        // For backward compatibility, keep quests as a reference
-        let quests = getQuests();
-
-        /* ---------------- Placement Test Logic ------------------- */
-        const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-
-        let placementTest = {
-            currentQuestionIndex: 0,
-            currentLevel: 'A2',
-            answers: [],
-            questionPool: [],
-            maxQuestions: 15,
-            minQuestions: 10,
-            confidenceThreshold: 0.85
-        };
-
-        function initPlacementTest() {
-            debugLog('📝 Initializing placement test');
-            placementTest = {
-                currentQuestionIndex: 0,
-                currentLevel: 'A2', // Start at A2 (middle-beginner)
-                answers: [],
-                questionPool: [],
-                maxQuestions: 15,
-                minQuestions: 10,
-                confidenceThreshold: 0.85
-            };
-            loadNextQuestion();
-        }
-
-        function loadNextQuestion() {
-            debugLog(`🔍 Loading next question from level: ${placementTest.currentLevel}`);
-            const levelQuestions = PLACEMENT_QUESTIONS[placementTest.currentLevel];
-
-            // Get a random question from current level that hasn't been asked
-            const availableQuestions = levelQuestions.filter((q, idx) =>
-                !placementTest.questionPool.some(pq => pq.level === placementTest.currentLevel && pq.index === idx)
-            );
-
-            if (availableQuestions.length === 0) {
-                debugLog('⚠️ No more questions at this level, finishing test');
-                finishPlacementTest();
-                return;
-            }
-
-            const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-            const question = availableQuestions[randomIndex];
-            const originalIndex = levelQuestions.indexOf(question);
-
-            placementTest.questionPool.push({
-                level: placementTest.currentLevel,
-                index: originalIndex,
-                question: question
-            });
-
-            displayQuestion(question);
-            updatePlacementUI();
-        }
-
-        function displayQuestion(questionData) {
-            debugLog(`📋 Displaying question: ${questionData.q}`);
-            dom.questionText.textContent = questionData.q;
-            dom.quizOptions.innerHTML = '';
-
-            questionData.opts.forEach((option, index) => {
-                const label = document.createElement('label');
-                label.className = 'block p-3 border-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border-gray-200';
-                label.innerHTML = `
-                    <input type="radio" name="placement-option" value="${index}" class="mr-3">
-                    <span class="text-gray-800">${option}</span>
-                `;
-                dom.quizOptions.appendChild(label);
-
-                // Add click handler to label for better UX
-                label.addEventListener('click', () => {
-                    // Enable submit button when option selected
-                    dom.submitQuizBtn.disabled = false;
-                });
-            });
-
-            // Disable submit button until option selected
-            dom.submitQuizBtn.disabled = true;
-        }
-
-        function updatePlacementUI() {
-            const progress = (placementTest.currentQuestionIndex / placementTest.maxQuestions) * 100;
-            dom.placementProgressBar.style.width = `${progress}%`;
-            dom.currentQuestionNum.textContent = placementTest.currentQuestionIndex + 1;
-            dom.totalQuestions.textContent = placementTest.maxQuestions;
-            dom.estimatedLevel.textContent = placementTest.currentLevel ? `Estimated: ${placementTest.currentLevel}` : '';
-            debugLog(`📊 UI updated: Question ${placementTest.currentQuestionIndex + 1}/${placementTest.maxQuestions}, Level: ${placementTest.currentLevel}`);
-        }
-
-        async function handlePlacementAnswer() {
-            const selected = document.querySelector('input[name="placement-option"]:checked');
-            if (!selected) return;
-
-            const selectedIndex = parseInt(selected.value);
-            const currentQuestion = placementTest.questionPool[placementTest.currentQuestionIndex];
-            const isCorrect = selectedIndex === currentQuestion.question.ans;
-
-            debugLog(`${isCorrect ? '✅' : '❌'} Answer: ${isCorrect ? 'Correct' : 'Incorrect'}`);
-
-            // Record answer
-            placementTest.answers.push({
-                level: placementTest.currentLevel,
-                correct: isCorrect
-            });
-
-            placementTest.currentQuestionIndex++;
-
-            // Adaptive logic: adjust level based on performance
-            const recentAnswers = placementTest.answers.slice(-3); // Last 3 answers
-            const recentCorrect = recentAnswers.filter(a => a.correct).length;
-            const recentAccuracy = recentCorrect / recentAnswers.length;
-
-            if (recentAnswers.length >= 3) {
-                if (recentAccuracy >= 0.67 && canLevelUp()) {
-                    // Move up a level
-                    const oldLevel = placementTest.currentLevel;
-                    placementTest.currentLevel = getNextLevel(placementTest.currentLevel);
-                    debugLog(`📈 Level up! ${oldLevel} → ${placementTest.currentLevel}`);
-                } else if (recentAccuracy <= 0.33 && canLevelDown()) {
-                    // Move down a level
-                    const oldLevel = placementTest.currentLevel;
-                    placementTest.currentLevel = getPreviousLevel(placementTest.currentLevel);
-                    debugLog(`📉 Level down! ${oldLevel} → ${placementTest.currentLevel}`);
-                }
-            }
-
-            // Check if we should finish
-            if (placementTest.currentQuestionIndex >= placementTest.maxQuestions) {
-                debugLog('✅ Max questions reached, finishing test');
-                finishPlacementTest();
-                return;
-            }
-
-            // Check if we have high confidence and minimum questions met
-            if (placementTest.currentQuestionIndex >= placementTest.minQuestions) {
-                const confidence = calculateConfidence();
-                if (confidence >= placementTest.confidenceThreshold) {
-                    debugLog(`✅ High confidence (${confidence.toFixed(2)}) reached, finishing test`);
-                    finishPlacementTest();
-                    return;
-                }
-            }
-
-            // Load next question
-            loadNextQuestion();
-        }
-
-        function calculateConfidence() {
-            const levelAnswers = placementTest.answers.filter(a => a.level === placementTest.currentLevel);
-            if (levelAnswers.length < 3) return 0;
-
-            const correct = levelAnswers.filter(a => a.correct).length;
-            const accuracy = correct / levelAnswers.length;
-            const n = levelAnswers.length;
-
-            // Wilson score interval for binomial proportion
-            const z = 1.96; // 95% confidence
-            const denominator = 1 + z * z / n;
-            const centre = (accuracy + z * z / (2 * n)) / denominator;
-            const margin = (z / denominator) * Math.sqrt((accuracy * (1 - accuracy) / n) + (z * z / (4 * n * n)));
-
-            const lowerBound = centre - margin;
-            const upperBound = centre + margin;
-
-            // High confidence if the interval is narrow
-            return 1 - (upperBound - lowerBound);
-        }
-
-        function getNextLevel(current) {
-            const index = LEVELS.indexOf(current);
-            return index < LEVELS.length - 1 ? LEVELS[index + 1] : current;
-        }
-
-        function getPreviousLevel(current) {
-            const index = LEVELS.indexOf(current);
-            return index > 0 ? LEVELS[index - 1] : current;
-        }
-
-        function canLevelUp() {
-            return LEVELS.indexOf(placementTest.currentLevel) < LEVELS.length - 1;
-        }
-
-        function canLevelDown() {
-            return LEVELS.indexOf(placementTest.currentLevel) > 0;
-        }
-
-        async function finishPlacementTest() {
-            debugLog('🎯 Finishing placement test...');
-
-            // Determine final level based on highest level with >60% accuracy
-            const levelScores = {};
-            LEVELS.forEach(level => {
-                const levelAnswers = placementTest.answers.filter(a => a.level === level);
-                if (levelAnswers.length > 0) {
-                    const correct = levelAnswers.filter(a => a.correct).length;
-                    levelScores[level] = correct / levelAnswers.length;
-                }
-            });
-
-            // Find highest level with >= 60% accuracy
-            let finalLevel = 'A1';
-            for (let i = LEVELS.length - 1; i >= 0; i--) {
-                const level = LEVELS[i];
-                if (levelScores[level] && levelScores[level] >= 0.6) {
-                    finalLevel = level;
-                    break;
-                }
-            }
-
-            debugLog(`🎯 Final level determined: ${finalLevel}`);
-            debugLog(`Level scores: ${JSON.stringify(levelScores)}`);
-
-            // Save to database
-            await saveUserSettings(currentUser.uid, { proficiencyLevel: finalLevel });
-            userSettings.proficiencyLevel = finalLevel;
-            if (dom.vignetteLangSelect) {
-                const autoKey = getPreferredNarrativeLangKey();
-                dom.vignetteLangSelect.value = autoKey === 'es' ? 'Spanish' : 'English';
-                dom.vignetteLangSelect.disabled = prefersSpanishOnly();
-                if (prefersSpanishOnly()) {
-                    userSettings.vignetteLanguage = 'Spanish';
-                }
-                if (!prefersSpanishOnly()) {
-                    userSettings.vignetteLanguage = dom.vignetteLangSelect.value;
-                }
-            }
-
-            // Show result
-            alert(`Placement complete! Your level: ${finalLevel}`);
-            showView('main-app-view');
-        }
-
-        async function handleCompletePlacement() {
-            debugLog('🎯 User manually completing placement test...');
-
-            try {
-                // Save placement completion to Firestore if user is logged in
-                if (currentUser && db) {
-                    await db.collection('users').doc(currentUser.uid).update({
-                        placementCompleted: true,
-                    });
-                    debugLog('✅ Placement completion saved to Firestore');
-                }
-
-                // Also save to localStorage as backup
-                localStorage.setItem('placementCompleted', 'true');
-                debugLog('✅ Placement completion saved to localStorage');
-
-                // Show main app view
-                showView('main-app-view');
-            } catch (error) {
-                debugLog(`❌ Error completing placement test: ${error.message}`);
-                console.error('[ConvoQuest] Error completing placement test:', error);
-                alert('Error saving placement test completion. Please try again.');
-            }
-        }
-
-        function showView(viewId) {
-            debugLog(`🔄 showView called with: ${viewId}`);
-            const allViews = document.querySelectorAll('.main-view');
-            debugLog(`Found ${allViews.length} views to manage`);
-            allViews.forEach(v => {
-                v.classList.remove('active');
-                debugLog(`Removed active from: ${v.id}`);
-            });
-            const view = document.getElementById(viewId);
-            if (view) {
-                view.classList.add('active');
-                debugLog(`✅ Added active class to: ${viewId}`);
-            } else {
-                debugLog(`❌ View not found: ${viewId}`);
-            }
-        }
-
-        function renderQuests() {
-            debugLog('🎮 renderQuests called');
-            // Refresh quests from QUEST_DATABASE in case it loaded after initial page load
-            quests = getQuests();
-            const list = document.getElementById('quest-list-container');
-            debugLog(`Quest container found: ${!!list}`);
-            debugLog(`Number of quests: ${Object.keys(quests).length}`);
-            debugLog(`Quests object: ${JSON.stringify(Object.keys(quests))}`);
-            if (list) {
-                list.innerHTML = Object.keys(quests).map(id => `<div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer quest-card" data-quest-id="${id}"><h3 class="font-semibold">${quests[id].title}</h3><p class="text-sm text-gray-600">${quests[id].objective}</p></div>`).join('');
-                debugLog(`✅ Quest cards rendered: ${list.children.length}`);
-            } else {
-                debugLog('❌ Quest container (quest-list-container) not found!');
-            }
-        }
-
-        function showMapView(questId) {
-            currentQuest = { ...quests[questId], id: questId };
-            dom.mapTitle.textContent = currentQuest.title;
-            dom.mapObjective.textContent = currentQuest.objective;
-            dom.mapImage.src = currentQuest.mapImage;
-            dom.mapContainer.querySelectorAll('.map-location').forEach(el => el.remove());
-            // Handle both old format (array of strings) and new format (array of objects with id/label)
-            let nextStageIds = currentStage ? (currentStage.nextStages || []) : ['1'];
-
-            // Normalize to array of IDs
-            if (nextStageIds.length > 0 && typeof nextStageIds[0] === 'object') {
-                nextStageIds = nextStageIds.map(s => s.id);
-            }
-
-            nextStageIds.forEach((stageId, index) => {
-                const location = document.createElement('div');
-                location.className = 'map-location absolute p-2 bg-white/80 rounded-full shadow-lg';
-                location.style.left = `${20 + index * 40}%`;
-                location.style.top = `${40 + (index % 2 * 15)}%`;
-                location.innerHTML = '<span>📍</span>';
-                location.dataset.questId = questId;
-                location.dataset.stageId = stageId;
-                dom.mapContainer.appendChild(location);
-            });
-            dom.mapModal.classList.remove('hidden');
-        }
-        
-        function showVignette(questId, stageId) {
-            currentQuest = { ...quests[questId], id: questId };
-            currentStage = { ...currentQuest.stages[stageId], id: stageId, questId };
-            dom.vignetteTitle.textContent = currentStage.characterName;
-
-            // Select language automatically based on proficiency (Spanish for B1+, English otherwise)
-            const langKey = getPreferredNarrativeLangKey();
-            const fallbackLang = langKey === 'es' ? 'en' : 'es';
-            if (currentStage.vignette && typeof currentStage.vignette === 'object') {
-                dom.vignetteText.textContent =
-                    currentStage.vignette[langKey] ||
-                    currentStage.vignette[fallbackLang] ||
-                    currentStage.vignette.en ||
-                    '';
-            } else {
-                // Old format: fallback to vignette_en
-                dom.vignetteText.textContent = currentStage.vignette_en || currentStage.vignette || '';
-            }
-
-            dom.vignetteModal.classList.remove('hidden');
-        }
-
-        function getQuestStage(questId, stageId) {
-            return quests?.[questId]?.stages?.[stageId] || null;
-        }
-
-        function decodeSvgFromDataUri(dataUri) {
-            if (typeof dataUri !== 'string') return null;
-            const commaIndex = dataUri.indexOf(',');
-            if (commaIndex === -1) return null;
-            const meta = dataUri.slice(0, commaIndex);
-            const payload = dataUri.slice(commaIndex + 1);
-
-            try {
-                if (meta.includes(';base64')) {
-                    const decoded = atob(payload);
-                    if (typeof TextDecoder !== 'undefined') {
-                        return new TextDecoder().decode(Uint8Array.from(decoded, c => c.charCodeAt(0)));
-                    }
-                    return decodeURIComponent(escape(decoded));
-                }
-                return decodeURIComponent(payload);
-            } catch (err) {
-                console.warn('Failed to decode stage image data URI', err);
-                return null;
-            }
-        }
-
-        function renderStageImage(imageSrc) {
-            if (!imageSrc) return;
-            if (dom.chatContainer.querySelector('[data-stage-image="true"]')) return;
-
-            const imageWrapper = document.createElement('div');
-            imageWrapper.dataset.stageImage = 'true';
-            imageWrapper.className = 'w-full flex justify-center mb-4';
-            const img = document.createElement('img');
-            img.src = imageSrc;
-            img.alt = 'Stage scene';
-            img.className = 'rounded-lg shadow-md max-w-full h-auto';
-            img.style.maxHeight = '300px';
-            img.loading = 'lazy';
-            img.addEventListener('error', () => {
-                const inlineSvg = decodeSvgFromDataUri(imageSrc);
-                if (inlineSvg) {
-                    debugLog('⚠️ Stage image failed to load as <img>; injecting inline SVG fallback');
-                    const svgContainer = document.createElement('div');
-                    svgContainer.innerHTML = inlineSvg;
-                    svgContainer.firstElementChild?.setAttribute('class', 'rounded-lg shadow-md max-w-full h-auto');
-                    imageWrapper.innerHTML = '';
-                    imageWrapper.appendChild(svgContainer);
-                } else {
-                    debugLog('⚠️ Stage image failed to load and fallback could not decode SVG');
-                }
-            }, { once: true });
-            img.addEventListener('load', () => {
-                debugLog('✅ Stage image loaded successfully');
-            }, { once: true });
-            imageWrapper.appendChild(img);
-            dom.chatContainer.insertBefore(imageWrapper, dom.chatContainer.firstChild);
-            debugLog('🖼️ Stage image displayed');
-        }
-
-        function ensureStageImageForCurrentStage() {
-            if (!currentStage) return;
-
-            const questStage = getQuestStage(currentStage.questId, currentStage.id);
-            if (!questStage) return;
-
-            if (questStage.stageImage) {
-                const preview = questStage.stageImage.slice(0, 60);
-                debugLog(`🎯 Found stage image for ${currentStage.questId} stage ${currentStage.id}: ${preview}...`);
-                currentStage.stageImage = questStage.stageImage;
-                renderStageImage(currentStage.stageImage);
-                return;
-            }
-
-            if (typeof window.initializeQuestImages === 'function') {
-                debugLog('🔁 Attempting to initialize quest images on demand');
-                window.initializeQuestImages();
-            }
-
-            const refreshedStage = getQuestStage(currentStage.questId, currentStage.id);
-            if (refreshedStage?.stageImage) {
-                debugLog(`✅ Stage image ready after refresh for ${currentStage.questId} stage ${currentStage.id}`);
-                currentStage.stageImage = refreshedStage.stageImage;
-                renderStageImage(currentStage.stageImage);
-                return;
-            }
-
-            if (window.questImagesReady === false) {
-                const stageKey = { questId: currentStage.questId, stageId: currentStage.id };
-                const onReady = () => {
-                    if (!currentStage || currentStage.questId !== stageKey.questId || currentStage.id !== stageKey.stageId) {
-                        return;
-                    }
-                    const readyStage = getQuestStage(stageKey.questId, stageKey.stageId);
-                    if (readyStage?.stageImage) {
-                        debugLog(`📦 Stage image delivered via quest-images-ready event for ${stageKey.questId} stage ${stageKey.stageId}`);
-                        currentStage.stageImage = readyStage.stageImage;
-                        renderStageImage(currentStage.stageImage);
-                    }
-                };
-                window.addEventListener('quest-images-ready', onReady, { once: true });
-            }
-        }
-
-        // Quest card expand/minimize functions
-        function populateQuestCard() {
-            if (!currentQuest || !currentStage) return;
-
-            // Get character/scene image - use stageImage or hide
-            const characterImg = document.getElementById('character-image');
-            if (currentStage.stageImage) {
-                characterImg.src = currentStage.stageImage;
-                characterImg.style.display = 'block';
-            } else {
-                characterImg.style.display = 'none';
-            }
-
-            // Populate quest info
-            document.getElementById('quest-title').textContent = currentQuest.title || 'Quest';
-            document.getElementById('character-name-display').textContent = currentStage.characterName || '';
-
-            // Get objective text
-            const objectiveText = currentStage.objective || currentQuest.objective || 'Complete the conversation';
-            document.getElementById('quest-objective-display').textContent = objectiveText;
-            document.getElementById('quest-objective-mini').textContent = objectiveText;
-
-            debugLog('📋 Quest card populated');
-        }
-
-        function minimizeQuestCard() {
-            document.getElementById('quest-card-expanded').classList.add('hidden');
-            document.getElementById('quest-card-minimized').classList.remove('hidden');
-            debugLog('⬆️ Quest card minimized');
-        }
-
-        function expandQuestCard() {
-            document.getElementById('quest-card-expanded').classList.remove('hidden');
-            document.getElementById('quest-card-minimized').classList.add('hidden');
-            debugLog('⬇️ Quest card expanded');
-        }
-
-        function startStage() {
-            if (!currentStage) return;
-            messages = [];
-            dom.chatTitle.textContent = currentStage.characterName;
-            dom.chatContainer.innerHTML = '';
-
-            // Reset objective tracking for new stage
-            resetObjectiveTracking();
-
-            // Initialize objectives UI
-            updateObjectivesUI();
-
-            ensureStageImageForCurrentStage();
-
-            // Populate and show quest card
-            populateQuestCard();
-            expandQuestCard();
-
-            // Auto-minimize after 5 seconds
-            setTimeout(() => {
-                minimizeQuestCard();
-            }, 5000);
-
-            addMessage(currentStage.initialMessage, 'ai');
-            dom.vignetteModal.classList.add('hidden');
-            dom.questView.style.display = 'none';
-            dom.chatView.classList.remove('hidden');
-            dom.chatView.classList.add('flex');
-
-            // Start tracking session time
-            sessionStartTime = Date.now();
-            debugLog('⏱️ Session timer started');
-        }
-        
-        function addMessage(text, role, container = dom.chatContainer) {
-            messages.push({ role: role, parts: [{ text: text }] });
-            const isUser = role === 'user';
-            const wrapper = document.createElement('div');
-            wrapper.className = 'w-full flex flex-col ' + (isUser ? 'items-end' : 'items-start');
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble p-3 rounded-lg w-fit ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai');
-            bubble.textContent = text;
-
-            // Add tap-to-translate for AI messages
-            if (!isUser) {
-                // Enable text selection for multi-word phrases
-                bubble.style.userSelect = 'text';
-
-                // Track selection timeout
-                let selectionTimeout = null;
-
-                // Function to expand selection to whole words
-                const expandSelectionToWholeWords = () => {
-                    const selection = window.getSelection();
-                    if (!selection.rangeCount) return;
-
-                    const range = selection.getRangeAt(0);
-                    let startNode = range.startContainer;
-                    let endNode = range.endContainer;
-                    let startOffset = range.startOffset;
-                    let endOffset = range.endOffset;
-
-                    // Get text content
-                    const startText = startNode.textContent || '';
-                    const endText = endNode.textContent || '';
-
-                    // Expand start to beginning of word
-                    while (startOffset > 0 && /[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(startText[startOffset - 1])) {
-                        startOffset--;
-                    }
-
-                    // Expand end to end of word
-                    while (endOffset < endText.length && /[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(endText[endOffset])) {
-                        endOffset++;
-                    }
-
-                    // Create new range with expanded selection
-                    const newRange = document.createRange();
-                    newRange.setStart(startNode, startOffset);
-                    newRange.setEnd(endNode, endOffset);
-
-                    // Update selection
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                };
-
-                // Auto-translate on text selection (for multi-word phrases)
-                bubble.addEventListener('mouseup', async (e) => {
-                    // Expand to whole words first
-                    expandSelectionToWholeWords();
-
-                    // Clear any existing timeout
-                    if (selectionTimeout) {
-                        clearTimeout(selectionTimeout);
-                    }
-
-                    // Wait a short moment to ensure selection is complete
-                    selectionTimeout = setTimeout(async () => {
-                        const selection = window.getSelection();
-                        const selectedText = selection.toString().trim();
-
-                        // Only translate if there's a meaningful selection (more than 1 character)
-                        if (selectedText && selectedText.length > 1) {
-                            const range = selection.getRangeAt(0);
-                            const rect = range.getBoundingClientRect();
-                            const containerRect = document.getElementById('app-container').getBoundingClientRect();
-
-                            const x = rect.left - containerRect.left + (rect.width / 2);
-                            const y = rect.top - containerRect.top - 10;
-
-                            await TranslationManager.showTranslation(selectedText, x, y);
-                        }
-                    }, 300); // 300ms delay to allow user to finish selecting
-                });
-
-                // Expand selection during dragging for better visual feedback
-                bubble.addEventListener('selectstart', () => {
-                    const selectionChangeHandler = () => {
-                        expandSelectionToWholeWords();
-                    };
-
-                    document.addEventListener('selectionchange', selectionChangeHandler);
-
-                    // Remove listener after mouseup
-                    const cleanupListener = () => {
-                        document.removeEventListener('selectionchange', selectionChangeHandler);
-                        document.removeEventListener('mouseup', cleanupListener);
-                    };
-                    document.addEventListener('mouseup', cleanupListener, { once: true });
-                });
-
-                // Split text into clickable words
-                const words = text.split(/(\s+|[.,!?;:¿¡"""''])/); // Split on whitespace and punctuation, keeping delimiters
-                bubble.textContent = ''; // Clear the bubble
-
-                words.forEach(word => {
-                    const wordSpan = document.createElement('span');
-
-                    // Check if it's a word (not just whitespace or single punctuation)
-                    const isWord = word.trim().length > 0 && /[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(word);
-
-                    if (isWord) {
-                        wordSpan.textContent = word;
-                        wordSpan.className = 'translatable-word';
-                        wordSpan.style.cursor = 'pointer';
-                        wordSpan.style.padding = '2px 1px';
-                        wordSpan.style.borderRadius = '3px';
-                        wordSpan.style.transition = 'background-color 0.15s';
-                        wordSpan.style.display = 'inline-block';
-
-                        // Hover effect
-                        wordSpan.addEventListener('mouseenter', () => {
-                            wordSpan.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
-                        });
-                        wordSpan.addEventListener('mouseleave', () => {
-                            wordSpan.style.backgroundColor = 'transparent';
-                        });
-
-                        // Click/tap to translate single word
-                        wordSpan.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-
-                            // Check if there's a multi-word selection
-                            const selection = window.getSelection();
-                            const selectedText = selection.toString().trim();
-
-                            // Only handle single word clicks here (multi-word handled by mouseup)
-                            if (!selectedText || selectedText.length <= word.trim().length) {
-                                // Single word click - translate just this word
-                                const cleanWord = word.replace(/[.,!?;:¿¡"""'']/g, '').trim();
-
-                                // Highlight the clicked word
-                                wordSpan.style.backgroundColor = 'rgba(96, 165, 250, 0.4)';
-
-                                // Get position
-                                const rect = wordSpan.getBoundingClientRect();
-                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
-
-                                const x = rect.left - containerRect.left + (rect.width / 2);
-                                const y = rect.top - containerRect.top - 10;
-
-                                // Translate just this word
-                                await TranslationManager.showTranslation(cleanWord, x, y);
-
-                                // Reset highlight after a moment
-                                setTimeout(() => {
-                                    wordSpan.style.backgroundColor = 'transparent';
-                                }, 2000);
-                            }
-                        });
-                    } else {
-                        // Just add whitespace/punctuation as-is
-                        wordSpan.textContent = word;
-                        wordSpan.style.cursor = 'default';
-                    }
-
-                    bubble.appendChild(wordSpan);
-                });
-            }
-
-            wrapper.appendChild(bubble);
-
-            // Add buttons based on message type
-            if (isUser) {
-                const btn = document.createElement('button');
-                btn.className = 'correction-btn text-xs text-gray-500 hover:text-blue-500 mt-1 mr-1';
-                btn.textContent = 'Correct me ✨';
-                wrapper.appendChild(btn);
-            } else {
-                // Add speaker button for AI messages
-                const speakerBtn = document.createElement('button');
-                speakerBtn.className = 'speaker-btn text-xs text-gray-500 hover:text-blue-500 mt-1 ml-1';
-                speakerBtn.textContent = '🔊 Listen';
-                speakerBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation(); // Prevent translation popup
-
-                    // Prevent clicking if audio is already playing
-                    if (SpeechManager.isPlaying) {
-                        return;
-                    }
-
-                    // Disable all speaker buttons while playing
-                    document.querySelectorAll('.speaker-btn').forEach(btn => {
-                        btn.disabled = true;
-                        btn.classList.add('opacity-50', 'cursor-not-allowed');
-                    });
-
-                    const characterGender = currentStage?.characterGender || null;
-                    const characterName = currentStage?.characterName || null;
-                    await SpeechManager.speak(text, 'es-MX', characterGender, characterName);
-
-                    // Re-enable all speaker buttons after playing
-                    document.querySelectorAll('.speaker-btn').forEach(btn => {
-                        btn.disabled = false;
-                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    });
-                });
-                wrapper.appendChild(speakerBtn);
-            }
-
-            container.insertBefore(wrapper, container.firstChild);
-        }
-
-        // Detect if text is primarily English
-        async function detectEnglish(text) {
-            // Simple heuristic: check for common English words that don't exist in Spanish
-            const englishIndicators = [
-                'the', 'is', 'are', 'was', 'were', 'have', 'has', 'had',
-                'what', 'where', 'when', 'who', 'why', 'how',
-                'can', 'could', 'would', 'should', 'will',
-                'do', 'does', 'did', 'this', 'that', 'these', 'those'
-            ];
-
-            const words = text.toLowerCase().split(/\s+/);
-            const englishWordCount = words.filter(word =>
-                englishIndicators.some(indicator => word.includes(indicator))
-            ).length;
-
-            // If more than 30% of words are English indicators, consider it English
-            return englishWordCount / words.length > 0.3;
-        }
-
-        // Translate English text to Spanish
-        async function translateToSpanish(text) {
-            try {
-                const response = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: text,
-                        sourceLang: 'en',
-                        targetLang: 'es'
-                    })
-                });
-
-                if (!response.ok) {
-                    console.error("Translation API Error");
-                    return "No se pudo traducir";
-                }
-
-                const result = await response.json();
-                return result.translatedText;
-            } catch (error) {
-                console.error("Translation Error:", error);
-                return "No se pudo traducir";
-            }
-        }
-
-        // Show language correction prompt
-        function showLanguageCorrection(englishText, spanishText) {
-            const correctionEl = document.createElement('div');
-            correctionEl.className = 'p-4 bg-blue-50 border-2 border-blue-400 text-blue-900 rounded-lg mb-3 shadow-lg';
-            correctionEl.style.cssText = 'position: sticky; top: 0; z-index: 1000; transition: opacity 0.3s ease-out;';
-            correctionEl.innerHTML = `
-                <div class="flex items-start gap-3">
-                    <span class="text-3xl">🗣️</span>
-                    <div class="flex-1">
-                        <div class="font-bold text-lg mb-2">Try saying it in Spanish!</div>
-                        <div class="text-sm mb-2">
-                            <span class="text-blue-700">You said:</span> <span class="italic">"${englishText}"</span>
-                        </div>
-                        <div class="text-sm mb-3">
-                            <span class="text-blue-700">In Spanish:</span> <span class="font-semibold">"${spanishText}"</span>
-                        </div>
-                        <div class="text-xs bg-blue-100 p-2 rounded">
-                            💡 Try typing the Spanish version to practice!
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Insert at the beginning so it's visible at the top
-            dom.chatContainer.insertBefore(correctionEl, dom.chatContainer.firstChild);
-            // Scroll to top to show the correction
-            dom.chatContainer.scrollTop = 0;
-
-            debugLog(`🗣️ Language correction shown: ${englishText} → ${spanishText}`);
-
-            // Auto-dismiss after 8 seconds (longer than hints since there's more to read)
-            setTimeout(() => {
-                correctionEl.style.opacity = '0';
-                setTimeout(() => {
-                    correctionEl.remove();
-                    // Scroll back to bottom to show latest messages
-                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
-                }, 300);
-            }, 8000);
-        }
-
-        async function handleSendMessage() {
-            const userInput = dom.chatInput.value.trim();
-            if (!userInput) return;
-
-            // Check if user is typing in English
-            const isEnglish = await detectEnglish(userInput);
-            if (isEnglish) {
-                // Get Spanish translation
-                const spanishTranslation = await translateToSpanish(userInput);
-
-                // Show correction prompt
-                showLanguageCorrection(userInput, spanishTranslation);
-
-                // Clear input but don't add to messages
-                dom.chatInput.value = '';
-                return; // Don't send the English message
-            }
-
-            addMessage(userInput, 'user');
-            dom.chatInput.value = '';
-
-            // Increment message count for objective tracking
-            messageCount++;
-
-            // Check for objective completion in user message ONLY
-            // (User must demonstrate knowledge, not just trigger from NPC mentioning keywords)
-            checkObjectiveCompletion(userInput);
-
-            // Check if hints should be shown
-            checkAndShowHints();
-
-            const response = await AIManager.getResponse(messages.slice(-6), currentStage, userSettings);
-            addMessage(response, 'ai');
-
-            // Auto-play AI response if enabled
-            if (SpeechManager.isAutoPlayEnabled && currentStage) {
-                const characterGender = currentStage.characterGender || null;
-                const characterName = currentStage.characterName || null;
-
-                // Add visual indicator that audio is playing
-                const lastMessage = dom.chatContainer.firstElementChild;
-                if (lastMessage) {
-                    const speakerIcon = document.createElement('span');
-                    speakerIcon.textContent = ' 🔊';
-                    speakerIcon.className = 'speaker-icon animate-pulse';
-                    speakerIcon.title = 'Playing audio...';
-                    lastMessage.querySelector('.chat-bubble-ai')?.appendChild(speakerIcon);
-                }
-
-                SpeechManager.speak(response, 'es-MX', characterGender, characterName);
-            }
-        }
-        
-        async function endStage() {
-             // Calculate session duration
-             if (sessionStartTime) {
-                 const sessionDuration = Date.now() - sessionStartTime;
-                 const minutes = Math.ceil(sessionDuration / 60000); // Convert to minutes, round up
-                 debugLog(`⏱️ Session ended. Duration: ${minutes} minutes`);
-
-                 // Track the time
-                 await trackSessionTime(minutes);
-                 sessionStartTime = null;
-             }
-
-             // Return to main quest screen
-             dom.chatView.classList.add('hidden');
-             dom.chatView.classList.remove('flex');
-             dom.questView.style.display = 'flex';
-        }
-
-        function getUserDocRef(userId) {
-            if (!userId) return null;
-            return db.collection('users').doc(userId);
-        }
-
-        async function saveUserSettings(userId, settings) {
-            debugLog(`💾 Attempting to save settings for user: ${userId}`);
-            const userDocRef = getUserDocRef(userId);
-            if (!userDocRef) {
-                debugLog('❌ No user doc ref');
-                return;
-            }
-            try {
-                await userDocRef.set(settings, { merge: true });
-                debugLog('✅ Settings saved to Firestore successfully!');
-            } catch (error) {
-                debugLog(`❌ Failed to save settings: ${error.message}`);
-                throw error;
-            }
-        }
-
-        async function setupNewUser(user, name) {
-            debugLog('👤 Setting up new user profile');
-            await user.updateProfile({ displayName: name });
-            const initialSettings = {
-                name,
-                email: user.email,
-                avatar: selectedAvatar,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                xp: 0,
-                completedStages: {},
-                proficiencyLevel: null,
-                dailyGoal: 15, // Default 15 minutes
-                dailyProgress: {
-                    date: new Date().toISOString().split('T')[0], // Today's date
-                    minutes: 0,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                },
-                streak: 0,
-                lastActiveDate: new Date().toISOString().split('T')[0]
-            };
-            await saveUserSettings(user.uid, initialSettings);
-
-            // Send verification email
-            debugLog('📧 Sending verification email');
-            await user.sendEmailVerification();
-            debugLog('✅ Verification email sent');
-        }
-
-        function populateAvatarGrid() {
-            debugLog('🎨 Populating avatar grid');
-            dom.avatarGrid.innerHTML = '';
-            avatarOptions.forEach(avatar => {
-                const avatarBtn = document.createElement('button');
-                avatarBtn.type = 'button';
-                avatarBtn.className = 'text-4xl p-3 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
-                avatarBtn.textContent = avatar;
-                avatarBtn.dataset.avatar = avatar;
-
-                // Highlight if currently selected
-                if (avatar === selectedAvatar) {
-                    avatarBtn.className = 'text-4xl p-3 border-2 border-blue-500 bg-blue-100 rounded-lg';
-                }
-
-                avatarBtn.addEventListener('click', () => {
-                    // Remove selection from all
-                    dom.avatarGrid.querySelectorAll('button').forEach(btn => {
-                        btn.className = 'text-4xl p-3 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
-                    });
-                    // Add selection to clicked
-                    avatarBtn.className = 'text-4xl p-3 border-2 border-blue-500 bg-blue-100 rounded-lg';
-                    selectedAvatar = avatar;
-                    debugLog(`🎨 Avatar selected: ${avatar}`);
-                });
-
-                dom.avatarGrid.appendChild(avatarBtn);
-            });
-        }
-
-        function showVerificationScreen(user) {
-            debugLog('📧 Showing email verification screen');
-            dom.verificationEmail.textContent = user.email;
-            dom.loginView.classList.add('hidden');
-            dom.signupView.classList.add('hidden');
-            dom.emailVerificationView.classList.remove('hidden');
-            dom.verificationError.textContent = '';
-            dom.verificationSuccess.textContent = '';
-        }
-
-        function validatePasswordStrength(password) {
-            const minLength = 8;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-
-            if (password.length < minLength) {
-                return { valid: false, message: `Password must be at least ${minLength} characters long.` };
-            }
-            if (!hasUpperCase) {
-                return { valid: false, message: 'Password must contain at least one uppercase letter.' };
-            }
-            if (!hasNumberOrSymbol) {
-                return { valid: false, message: 'Password must contain at least one number or symbol.' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function updatePasswordRequirements(password) {
-            const minLength = 8;
-            const hasLength = password.length >= minLength;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-
-            // Update length requirement
-            if (hasLength) {
-                dom.reqLength.className = 'text-green-600 flex items-center font-medium';
-                dom.reqLength.querySelector('span').textContent = '✓';
-            } else {
-                dom.reqLength.className = 'text-gray-500 flex items-center';
-                dom.reqLength.querySelector('span').textContent = '○';
-            }
-
-            // Update uppercase requirement
-            if (hasUpperCase) {
-                dom.reqUppercase.className = 'text-green-600 flex items-center font-medium';
-                dom.reqUppercase.querySelector('span').textContent = '✓';
-            } else {
-                dom.reqUppercase.className = 'text-gray-500 flex items-center';
-                dom.reqUppercase.querySelector('span').textContent = '○';
-            }
-
-            // Update number/symbol requirement
-            if (hasNumberOrSymbol) {
-                dom.reqNumberSymbol.className = 'text-green-600 flex items-center font-medium';
-                dom.reqNumberSymbol.querySelector('span').textContent = '✓';
-            } else {
-                dom.reqNumberSymbol.className = 'text-gray-500 flex items-center';
-                dom.reqNumberSymbol.querySelector('span').textContent = '○';
-            }
-        }
-
-        function updateResetPasswordRequirements(password) {
-            const minLength = 8;
-            const hasLength = password.length >= minLength;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-
-            // Update length requirement
-            if (hasLength) {
-                dom.resetReqLength.className = 'text-green-600 flex items-center font-medium';
-                dom.resetReqLength.querySelector('span').textContent = '✓';
-            } else {
-                dom.resetReqLength.className = 'text-gray-500 flex items-center';
-                dom.resetReqLength.querySelector('span').textContent = '○';
-            }
-
-            // Update uppercase requirement
-            if (hasUpperCase) {
-                dom.resetReqUppercase.className = 'text-green-600 flex items-center font-medium';
-                dom.resetReqUppercase.querySelector('span').textContent = '✓';
-            } else {
-                dom.resetReqUppercase.className = 'text-gray-500 flex items-center';
-                dom.resetReqUppercase.querySelector('span').textContent = '○';
-            }
-
-            // Update number/symbol requirement
-            if (hasNumberOrSymbol) {
-                dom.resetReqNumberSymbol.className = 'text-green-600 flex items-center font-medium';
-                dom.resetReqNumberSymbol.querySelector('span').textContent = '✓';
-            } else {
-                dom.resetReqNumberSymbol.className = 'text-gray-500 flex items-center';
-                dom.resetReqNumberSymbol.querySelector('span').textContent = '○';
-            }
-        }
-
-        async function loadUserSettings(userId) {
-            debugLog(`📂 Loading settings for user: ${userId}`);
-            const userDocRef = getUserDocRef(userId);
-            if (!userDocRef) {
-                debugLog('❌ Could not get user doc ref');
-                return;
-            }
-            debugLog('🔄 Fetching user document from Firestore...');
-            try {
-                // Add timeout to prevent infinite hang
-                const timeout = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Firestore timeout - database may not be created')), 10000)
-                );
-                const snap = await Promise.race([userDocRef.get(), timeout]);
-                debugLog(`📄 Document exists: ${snap.exists}`);
-                if (snap.exists && snap.data()) {
-                    userSettings = { ...userSettings, ...snap.data() };
-                    debugLog(`✅ Loaded settings: ${JSON.stringify(userSettings)}`);
-                } else {
-                    debugLog('⚠️ No user settings document found, creating one for existing user.');
-                    const initialSettings = {
-                        name: currentUser.displayName || 'User',
-                        email: currentUser.email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        xp: 0,
-                        completedStages: {},
-                        proficiencyLevel: null,
-                        dialect: 'Mexico',
-                        formality: 'Casual',
-                        vignetteLanguage: 'English',
-                        avatar: '👤',
-                        dailyGoal: 15,
-                        dailyProgress: {
-                            date: new Date().toISOString().split('T')[0],
-                            minutes: 0,
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        },
-                        streak: 0,
-                        lastActiveDate: new Date().toISOString().split('T')[0]
-                    };
-                    try {
-                        debugLog('💾 Saving initial settings...');
-                        await saveUserSettings(userId, initialSettings);
-                        userSettings = { ...userSettings, ...initialSettings };
-                        debugLog('✅ Initial settings saved');
-                    } catch (e) {
-                        debugLog(`❌ Failed to create user settings: ${e.message}`);
-                    }
-                }
-                // Update UI with loaded settings
-                dom.dialectSelect.value = userSettings.dialect || 'Mexico';
-                dom.formalitySelect.value = userSettings.formality || 'Casual';
-                const autoLangKey = getPreferredNarrativeLangKey();
-                const autoLangLabel = autoLangKey === 'es' ? 'Spanish' : 'English';
-                dom.vignetteLangSelect.value = autoLangLabel;
-                dom.vignetteLangSelect.disabled = prefersSpanishOnly();
-                if (prefersSpanishOnly()) {
-                    userSettings.vignetteLanguage = 'Spanish';
-                }
-                if (!prefersSpanishOnly()) {
-                    userSettings.vignetteLanguage = dom.vignetteLangSelect.value;
-                }
-                dom.settingsAvatarDisplay.textContent = userSettings.avatar || '👤';
-                dom.dailyGoalInput.value = userSettings.dailyGoal || 15;
-
-                // Update daily tracker
-                updateDailyTracker();
-                debugLog('✅ loadUserSettings complete');
-            } catch (error) {
-                debugLog(`❌ Firestore error: ${error.message}`);
-                debugLog(`Error code: ${error.code}`);
-                debugLog('⚠️ Creating default settings without Firestore...');
-                // If Firestore fails, use default settings so app can continue
-                userSettings = {
-                    name: currentUser.displayName || 'User',
-                    email: currentUser.email,
-                    xp: 0,
-                    completedStages: {},
-                    proficiencyLevel: null,
-                    dialect: 'Mexico',
-                    formality: 'Casual',
-                    vignetteLanguage: 'English'
-                };
-                debugLog('✅ Using default settings');
-            }
-        }
-
-        function updateDailyTracker() {
-            debugLog('📊 Updating daily tracker display');
-            const today = new Date().toISOString().split('T')[0];
-            const dailyProgress = userSettings.dailyProgress || { date: today, minutes: 0 };
-            const dailyGoal = userSettings.dailyGoal || 15;
-            const streak = userSettings.streak || 0;
-
-            // Reset progress if it's a new day
-            if (dailyProgress.date !== today) {
-                debugLog('🆕 New day detected, resetting progress');
-                dailyProgress.date = today;
-                dailyProgress.minutes = 0;
-            }
-
-            // Update UI
-            dom.currentMinutes.textContent = dailyProgress.minutes || 0;
-            dom.goalMinutes.textContent = dailyGoal;
-            dom.streakCount.textContent = streak;
-
-            // Calculate and update progress bar
-            const progressPercent = Math.min((dailyProgress.minutes / dailyGoal) * 100, 100);
-            dom.progressBar.style.width = `${progressPercent}%`;
-
-            // Show tracker if goal is set
-            if (dailyGoal > 0) {
-                dom.dailyTracker.classList.remove('hidden');
-            }
-
-            debugLog(`✅ Tracker updated: ${dailyProgress.minutes}/${dailyGoal} min, ${streak} day streak`);
-        }
-
-        async function trackSessionTime(minutes) {
-            debugLog(`⏱️ Tracking ${minutes} minutes of practice`);
-            if (!currentUser) return;
-
-            const today = new Date().toISOString().split('T')[0];
-            let dailyProgress = userSettings.dailyProgress || { date: today, minutes: 0 };
-            const lastActiveDate = userSettings.lastActiveDate || today;
-
-            // Reset if new day
-            if (dailyProgress.date !== today) {
-                // Check if streak should continue (user was active yesterday)
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                if (lastActiveDate === yesterdayStr && dailyProgress.minutes >= userSettings.dailyGoal) {
-                    // Streak continues!
-                    userSettings.streak = (userSettings.streak || 0) + 1;
-                } else if (lastActiveDate !== today) {
-                    // Streak broken
-                    userSettings.streak = 0;
-                }
-
-                dailyProgress = { date: today, minutes: 0 };
-            }
-
-            // Add new minutes
-            dailyProgress.minutes += minutes;
-            userSettings.dailyProgress = dailyProgress;
-            userSettings.lastActiveDate = today;
-
-            // Save to Firestore
-            await saveUserSettings(currentUser.uid, {
-                dailyProgress: {
-                    date: dailyProgress.date,
-                    minutes: dailyProgress.minutes,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                },
-                streak: userSettings.streak,
-                lastActiveDate: today
-            });
-
-            // Update display
-            updateDailyTracker();
-            debugLog('✅ Session time tracked and saved');
-        }
-
-        async function handleUserSignIn(user) {
-            debugLog(`👤 Handling user sign in: ${user.email}`);
-            if (!user) return;
-
-            // Check email verification
-            debugLog(`📧 Email verified: ${user.emailVerified}`);
-            if (!user.emailVerified) {
-                debugLog('⚠️ Email not verified, showing verification screen');
-                showVerificationScreen(user);
-                return;
-            }
-
-            currentUser = user;
-            debugLog('📥 Loading user settings...');
-            await loadUserSettings(user.uid);
-            debugLog(`⚙️ User settings loaded. Proficiency: ${userSettings.proficiencyLevel}`);
-            dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'Friend'}!`;
-            if (!userSettings.proficiencyLevel) {
-                debugLog('📝 No proficiency level, showing placement view');
-                showView('placement-view');
-                // Initialize placement test
-                initPlacementTest();
-            } else {
-                debugLog('🎮 Showing main app view');
-                showView('main-app-view');
-            }
-        }
-
-        auth.onAuthStateChanged((user) => {
-            debugLog(`🔐 Auth state changed. User: ${user ? user.email : 'null'}`);
-            if (user) {
-                handleUserSignIn(user);
-            } else {
-                currentUser = null;
-                debugLog('🚪 Showing auth container');
-                showView('auth-container');
-            }
-        });
-
-        // Avatar Selection Event Listeners
-        dom.selectAvatarBtn.addEventListener('click', () => {
-            populateAvatarGrid();
-            dom.avatarSelectorModal.classList.remove('hidden');
-        });
-        dom.changeAvatarBtn.addEventListener('click', () => {
-            populateAvatarGrid();
-            dom.avatarSelectorModal.classList.remove('hidden');
-        });
-        dom.closeAvatarSelectorBtn.addEventListener('click', () => {
-            dom.avatarSelectorModal.classList.add('hidden');
-        });
-        dom.cancelAvatarBtn.addEventListener('click', () => {
-            dom.avatarSelectorModal.classList.add('hidden');
-        });
-        dom.confirmAvatarBtn.addEventListener('click', async () => {
-            debugLog(`✅ Avatar confirmed: ${selectedAvatar}`);
-            dom.selectedAvatarDisplay.textContent = selectedAvatar;
-            dom.settingsAvatarDisplay.textContent = selectedAvatar;
-            dom.avatarSelectorModal.classList.add('hidden');
-
-            // Save to database if user is signed in
-            if (currentUser) {
-                await saveUserSettings(currentUser.uid, { avatar: selectedAvatar });
-                userSettings.avatar = selectedAvatar;
-            }
-        });
-
-        // Daily Goal Event Listener
-        dom.dailyGoalInput.addEventListener('change', async (e) => {
-            const newGoal = parseInt(e.target.value) || 15;
-            debugLog(`⚙️ Daily goal changed to: ${newGoal} minutes`);
-            userSettings.dailyGoal = newGoal;
-            await saveUserSettings(currentUser.uid, { dailyGoal: newGoal });
-            updateDailyTracker();
-        });
-
-        // Event Listeners
-        dom.showSignupBtn.addEventListener('click', () => { dom.loginView.classList.add('hidden'); dom.signupView.classList.remove('hidden'); });
-        dom.showLoginBtn.addEventListener('click', () => { dom.signupView.classList.add('hidden'); dom.loginView.classList.remove('hidden'); });
-
-        // Password strength indicator - update as user types
-        dom.signupPasswordInput.addEventListener('input', (e) => {
-            updatePasswordRequirements(e.target.value);
-        });
-
-        // Email Verification
-        dom.resendVerificationBtn.addEventListener('click', async () => {
-            debugLog('📧 Resend verification button clicked');
-            dom.verificationError.textContent = '';
-            dom.verificationSuccess.textContent = '';
-            try {
-                const user = auth.currentUser;
-                if (user && !user.emailVerified) {
-                    await user.sendEmailVerification();
-                    debugLog('✅ Verification email resent');
-                    dom.verificationSuccess.textContent = 'Verification email sent! Check your inbox.';
-                } else {
-                    dom.verificationError.textContent = 'No user found or already verified.';
-                }
-            } catch (error) {
-                debugLog(`❌ Resend verification error: ${error.message}`);
-                dom.verificationError.textContent = error.message;
-            }
-        });
-
-        dom.checkVerificationBtn.addEventListener('click', async () => {
-            debugLog('🔄 Check verification button clicked');
-            dom.verificationError.textContent = '';
-            dom.verificationSuccess.textContent = '';
-            try {
-                const user = auth.currentUser;
-                if (user) {
-                    await user.reload();
-                    debugLog(`📧 Email verified status: ${user.emailVerified}`);
-                    if (user.emailVerified) {
-                        debugLog('✅ Email verified! Showing success message');
-                        dom.verificationSuccess.textContent = 'Your email has been verified! You can now sign in with your new account.';
-
-                        // Auto-redirect to login after 5 seconds
-                        setTimeout(() => {
-                            debugLog('🔄 Redirecting to login screen');
-                            dom.emailVerificationView.classList.add('hidden');
-                            dom.loginView.classList.remove('hidden');
-                            auth.signOut(); // Sign out so user can log in with verified account
-                        }, 5000);
-                    } else {
-                        debugLog('⚠️ Email still not verified');
-                        dom.verificationError.textContent = 'Email not yet verified. Please check your inbox and click the verification link.';
-                    }
-                }
-            } catch (error) {
-                debugLog(`❌ Check verification error: ${error.message}`);
-                dom.verificationError.textContent = error.message;
-            }
-        });
-
-        dom.verificationLogoutBtn.addEventListener('click', () => {
-            debugLog('🚪 Logout from verification screen');
-            auth.signOut();
-        });
-
-        // Forgot Password
-        dom.forgotPasswordBtn.addEventListener('click', () => {
-            debugLog('🔐 Opening forgot password modal');
-            dom.forgotPasswordModal.classList.remove('hidden');
-            dom.resetError.textContent = '';
-            dom.resetSuccess.textContent = '';
-            dom.resetEmailInput.value = '';
-            dom.resetPasswordInput.value = '';
-            dom.resetPasswordConfirmInput.value = '';
-            // Reset password requirement indicators
-            dom.resetReqLength.className = 'text-gray-500 flex items-center';
-            dom.resetReqLength.querySelector('span').textContent = '○';
-            dom.resetReqUppercase.className = 'text-gray-500 flex items-center';
-            dom.resetReqUppercase.querySelector('span').textContent = '○';
-            dom.resetReqNumberSymbol.className = 'text-gray-500 flex items-center';
-            dom.resetReqNumberSymbol.querySelector('span').textContent = '○';
-        });
-        dom.closeForgotPasswordBtn.addEventListener('click', () => {
-            dom.forgotPasswordModal.classList.add('hidden');
-        });
-
-        // Password strength indicator for reset password - update as user types
-        dom.resetPasswordInput.addEventListener('input', (e) => {
-            updateResetPasswordRequirements(e.target.value);
-        });
-
-        dom.sendResetBtn.addEventListener('click', async () => {
-            debugLog('🔐 Reset password button clicked');
-            dom.resetError.textContent = '';
-            dom.resetSuccess.textContent = '';
-            const email = dom.resetEmailInput.value.trim();
-            const newPassword = dom.resetPasswordInput.value.trim();
-            const confirmPassword = dom.resetPasswordConfirmInput.value.trim();
-
-            if (!email) {
-                dom.resetError.textContent = 'Please enter your email address.';
-                debugLog('⚠️ No email provided');
-                return;
-            }
-
-            if (!newPassword || !confirmPassword) {
-                dom.resetError.textContent = 'Please fill in both password fields.';
-                debugLog('⚠️ Password fields empty');
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                dom.resetError.textContent = 'Passwords do not match. Please try again.';
-                debugLog('⚠️ Passwords do not match');
-                return;
-            }
-
-            // Validate password strength
-            const passwordValidation = validatePasswordStrength(newPassword);
-            if (!passwordValidation.valid) {
-                dom.resetError.textContent = passwordValidation.message;
-                debugLog(`⚠️ Password validation failed: ${passwordValidation.message}`);
-                return;
-            }
-
-            try {
-                debugLog(`🔄 Attempting password reset for: ${email}`);
-                // First send password reset email
-                await auth.sendPasswordResetEmail(email);
-                debugLog('✅ Password reset email sent');
-                dom.resetSuccess.textContent = 'Password reset link sent! Please check your email and follow the instructions to complete the reset.';
-                dom.resetEmailInput.value = '';
-                dom.resetPasswordInput.value = '';
-                dom.resetPasswordConfirmInput.value = '';
-                // Auto-close after 3 seconds
-                setTimeout(() => {
-                    dom.forgotPasswordModal.classList.add('hidden');
-                }, 3000);
-            } catch (error) {
-                debugLog(`❌ Password reset error: ${error.message}`);
-                if (error.code === 'auth/user-not-found') {
-                    dom.resetError.textContent = 'No account found with this email.';
-                } else if (error.code === 'auth/invalid-email') {
-                    dom.resetError.textContent = 'Please enter a valid email address.';
-                } else {
-                    dom.resetError.textContent = error.message;
-                }
-            }
-        });
-        dom.signupBtn.addEventListener('click', async () => {
-            debugLog('📝 Signup button clicked');
-            dom.signupError.textContent = '';
-            const name = dom.signupNameInput.value.trim();
-            const email = dom.signupEmailInput.value.trim();
-            const password = dom.signupPasswordInput.value.trim();
-            const passwordConfirm = dom.signupPasswordConfirmInput.value.trim();
-            debugLog(`Name: ${name}, Email: ${email}, Password: ${password ? '***' : 'empty'}`);
-
-            if (!name || !email || !password || !passwordConfirm) {
-                debugLog('⚠️ Missing required fields');
-                dom.signupError.textContent = 'Please fill all fields.';
-                return;
-            }
-
-            if (password !== passwordConfirm) {
-                debugLog('⚠️ Passwords do not match');
-                dom.signupError.textContent = 'Passwords do not match. Please try again.';
-                return;
-            }
-
-            // Validate password strength
-            const passwordValidation = validatePasswordStrength(password);
-            if (!passwordValidation.valid) {
-                debugLog(`⚠️ Password validation failed: ${passwordValidation.message}`);
-                dom.signupError.textContent = passwordValidation.message;
-                return;
-            }
-
-            try {
-                debugLog('🔄 Creating user account...');
-                const cred = await auth.createUserWithEmailAndPassword(email, password);
-                debugLog('✅ User created, setting up profile...');
-                await setupNewUser(cred.user, name);
-                debugLog('✅ Setup complete!');
-            } catch (error) {
-                debugLog(`❌ Signup error: ${error.message}`);
-                dom.signupError.textContent = error.message;
-            }
-        });
-        dom.loginBtn.addEventListener('click', async () => {
-            debugLog('🔑 Login button clicked');
-            dom.loginError.textContent = '';
-            const email = dom.loginEmailInput.value.trim();
-            const password = dom.loginPasswordInput.value.trim();
-            debugLog(`📧 Email: ${email}, Password: ${password ? '***' : 'empty'}`);
-            if (!email || !password) {
-                debugLog('⚠️ Email or password empty');
-                dom.loginError.textContent = 'Please enter email and password.';
-                return;
-            }
-            try {
-                debugLog('🔄 Attempting sign in...');
-                await auth.signInWithEmailAndPassword(email, password);
-                debugLog('✅ Sign in successful');
-            } catch (error) {
-                debugLog(`❌ Login error: ${error.message}`);
-                dom.loginError.textContent = error.message;
-            }
-        });
-        dom.logoutBtn.addEventListener('click', () => auth.signOut());
-        dom.settingsBtn.addEventListener('click', () => dom.settingsModal.classList.remove('hidden'));
-        dom.closeSettingsBtn.addEventListener('click', () => dom.settingsModal.classList.add('hidden'));
-        dom.retakePlacementBtn.addEventListener('click', () => {
-            dom.settingsModal.classList.add('hidden');
-            showView('placement-view');
-            initPlacementTest();
-        });
-
-        // Quest objective modal handlers
-        dom.objectivesProgress.addEventListener('click', () => {
-            if (currentQuest) {
-                dom.objectiveQuestTitle.textContent = currentQuest.title;
-                dom.objectiveQuestText.textContent = currentQuest.objective;
-                dom.questObjectiveModal.classList.remove('hidden');
-            }
-        });
-        dom.closeObjectiveModalBtn.addEventListener('click', () => {
-            dom.questObjectiveModal.classList.add('hidden');
-        });
-
-        // Settings change listeners
-        dom.dialectSelect.addEventListener('change', async (e) => {
-            debugLog(`⚙️ Dialect changed to: ${e.target.value}`);
-            userSettings.dialect = e.target.value;
-            await saveUserSettings(currentUser.uid, { dialect: e.target.value });
-        });
-        dom.formalitySelect.addEventListener('change', async (e) => {
-            debugLog(`⚙️ Formality changed to: ${e.target.value}`);
-            userSettings.formality = e.target.value;
-            await saveUserSettings(currentUser.uid, { formality: e.target.value });
-        });
-        dom.vignetteLangSelect.addEventListener('change', async (e) => {
-            if (prefersSpanishOnly()) {
-                debugLog('⚠️ Vignette language locked to Spanish for B1+ learners');
-                dom.vignetteLangSelect.value = 'Spanish';
-                return;
-            }
-            debugLog(`⚙️ Vignette language changed to: ${e.target.value}`);
-            userSettings.vignetteLanguage = e.target.value;
-            await saveUserSettings(currentUser.uid, { vignetteLanguage: e.target.value });
-        });
-        dom.questView.addEventListener('click', e => {
-            const card = e.target.closest('.quest-card');
-            if (card) {
-                // Skip map view and show vignette directly
-                const questId = card.dataset.questId;
-                const firstStageId = '1'; // Start with stage 1
-                showVignette(questId, firstStageId);
-            }
-        });
-        dom.mapContainer.addEventListener('click', e => {
-            const location = e.target.closest('.map-location');
-            if (location) {
-                dom.mapModal.classList.add('hidden');
-                showVignette(location.dataset.questId, location.dataset.stageId);
-            }
-        });
-        dom.startStageBtn.addEventListener('click', startStage);
-        dom.continueQuestBtn.addEventListener('click', () => {
-            dom.stageCompleteModal.classList.add('hidden');
-            dom.chatView.classList.add('hidden');
-            dom.chatView.classList.remove('flex');
-            dom.questView.style.display = 'flex';
-            if (currentStage && currentStage.nextStages && currentStage.nextStages.length > 0) {
-                showMapView(currentStage.questId);
-            } else {
-                alert('Quest Complete! 🎉');
-            }
-        });
-        dom.sendBtn.addEventListener('click', handleSendMessage);
-        dom.chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') handleSendMessage(); });
-        dom.endSessionBtn.addEventListener('click', endStage);
-
-        // Microphone button - toggle recording
-        dom.micBtn.addEventListener('click', () => {
-            SpeechManager.startRecording();
-        });
-
-        // Auto-play toggle button
-        dom.autoplayToggleBtn.addEventListener('click', () => {
-            const isEnabled = SpeechManager.toggleAutoPlay();
-            dom.autoplayToggleBtn.textContent = isEnabled ? '🔊 Auto-play' : '🔇 Auto-play';
-            dom.autoplayToggleBtn.style.color = isEnabled ? '#3b82f6' : '';
-            // Sync with settings modal checkbox
-            if (dom.autoplaySetting) {
-                dom.autoplaySetting.checked = isEnabled;
-            }
-        });
-
-        // Voice customization controls in settings
-        if (dom.autoplaySetting) {
-            dom.autoplaySetting.addEventListener('change', (e) => {
-                SpeechManager.isAutoPlayEnabled = e.target.checked;
-                // Sync with chat button
-                dom.autoplayToggleBtn.textContent = e.target.checked ? '🔊 Auto-play' : '🔇 Auto-play';
-                dom.autoplayToggleBtn.style.color = e.target.checked ? '#3b82f6' : '';
-                console.log('[Settings] Auto-play:', e.target.checked);
-            });
-        }
-
-        if (dom.voiceSpeedSlider) {
-            dom.voiceSpeedSlider.addEventListener('input', (e) => {
-                const speed = parseFloat(e.target.value);
-                SpeechManager.customSpeedMultiplier = speed;
-                dom.voiceSpeedValue.textContent = `${speed.toFixed(1)}x`;
-                console.log('[Settings] Voice speed:', speed);
-            });
-        }
-
-        if (dom.voicePitchSlider) {
-            dom.voicePitchSlider.addEventListener('input', (e) => {
-                const pitch = parseInt(e.target.value);
-                SpeechManager.customPitchAdjustment = pitch;
-                if (pitch < -2) {
-                    dom.voicePitchValue.textContent = 'Much Lower';
-                } else if (pitch < 0) {
-                    dom.voicePitchValue.textContent = 'Lower';
-                } else if (pitch === 0) {
-                    dom.voicePitchValue.textContent = 'Normal';
-                } else if (pitch <= 2) {
-                    dom.voicePitchValue.textContent = 'Higher';
-                } else {
-                    dom.voicePitchValue.textContent = 'Much Higher';
-                }
-                console.log('[Settings] Voice pitch:', pitch);
-            });
-        }
-
-        if (dom.testVoiceBtn) {
-            dom.testVoiceBtn.addEventListener('click', async () => {
-                const testText = "Hola, esta es una prueba de voz. ¿Cómo suena ahora?";
-                await SpeechManager.speak(testText, 'es-MX', 'female', 'María, the Vendor');
-                console.log('[Settings] Testing voice with current settings');
-            });
-        }
-
-        // Initialize Speech Manager
-        SpeechManager.init();
-
-        // Load voice settings from localStorage
-        const savedVoiceSettings = localStorage.getItem('voiceSettings');
-        if (savedVoiceSettings) {
-            try {
-                const settings = JSON.parse(savedVoiceSettings);
-                if (settings.autoPlay !== undefined) {
-                    SpeechManager.isAutoPlayEnabled = settings.autoPlay;
-                    if (dom.autoplaySetting) dom.autoplaySetting.checked = settings.autoPlay;
-                    if (dom.autoplayToggleBtn) {
-                        dom.autoplayToggleBtn.textContent = settings.autoPlay ? '🔊 Auto-play' : '🔇 Auto-play';
-                        dom.autoplayToggleBtn.style.color = settings.autoPlay ? '#3b82f6' : '';
-                    }
-                }
-                if (settings.speed !== undefined) {
-                    SpeechManager.customSpeedMultiplier = settings.speed;
-                    if (dom.voiceSpeedSlider) dom.voiceSpeedSlider.value = settings.speed;
-                    if (dom.voiceSpeedValue) dom.voiceSpeedValue.textContent = `${settings.speed.toFixed(1)}x`;
-                }
-                if (settings.pitch !== undefined) {
-                    SpeechManager.customPitchAdjustment = settings.pitch;
-                    if (dom.voicePitchSlider) dom.voicePitchSlider.value = settings.pitch;
-                    if (dom.voicePitchValue) {
-                        const pitch = settings.pitch;
-                        if (pitch < -2) dom.voicePitchValue.textContent = 'Much Lower';
-                        else if (pitch < 0) dom.voicePitchValue.textContent = 'Lower';
-                        else if (pitch === 0) dom.voicePitchValue.textContent = 'Normal';
-                        else if (pitch <= 2) dom.voicePitchValue.textContent = 'Higher';
-                        else dom.voicePitchValue.textContent = 'Much Higher';
-                    }
-                }
-                console.log('[Settings] Loaded voice settings from localStorage:', settings);
-            } catch (e) {
-                console.error('[Settings] Error loading voice settings:', e);
-            }
-        }
-
-        // Save voice settings when they change
-        function saveVoiceSettings() {
-            const settings = {
-                autoPlay: SpeechManager.isAutoPlayEnabled,
-                speed: SpeechManager.customSpeedMultiplier,
-                pitch: SpeechManager.customPitchAdjustment
-            };
-            localStorage.setItem('voiceSettings', JSON.stringify(settings));
-            console.log('[Settings] Saved voice settings to localStorage');
-        }
-
-        // Update event listeners to save settings
-        if (dom.autoplaySetting) {
-            const originalAutoplayListener = dom.autoplaySetting;
-            dom.autoplaySetting.addEventListener('change', saveVoiceSettings);
-        }
-        if (dom.voiceSpeedSlider) {
-            dom.voiceSpeedSlider.addEventListener('change', saveVoiceSettings);
-        }
-        if (dom.voicePitchSlider) {
-            dom.voicePitchSlider.addEventListener('change', saveVoiceSettings);
-        }
-
-        // Log available voices after a short delay (voices may load asynchronously)
-        setTimeout(() => {
-            const voices = window.speechSynthesis.getVoices();
-            const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
-            console.log('[SpeechSynthesis] Available Spanish voices:');
-            spanishVoices.forEach(voice => {
-                console.log(`  - ${voice.name} (${voice.lang}) ${voice.localService ? '[Local]' : '[Remote]'}`);
-            });
-            if (spanishVoices.length === 0) {
-                console.warn('[SpeechSynthesis] No Spanish voices found. Using system default.');
-            }
-        }, 1000);
-
-        // Placement test event listeners
-        dom.submitQuizBtn.addEventListener('click', handlePlacementAnswer);
-        dom.completePlacementBtn.addEventListener('click', handleCompletePlacement);
-
-        // Global click handler to hide translation popover
-        document.addEventListener('click', (e) => {
-            // Don't hide if clicking inside a chat bubble (handled by bubble's own click handler)
-            if (!e.target.closest('.chat-bubble-ai')) {
-                TranslationManager.hideTranslation();
-            }
-        });
-
-        // Hide translation on scroll
-        dom.chatContainer?.addEventListener('scroll', () => {
-            TranslationManager.hideTranslation();
-        });
-
-        renderQuests();
-        debugLog('✅ All event listeners registered');
-
-        // Re-render quests when QUEST_DATABASE loads (in case it loaded after DOM ready)
-        window.addEventListener('quest-images-ready', () => {
-            debugLog('🎮 Quest data ready, re-rendering quests');
-            renderQuests();
-        }, { once: true });
-
-        debugLog('🎉 App initialization complete!');
+    // Early debug logging
+    const debugConsole = document.getElementById('debug-console');
+    if (debugConsole) {
+      const timestamp = new Date().toLocaleTimeString();
+      debugConsole.innerHTML += `[${timestamp}] 🟢 HTML loaded, Firebase config set<br>`;
+      debugConsole.innerHTML += `[${timestamp}] 🟢 About to load app.js module...<br>`;
+
+      // Intercept console.log to show in debug panel
+      const originalLog = console.log;
+      console.log = function(...args) {
+        originalLog.apply(console, args);
+        const msg = args.join(' ');
+        const time = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${time}] ${msg}<br>`;
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      };
+
+      // Intercept console.error too
+      const originalError = console.error;
+      console.error = function(...args) {
+        originalError.apply(console, args);
+        const msg = args.join(' ');
+        const time = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${time}] ❌ ${msg}<br>`;
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      };
     }
 
-    debugLog('📄 Script loaded, waiting for DOM...');
-    document.addEventListener('DOMContentLoaded', () => {
-        debugLog('✅ DOM ready, starting main()...');
-        main();
+    // Catch module loading errors
+    window.addEventListener('error', (e) => {
+      if (debugConsole && e.filename && e.filename.includes('.js')) {
+        const timestamp = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${timestamp}] ❌ ERROR: ${e.message}<br>`;
+        debugConsole.innerHTML += `[${timestamp}] ❌ File: ${e.filename}<br>`;
+      }
     });
   </script>
+
+  <!-- Main app logic (loaded as ES module) -->
+  <script type="module" src="/app.js"></script>
 </body>
 </html>
