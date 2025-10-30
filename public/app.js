@@ -1121,14 +1121,10 @@ export function initializeApp() {
   // Auth state listener
   debugLog('🔐 Setting up auth state listener...');
   debugLog(`Checking host for dev mode... hostname: ${window.location.hostname}`);
-  // DEV MODE: Bypass Firebase Auth for local development
+  // DEV MODE: Bypass Firebase Auth for local development ONLY
+  // Only works on localhost - production/Vercel will require real authentication
   const isDevMode = window.location.hostname === 'localhost' ||
-                    window.location.hostname === '127.0.0.1' ||
-                    window.location.hostname.includes('github.dev') ||
-                    window.location.hostname.includes('gitpod.io') ||
-                    window.location.hostname.includes('codespaces') ||
-                    window.location.port === '3000' ||
-                    window.location.port === '5173';
+                    window.location.hostname === '127.0.0.1';
 
   if (isDevMode) {
     debugLog('[DEV MODE] Bypassing Firebase Auth. Using mock user.');
