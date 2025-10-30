@@ -3,6 +3,16 @@
 ## Overview
 Puerto Esperanza is a vibrant Mexican seaside village that serves as the central hub for all language learning quests. Users progress through the village by completing quests at different locations, with a visual map showing their journey.
 
+## Implementation Status (as of 2025-10-29 by Gemini)
+
+**Status:** Phase 1 (Foundation) and parts of the progression system are now implemented.
+
+- **✅ Quest Locking:** The prerequisite system described below is functional. Quests are locked/unlocked based on `user.completedQuests`.
+- **✅ UI Feedback:** The map and quest list visually distinguish between locked, available, and completed quests.
+- **✅ Onboarding Flow:** A new "Quest Zero" has been implemented to onboard users before they access the main map.
+- **❌ Visuals:** The map is functional but uses the existing UI. The full visual design with illustrated maps, breadcrumb trails, and custom icons is not yet implemented.
+
+
 ## Village Map Layout
 
 ```
