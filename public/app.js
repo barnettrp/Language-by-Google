@@ -400,6 +400,13 @@ export function initializeApp() {
           optionBtn.addEventListener('click', () => this.selectOption(index, optionBtn));
           dom.quizOptions.appendChild(optionBtn);
         });
+
+        // Add "I don't know" option
+        const dontKnowBtn = document.createElement('button');
+        dontKnowBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
+        dontKnowBtn.textContent = "No sé (I don't know)";
+        dontKnowBtn.addEventListener('click', () => this.selectOption(-1, dontKnowBtn));
+        dom.quizOptions.appendChild(dontKnowBtn);
       }
 
       // Disable submit button until an option is selected
@@ -437,7 +444,9 @@ export function initializeApp() {
       if (selectedAnswer === null) return;
 
       const question = placementQuestions[currentQuestionIndex];
+      // selectedAnswer is -1 for "don't know", which will always be incorrect
       const isCorrect = selectedAnswer === question.ans;
+      const isDontKnow = selectedAnswer === -1;
 
       // Record answer
       placementAnswers.push({
@@ -445,6 +454,7 @@ export function initializeApp() {
         selectedAnswer,
         correctAnswer: question.ans,
         isCorrect,
+        isDontKnow,
         level: question.level
       });
 
