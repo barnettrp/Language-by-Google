@@ -1450,6 +1450,12 @@ export function initializeApp() {
           dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'User'}!`;
         }
 
+        // Hide auth container and show main app
+        if (dom.authContainer) {
+          dom.authContainer.style.display = 'none';
+          debugLog('✅ Auth container hidden');
+        }
+
         // Load user data
         const userData = await loadUserData(user);
         
@@ -1475,6 +1481,13 @@ export function initializeApp() {
         
       } else {
         currentUser = null;
+
+        // Show auth container when logged out
+        if (dom.authContainer) {
+          dom.authContainer.style.display = 'flex';
+          debugLog('✅ Auth container shown');
+        }
+
         debugLog('[PRODUCTION MODE] Showing login-view.');
         showView('login-view');
       }
