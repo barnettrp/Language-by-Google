@@ -917,9 +917,15 @@ export function initializeApp() {
   }
 
   function updateDarkModeIcon(isDarkMode) {
+    // Update main app icon
     const icon = document.querySelector('.dark-mode-icon');
     if (icon) {
       icon.textContent = isDarkMode ? '☀️' : '🌙';
+    }
+    // Update auth screen icon
+    const authIcon = document.querySelector('.auth-dark-mode-icon');
+    if (authIcon) {
+      authIcon.textContent = isDarkMode ? '☀️' : '🌙';
     }
   }
 
@@ -1520,9 +1526,15 @@ export function initializeApp() {
       });
     }
 
-    // Dark mode toggle
+    // Dark mode toggle (main app)
     if (dom.darkModeToggle) {
       dom.darkModeToggle.addEventListener('click', toggleDarkMode);
+    }
+
+    // Dark mode toggle (auth screen)
+    const authDarkModeToggle = document.getElementById('auth-dark-mode-toggle');
+    if (authDarkModeToggle) {
+      authDarkModeToggle.addEventListener('click', toggleDarkMode);
     }
 
     // Initialize dark mode from localStorage
