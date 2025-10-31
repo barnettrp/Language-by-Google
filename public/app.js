@@ -594,8 +594,33 @@ export function initializeApp() {
   debugLog(`📚 Quests object has ${Object.keys(quests).length} quests`);
 
   // Utility functions
+  // Show auth views (login, signup, email verification)
+  function showAuthView(viewId) {
+    debugLog(`🔄 showAuthView called with: ${viewId}`);
+
+    // Hide all auth views
+    if (dom.loginView) dom.loginView.style.display = 'none';
+    if (dom.signupView) dom.signupView.style.display = 'none';
+    const emailVerificationView = document.getElementById('email-verification-view');
+    if (emailVerificationView) emailVerificationView.style.display = 'none';
+
+    // Show the requested view
+    const viewElement = document.getElementById(viewId);
+    if (viewElement) {
+      viewElement.style.display = 'block';
+      debugLog(`✅ Showing auth view: ${viewId}`);
+    }
+  }
+
   function showView(viewId) {
     debugLog(`🔄 showView called with: ${viewId}`);
+
+    // If it's an auth view, use showAuthView instead
+    if (viewId === 'login-view' || viewId === 'signup-view' || viewId === 'email-verification-view') {
+      showAuthView(viewId);
+      return;
+    }
+
     document.querySelectorAll('.main-view').forEach(view => {
       if (view.id === viewId) {
         view.style.display = 'flex';
@@ -1710,6 +1735,12 @@ export function initializeApp() {
       } else {
         currentUser = null;
 
+        // Hide main app view
+        if (dom.mainAppView) {
+          dom.mainAppView.style.display = 'none';
+          dom.mainAppView.classList.remove('active');
+        }
+
         // Show auth container when logged out
         if (dom.authContainer) {
           dom.authContainer.style.display = 'flex';
@@ -1717,8 +1748,9 @@ export function initializeApp() {
           debugLog('✅ Auth container shown');
         }
 
-        debugLog('[PRODUCTION MODE] Showing login-view.');
-        showView('login-view');
+        // Show login view
+        showAuthView('login-view');
+        debugLog('[PRODUCTION MODE] Login view shown.');
       }
     });
   }
