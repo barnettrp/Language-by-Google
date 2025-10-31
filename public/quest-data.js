@@ -275,7 +275,7 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
           completionCriteria: {
             minMessages: 20,
             objectivesRequired: 5,
-            minDuration: 300 // 5 minutes in seconds (reduced from 10)
+            minDuration: 0 // No time limit - complete when objectives + messages met
           },
           reward: {
             clue: "The adventure begins! The first piece of the puzzle is waiting at the Hotel Colonial.",
