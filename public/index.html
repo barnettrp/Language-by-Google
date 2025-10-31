@@ -20,13 +20,38 @@
     /* Modern Font Stack */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+    :root {
+      --bg-gradient-start: #667eea;
+      --bg-gradient-mid1: #764ba2;
+      --bg-gradient-mid2: #f093fb;
+      --bg-gradient-mid3: #4facfe;
+      --bg-gradient-end: #00f2fe;
+      --container-bg: rgba(255, 255, 255, 0.95);
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    body.dark-mode {
+      --bg-gradient-start: #1a1a2e;
+      --bg-gradient-mid1: #16213e;
+      --bg-gradient-mid2: #0f3460;
+      --bg-gradient-mid3: #162447;
+      --bg-gradient-end: #1f1f2e;
+      --container-bg: rgba(30, 30, 46, 0.95);
+      --text-primary: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --border-color: rgba(255, 255, 255, 0.1);
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       /* Vibrant gaming-inspired gradient */
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid1) 25%, var(--bg-gradient-mid2) 50%, var(--bg-gradient-mid3) 75%, var(--bg-gradient-end) 100%);
       background-size: 400% 400%;
       animation: gradient-shift 15s ease infinite;
       min-height: 100vh;
+      transition: background 0.3s ease;
     }
 
     @keyframes gradient-shift {
@@ -82,11 +107,34 @@
     }
 
     .contained-area {
-      background: rgba(255, 255, 255, 0.95);
+      background: var(--container-bg);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid var(--border-color);
       box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      transition: background 0.3s ease, border 0.3s ease;
+    }
+
+    body.dark-mode .contained-area {
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark-mode .text-gray-800 {
+      color: var(--text-primary) !important;
+    }
+
+    body.dark-mode .text-gray-700 {
+      color: var(--text-secondary) !important;
+    }
+
+    body.dark-mode .text-gray-600 {
+      color: var(--text-secondary) !important;
+    }
+
+    body.dark-mode .bg-white,
+    body.dark-mode .bg-white\/50,
+    body.dark-mode .bg-white\/90 {
+      background-color: rgba(30, 30, 46, 0.9) !important;
     }
     .auth-input, #chat-input, #placement-chat-input {
       font-size: 16px;
@@ -161,6 +209,88 @@
     @keyframes pulse-glow { 0%, 100% { filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5)); } 50% { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)); } }
     @keyframes slide-up { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
     .animate-slide-up { animation: slide-up 0.3s ease-out; }
+
+    /* Typing indicator animation */
+    @keyframes typing-dot {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      animation: slide-in-left 0.3s ease-out;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 50%;
+      animation: typing-dot 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* Character Introduction Card */
+    @keyframes character-intro-slide {
+      0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    #character-intro-card {
+      animation: character-intro-slide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    #character-intro-overlay {
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    /* Celebration Confetti Animation */
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .confetti:nth-child(1) { left: 10%; animation: confetti-fall 3s linear; background: #ff6b6b; }
+    .confetti:nth-child(2) { left: 20%; animation: confetti-fall 2.5s linear 0.2s; background: #4ecdc4; }
+    .confetti:nth-child(3) { left: 30%; animation: confetti-fall 3.2s linear 0.4s; background: #ffe66d; }
+    .confetti:nth-child(4) { left: 40%; animation: confetti-fall 2.8s linear 0.1s; background: #a8e6cf; }
+    .confetti:nth-child(5) { left: 50%; animation: confetti-fall 3.5s linear 0.3s; background: #ff8b94; }
+    .confetti:nth-child(6) { left: 60%; animation: confetti-fall 2.7s linear 0.5s; background: #95e1d3; }
+    .confetti:nth-child(7) { left: 70%; animation: confetti-fall 3.1s linear 0.2s; background: #ffaaa5; }
+    .confetti:nth-child(8) { left: 80%; animation: confetti-fall 2.9s linear 0.4s; background: #ffd3b6; }
+    .confetti:nth-child(9) { left: 90%; animation: confetti-fall 3.3s linear 0.1s; background: #dcedc1; }
+    .confetti:nth-child(10) { left: 15%; animation: confetti-fall 2.6s linear 0.3s; background: #a8dadc; }
+
+    @keyframes sparkle {
+      0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+      50% { transform: scale(1) rotate(180deg); opacity: 1; }
+    }
+
+    .sparkle {
+      position: absolute;
+      font-size: 24px;
+      pointer-events: none;
+      animation: sparkle 1s ease-out;
+      z-index: 9999;
+    }
 
     /* Translation popover styling */
     #translation-popover {
@@ -344,7 +474,10 @@
               <button id="show-quest-map-btn" class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:text-gray-800 transition-all">🗺️ Map</button>
             </div>
           </div>
-          <div>
+          <div class="flex items-center gap-1">
+            <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
+              <span class="dark-mode-icon">🌙</span>
+            </button>
             <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
             <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
@@ -504,8 +637,39 @@
         </div>
       </div>
     </div>
-    
+
     <!-- MODALS & POPOVERS -->
+
+    <!-- Character Introduction Card -->
+    <div id="character-intro-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0, 0, 0, 0.7);">
+      <div id="character-intro-card" class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+        <!-- Large Character Avatar -->
+        <div class="mb-6">
+          <div id="character-intro-avatar" class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-6xl shadow-xl border-4 border-white">
+            🎭
+          </div>
+        </div>
+
+        <!-- Character Name -->
+        <h2 id="character-intro-name" class="text-3xl font-bold text-gray-800 mb-2">Character Name</h2>
+
+        <!-- Quest Stage Info -->
+        <p id="character-intro-quest" class="text-sm text-purple-600 font-semibold mb-4">Quest Name</p>
+
+        <!-- Character Description -->
+        <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 mb-6">
+          <p id="character-intro-description" class="text-gray-700 text-sm leading-relaxed">
+            Character description will appear here...
+          </p>
+        </div>
+
+        <!-- Continue Button -->
+        <button id="character-intro-continue-btn" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-bold text-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
+          Start Conversation
+        </button>
+      </div>
+    </div>
+
     <div id="avatar-selector-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-auto">
             <div class="flex justify-between items-center mb-4">

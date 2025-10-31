@@ -147,9 +147,16 @@ export function initializeApp() {
     estimatedLevel: document.getElementById('estimated-level'),
     placementChatView: document.getElementById('placement-chat-view'),
     placementChatContainer: document.getElementById('placement-chat-container'),
+    characterIntroOverlay: document.getElementById('character-intro-overlay'),
+    characterIntroAvatar: document.getElementById('character-intro-avatar'),
+    characterIntroName: document.getElementById('character-intro-name'),
+    characterIntroQuest: document.getElementById('character-intro-quest'),
+    characterIntroDescription: document.getElementById('character-intro-description'),
+    characterIntroContinueBtn: document.getElementById('character-intro-continue-btn'),
     placementChatInput: document.getElementById('placement-chat-input'),
     placementSendBtn: document.getElementById('placement-send-btn'),
-    retakePlacementBtn: document.getElementById('retake-placement-btn')
+    retakePlacementBtn: document.getElementById('retake-placement-btn'),
+    darkModeToggle: document.getElementById('dark-mode-toggle')
   };
 
   // Check for critical missing elements
@@ -874,6 +881,9 @@ export function initializeApp() {
       window.devTrackQuestStart(questKey, currentStage);
     }
 
+    // Show character introduction card first
+    showCharacterIntroCard(quest, stage);
+
     // Show chat view
     if (dom.questView) dom.questView.style.display = 'none';
     if (dom.chatView) dom.chatView.style.display = 'flex';
@@ -891,6 +901,109 @@ export function initializeApp() {
     }
 
     debugLog(`✅ Quest started successfully: ${quest.title}`);
+  }
+
+  // Dark Mode functions
+  function initDarkMode() {
+    // Check if dark mode is saved in localStorage
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+      updateDarkModeIcon(true);
+    }
+  }
+
+  function toggleDarkMode() {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
+    updateDarkModeIcon(isDarkMode);
+  }
+
+  function updateDarkModeIcon(isDarkMode) {
+    const icon = document.querySelector('.dark-mode-icon');
+    if (icon) {
+      icon.textContent = isDarkMode ? '☀️' : '🌙';
+    }
+  }
+
+  // Character Introduction Card functions
+  function showCharacterIntroCard(quest, stage) {
+    if (!dom.characterIntroOverlay) return;
+
+    // Set character avatar
+    dom.characterIntroAvatar.textContent = stage.characterAvatar || '🎭';
+
+    // Set character name
+    dom.characterIntroName.textContent = stage.characterName || 'Character';
+
+    // Set quest name
+    dom.characterIntroQuest.textContent = quest.title || 'Quest';
+
+    // Set character description from vignette
+    const description = stage.vignette?.en || stage.vignette || 'Meet this character and begin your conversation!';
+    dom.characterIntroDescription.textContent = description;
+
+    // Show the overlay
+    dom.characterIntroOverlay.classList.remove('hidden');
+  }
+
+  function hideCharacterIntroCard() {
+    if (dom.characterIntroOverlay) {
+      dom.characterIntroOverlay.classList.add('hidden');
+    }
+  }
+
+  // Typing indicator functions
+  let typingIndicatorElement = null;
+
+  function showTypingIndicator() {
+    if (!dom.chatContainer || typingIndicatorElement) return;
+
+    // Get character info for avatar
+    let avatar = '🎭';
+    let characterName = 'NPC';
+    if (currentQuest && currentStage) {
+      const quest = quests[currentQuest];
+      const stage = quest?.stages?.[currentStage];
+      avatar = stage?.characterAvatar || '🎭';
+      characterName = stage?.characterName || 'NPC';
+    }
+
+    // Create typing indicator wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'typing-indicator active flex items-center gap-2';
+    wrapper.id = 'typing-indicator-wrapper';
+
+    // Add character avatar
+    const avatarEl = document.createElement('div');
+    avatarEl.className = 'flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-lg shadow-md';
+    avatarEl.textContent = avatar;
+    avatarEl.title = characterName;
+    wrapper.appendChild(avatarEl);
+
+    // Add typing indicator bubble
+    const bubble = document.createElement('div');
+    bubble.className = 'flex items-center gap-1 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl px-4 py-3 shadow-sm';
+
+    // Add three animated dots
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'typing-dot';
+      bubble.appendChild(dot);
+    }
+
+    wrapper.appendChild(bubble);
+
+    typingIndicatorElement = wrapper;
+    dom.chatContainer.appendChild(wrapper);
+    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    if (typingIndicatorElement && dom.chatContainer) {
+      dom.chatContainer.removeChild(typingIndicatorElement);
+      typingIndicatorElement = null;
+    }
   }
 
   // Add message to chat
@@ -992,6 +1105,9 @@ export function initializeApp() {
     // Check objectives against user message
     checkObjectives(message);
 
+    // Show typing indicator while waiting for AI response
+    showTypingIndicator();
+
     try {
       const quest = quests[currentQuest];
       const stage = quest.stages[currentStage];
@@ -1020,7 +1136,13 @@ export function initializeApp() {
       );
 
       // If callAPI returned null (due to an error), stop processing
-      if (response === null) return;
+      if (response === null) {
+        hideTypingIndicator();
+        return;
+      }
+
+      // Hide typing indicator before showing actual response
+      hideTypingIndicator();
 
       addMessage('npc', response);
 
@@ -1046,6 +1168,7 @@ export function initializeApp() {
 
     } catch (error) {
       console.error('Error sending message:', error);
+      hideTypingIndicator();
       addMessage('npc', 'Sorry, I couldn\'t understand that. Could you try again?');
     } finally {
       dom.sendBtn.disabled = false;
@@ -1114,8 +1237,73 @@ export function initializeApp() {
   }
 
   // Show stage completion notification
+  // Celebration effects
+  function triggerCelebration() {
+    // Trigger confetti
+    triggerConfetti();
+    // Trigger sparkles
+    triggerSparkles();
+  }
+
+  function triggerConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.style.position = 'fixed';
+    confettiContainer.style.top = '0';
+    confettiContainer.style.left = '0';
+    confettiContainer.style.width = '100%';
+    confettiContainer.style.height = '100%';
+    confettiContainer.style.pointerEvents = 'none';
+    confettiContainer.style.zIndex = '9999';
+
+    // Create 30 confetti pieces
+    for (let i = 0; i < 30; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.animationDelay = Math.random() * 0.5 + 's';
+      confetti.style.animationDuration = (2.5 + Math.random()) + 's';
+
+      // Random colors
+      const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf', '#ff8b94', '#95e1d3', '#ffaaa5', '#ffd3b6', '#dcedc1', '#a8dadc'];
+      confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+      confettiContainer.appendChild(confetti);
+    }
+
+    document.body.appendChild(confettiContainer);
+
+    // Remove after animation completes
+    setTimeout(() => {
+      document.body.removeChild(confettiContainer);
+    }, 4000);
+  }
+
+  function triggerSparkles() {
+    const sparkleEmojis = ['✨', '⭐', '🌟', '💫', '⚡'];
+
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+        sparkle.style.left = (20 + Math.random() * 60) + '%';
+        sparkle.style.top = (20 + Math.random() * 60) + '%';
+
+        document.body.appendChild(sparkle);
+
+        setTimeout(() => {
+          document.body.removeChild(sparkle);
+        }, 1000);
+      }, i * 150);
+    }
+  }
+
   function showStageCompletionNotification() {
     console.log('🎉 [showStageCompletionNotification] Called!');
+
+    // Trigger celebration effects
+    triggerCelebration();
+
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
 
@@ -1327,6 +1515,21 @@ export function initializeApp() {
       });
     }
     debugLog('✅ Chat event listeners set');
+
+    // Character introduction card
+    if (dom.characterIntroContinueBtn) {
+      dom.characterIntroContinueBtn.addEventListener('click', () => {
+        hideCharacterIntroCard();
+      });
+    }
+
+    // Dark mode toggle
+    if (dom.darkModeToggle) {
+      dom.darkModeToggle.addEventListener('click', toggleDarkMode);
+    }
+
+    // Initialize dark mode from localStorage
+    initDarkMode();
 
     // Placement test quiz buttons
     if (dom.submitQuizBtn) {
