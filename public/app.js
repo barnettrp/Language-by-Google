@@ -722,9 +722,6 @@ export function initializeApp() {
     const completedQuests = userSettings.completedQuests || [];
 
     Object.entries(quests).forEach(([questKey, quest]) => {
-      // Skip onboarding quest from the main list
-      if (questKey === 'quest-zero-onboarding') return;
-
       const prerequisites = quest.prerequisites || [];
       const isLocked = !prerequisites.every(prereq => completedQuests.includes(prereq));
       const isCompleted = completedQuests.includes(questKey);
