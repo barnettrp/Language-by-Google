@@ -1172,19 +1172,22 @@ export function initializeApp() {
 
       // If stage is complete and farewell hasn't been sent, ask AI to send farewell
       if (stageCompleted && !farewellSent) {
-        objectivesContext += `\n\n🚨 CRITICAL - QUEST ENDING NOW 🚨
-ALL COMPLETION CRITERIA MET (objectives + time + messages). This conversation MUST END with this response.
+        objectivesContext += `\n\n🚨🚨🚨 STOP - QUEST ENDING NOW - DO NOT CONTINUE 🚨🚨🚨
+ALL COMPLETION CRITERIA MET. This conversation MUST END with this response.
 
-YOUR TASK: Send ONE final farewell message that:
-1. Acknowledges their success completing all objectives
-2. Thanks them briefly (1-2 sentences MAX)
-3. Wishes them well on their journey
-4. Uses their name if known
-5. Includes Spanish vocabulary
+YOUR FINAL MESSAGE MUST:
+1. Acknowledge their success (1 sentence)
+2. Say goodbye with Spanish vocabulary (1 sentence)
+3. END with "¡Bienvenido a ConvoQuest!" (Welcome to ConvoQuest!)
 
-Example: "¡Excelente trabajo, [name]! (Excellent work!) You found the gato (cat) and helped abuela (grandmother). ¡Buena suerte en ConvoQuest! (Good luck in ConvoQuest!)"
+Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión (mission) perfectly. ¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
 
-DO NOT: Ask follow-up questions, start new topics, or continue the conversation. This is your FINAL message.`;
+🚫 ABSOLUTELY FORBIDDEN - DO NOT:
+- Ask ANY follow-up questions
+- Suggest new activities (markets, colors, shopping, etc.)
+- Continue the conversation in ANY way
+- Introduce new topics
+- This is your FINAL message. Period. Full stop. Do not continue.`;
       }
 
       const response = await AIManager.callAPI(
