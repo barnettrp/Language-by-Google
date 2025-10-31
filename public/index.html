@@ -164,6 +164,16 @@
       color: rgba(255, 255, 255, 0.5) !important;
     }
 
+    body.dark-mode .text-gray-400 {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    /* Improve readability of lighter text in dark mode */
+    body.dark-mode #vignette-text,
+    body.dark-mode .text-gray-600:not(.npc-message):not(.user-message) {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+
     /* Auth dark mode toggle button */
     body.dark-mode #auth-dark-mode-toggle {
       background: rgba(255, 255, 255, 0.1) !important;

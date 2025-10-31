@@ -895,6 +895,15 @@ export function initializeApp() {
       }
     }
 
+    // Re-enable chat input for new quest
+    if (dom.chatInput) {
+      dom.chatInput.disabled = false;
+      dom.chatInput.placeholder = "Type your reply...";
+    }
+    if (dom.sendBtn) {
+      dom.sendBtn.disabled = false;
+    }
+
     // Update objectives UI
     updateObjectivesUI();
 
@@ -1112,6 +1121,12 @@ export function initializeApp() {
     const message = dom.chatInput.value.trim();
     if (!message) return;
 
+    // Prevent sending messages after quest completion
+    if (stageCompleted && farewellSent) {
+      console.log('Quest already completed, blocking message');
+      return;
+    }
+
     // Check for inappropriate content before processing
     const moderationResult = ContentModerator.checkContent(message);
     if (!moderationResult.isAppropriate) {
@@ -1177,6 +1192,12 @@ export function initializeApp() {
       // If this was the farewell message, mark it as sent and show completion
       if (stageCompleted && !farewellSent) {
         farewellSent = true;
+
+        // Disable chat input to prevent further messages
+        dom.chatInput.disabled = true;
+        dom.chatInput.placeholder = "Quest completing...";
+        dom.sendBtn.disabled = true;
+
         // Show completion notification after a delay to let user read farewell
         setTimeout(() => {
           showStageCompletionNotification();
