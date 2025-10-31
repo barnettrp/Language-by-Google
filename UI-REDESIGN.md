@@ -117,11 +117,11 @@
 3. ✅ Implement XP/progress visualization at top
 4. ✅ Redesign quest cards with images and better layout
 
-### Priority 2 (Enhanced Experience)
-5. ⬜ Add animations (typing indicator, message slide-ins)
-6. ⬜ Create character introduction cards
-7. ⬜ Add celebration effects for completions
-8. ⬜ Implement dark mode
+### Priority 2 (Enhanced Experience) - ✅ COMPLETED
+5. ✅ Add animations (typing indicator, message slide-ins)
+6. ✅ Create character introduction cards
+7. ✅ Add celebration effects for completions
+8. ✅ Implement dark mode
 
 ### Priority 3 (Polish)
 9. ⬜ Add micro-interactions throughout
@@ -470,8 +470,8 @@ Prepared app for beta tester deployment on Vercel. Fixed multiple critical produ
 ### Visual Identity & Branding (Partial)
 - ✅ Vibrant gradient backgrounds with animation
 - ✅ Modern Inter font family
+- ✅ Dark mode support with toggle and persistence
 - ⬜ Logo/Branding (pending)
-- ⬜ Dark mode support (pending)
 
 ### Quest Selection Screen
 - ✅ Modern card-based layout with images
@@ -486,7 +486,8 @@ Prepared app for beta tester deployment on Vercel. Fixed multiple critical produ
 - ✅ Modern chat bubbles with gradients
 - ✅ Slide-in animations for messages
 - ✅ Better input design with focus effects
-- ⬜ Typing indicators (pending)
+- ✅ Typing indicators with animated dots
+- ✅ Character introduction cards at quest start
 - ⬜ Voice input button (pending)
 
 ### Gamification Elements
@@ -495,5 +496,136 @@ Prepared app for beta tester deployment on Vercel. Fixed multiple critical produ
 - ✅ Streak tracker
 - ✅ Quest completion counter
 - ✅ Quest completion banner with celebrations
+- ✅ Confetti and sparkle effects on quest completion
 - ⬜ Level-up celebrations (pending)
 - ⬜ Achievement badges showcase (pending)
+
+---
+
+## 📝 Implementation Log (Continued)
+
+### Session 4: 2025-10-31 - Priority 2 UI Enhancements
+
+**Completed:**
+- ✅ **Typing Indicator for AI Responses**
+  - **Files Modified:** `public/index.html` (lines 165-192), `public/app.js` (lines 896-1005)
+  - Animated 3-dot typing indicator with bounce animation
+  - Shows character avatar matching the current NPC
+  - Appears immediately after user sends message
+  - Auto-hides when AI response arrives
+  - Handles errors gracefully (hides on API failure)
+  - Smooth slide-in animation from left
+
+- ✅ **Character Introduction Cards**
+  - **Files Modified:** `public/index.html` (lines 194-208, 554-582), `public/app.js` (lines 902-927, 883-884, 1427-1432)
+  - Modal overlay appears when quest stage starts
+  - Large character avatar (6x normal size)
+  - Shows character name, quest title, and vignette description
+  - Animated entrance with bounce effect (cubic-bezier easing)
+  - Backdrop blur effect for focus
+  - "Start Conversation" button to dismiss
+  - Called automatically from `startQuest()` function
+
+- ✅ **Celebration Effects for Quest Completions**
+  - **Files Modified:** `public/index.html` (lines 209-245), `public/app.js` (lines 1216-1281)
+  - **Confetti Animation:**
+    - 30 colorful confetti pieces fall from top to bottom
+    - Random colors: red, teal, yellow, green, pink, etc.
+    - Each piece rotates 720 degrees as it falls
+    - Random delays and durations for natural effect
+    - Auto-cleanup after 4 seconds
+  - **Sparkle Animation:**
+    - 8 sparkle emojis (✨⭐🌟💫⚡) appear in sequence
+    - Each sparkle scales in and fades out (1s duration)
+    - Random positioning on screen (20-80% width/height)
+    - Sequential timing (150ms between each)
+  - Triggered automatically from `showStageCompletionNotification()`
+
+- ✅ **Dark Mode Toggle**
+  - **Files Modified:** `public/index.html` (lines 23-138, 477-483), `public/app.js` (lines 906-927, 1526-1532)
+  - CSS variable-based theming system
+  - Toggle button (🌙/☀️) in top navigation
+  - Dark gradient backgrounds for night use:
+    - Background: Dark blues/purples (#1a1a2e → #1f1f2e)
+    - Containers: Dark blue-gray (rgba(30, 30, 46, 0.95))
+    - Text: Light colors for readability
+  - Smooth transitions (0.3s) between modes
+  - Persists preference in localStorage
+  - Initializes on page load from saved preference
+  - Icon updates based on current mode
+
+**Technical Details:**
+
+**Typing Indicator Implementation:**
+```javascript
+// Shows typing indicator before AI response
+showTypingIndicator();
+
+// Hides when response arrives or on error
+hideTypingIndicator();
+```
+
+**Character Card CSS:**
+```css
+@keyframes character-intro-slide {
+  0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+```
+
+**Celebration Functions:**
+```javascript
+triggerCelebration() {
+  triggerConfetti();  // 30 falling pieces
+  triggerSparkles();  // 8 sequential emojis
+}
+```
+
+**Dark Mode CSS Variables:**
+```css
+:root {
+  --container-bg: rgba(255, 255, 255, 0.95);
+  --text-primary: #1f2937;
+}
+
+body.dark-mode {
+  --container-bg: rgba(30, 30, 46, 0.95);
+  --text-primary: #e5e7eb;
+}
+```
+
+**Files Changed This Session:**
+1. `public/index.html`
+   - Lines 23-55: CSS variables for dark mode
+   - Lines 109-138: Dark mode styles for containers and text
+   - Lines 165-192: Typing indicator CSS and animations
+   - Lines 194-208: Character intro card animation
+   - Lines 209-245: Confetti and sparkle animations
+   - Lines 477-483: Dark mode toggle button added to header
+   - Lines 554-582: Character introduction card HTML
+
+2. `public/app.js`
+   - Lines 159-160: Dark mode toggle DOM reference
+   - Lines 906-927: Dark mode functions (init, toggle, updateIcon)
+   - Lines 929-949: Character intro card functions (show/hide)
+   - Lines 951-1005: Typing indicator functions (show/hide) with avatar
+   - Lines 1048-1111: Integrated typing indicator into sendChatMessage()
+   - Lines 1216-1275: Celebration effects (confetti, sparkles)
+   - Lines 1281: Trigger celebrations in showStageCompletionNotification()
+   - Lines 1427-1432: Event listener for character intro continue button
+   - Lines 1526-1532: Event listener for dark mode toggle + initialization
+
+**Testing:**
+- All features tested locally at http://localhost:3000
+- See `TESTING-SCENARIO.md` for comprehensive test plan
+
+**Status:**
+- All changes committed: `10d390f`
+- Priority 2 UI enhancements complete
+- Ready for production deployment
+- Documentation updated in `UI-REDESIGN.md`
+
+**Next Steps:**
+- Test all features using `TESTING-SCENARIO.md`
+- Deploy to Vercel production
+- Move on to Priority 3 (micro-interactions, mobile optimization)
