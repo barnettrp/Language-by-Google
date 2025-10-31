@@ -72,6 +72,7 @@ export function initializeApp() {
   let shownHints = new Set();
   let stageCompleted = false;
   let farewellSent = false;
+  let stageStartTime = null;
 
   // TTS state
   let autoplayEnabled = true;
@@ -849,6 +850,7 @@ export function initializeApp() {
     shownHints.clear();
     stageCompleted = false;
     farewellSent = false;
+    stageStartTime = Date.now(); // Track when stage started
 
     const quest = quests[currentQuest];
     if (!quest) {
@@ -1170,7 +1172,19 @@ export function initializeApp() {
 
       // If stage is complete and farewell hasn't been sent, ask AI to send farewell
       if (stageCompleted && !farewellSent) {
-        objectivesContext += `\n\nIMPORTANT: All objectives are complete! Send a warm, encouraging farewell message to the user. Thank them for their participation, wish them luck on their adventure, and use their name if you know it. Keep it brief (1-2 sentences) and in the spirit of your character. For example: "¡Muy bien, [name]! (Very good!) Your journey begins now. ¡Buena suerte, aventurero! (Good luck, adventurer!)" This is your FINAL message before they continue.`;
+        objectivesContext += `\n\n🚨 CRITICAL - QUEST ENDING NOW 🚨
+ALL COMPLETION CRITERIA MET (objectives + time + messages). This conversation MUST END with this response.
+
+YOUR TASK: Send ONE final farewell message that:
+1. Acknowledges their success completing all objectives
+2. Thanks them briefly (1-2 sentences MAX)
+3. Wishes them well on their journey
+4. Uses their name if known
+5. Includes Spanish vocabulary
+
+Example: "¡Excelente trabajo, [name]! (Excellent work!) You found the gato (cat) and helped abuela (grandmother). ¡Buena suerte en ConvoQuest! (Good luck in ConvoQuest!)"
+
+DO NOT: Ask follow-up questions, start new topics, or continue the conversation. This is your FINAL message.`;
       }
 
       const response = await AIManager.callAPI(
@@ -1278,8 +1292,13 @@ export function initializeApp() {
     const minMessagesMet = stageMessageCount >= (criteria.minMessages || 0);
     const objectivesMet = completedObjectives.size >= (criteria.objectivesRequired || 0);
 
-    if (minMessagesMet && objectivesMet && !stageCompleted) {
+    // Check time requirement (in seconds)
+    const elapsedTimeSeconds = stageStartTime ? (Date.now() - stageStartTime) / 1000 : 0;
+    const minDurationMet = elapsedTimeSeconds >= (criteria.minDuration || 0);
+
+    if (minMessagesMet && objectivesMet && minDurationMet && !stageCompleted) {
       console.log('🎉 Stage completion criteria met!');
+      console.log(`Messages: ${stageMessageCount}/${criteria.minMessages}, Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}, Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
       stageCompleted = true;
       // Don't show notification yet - let the AI send a farewell message first
     }
