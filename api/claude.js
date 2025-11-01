@@ -43,8 +43,8 @@ export default async function handler(request, response) {
       content: msg.parts[0].text
     }));
 
-    // Try Claude 3 Haiku first (most widely available model)
-    const modelToUse = 'claude-3-haiku-20240307';
+    // Use Claude 3.5 Sonnet (newer October 2024 version)
+    const modelToUse = 'claude-3-5-sonnet-20241022';
     console.log('[Claude API] Sending request with', messages.length, 'messages');
     console.log('[Claude API] Model:', modelToUse);
 
@@ -67,10 +67,20 @@ export default async function handler(request, response) {
     const data = await claudeResponse.json();
 
     if (!claudeResponse.ok) {
-      console.error('Claude API Error:', JSON.stringify(data, null, 2));
-      console.error('Status:', claudeResponse.status);
+      console.error('[Claude API] Full error response:', JSON.stringify(data, null, 2));
+      console.error('[Claude API] HTTP Status:', claudeResponse.status);
+      console.error('[Claude API] Status Text:', claudeResponse.statusText);
+      console.error('[Claude API] Error type:', data.error?.type);
+      console.error('[Claude API] Error message:', data.error?.message);
+
+      // Return detailed error to help debug
       return response.status(claudeResponse.status).json({
-        error: data.error?.message || data.error?.type || JSON.stringify(data) || 'Claude API request failed'
+        error: data.error?.message || data.error?.type || 'Claude API request failed',
+        details: {
+          status: claudeResponse.status,
+          type: data.error?.type,
+          fullError: data
+        }
       });
     }
 
