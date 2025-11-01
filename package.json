@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "node dev-server.js",
     "dev:vite": "vite",
-    "build": "vite build",
+    "build": "vite build && cp public/*.js dist/ && cp -r public/images dist/",
     "preview": "vite preview",
-    "vercel-build": "vite build",
+    "vercel-build": "vite build && cp public/*.js dist/ && cp -r public/images dist/",
     "lint": "eslint public/ --ext .js",
     "lint:fix": "eslint public/ --ext .js --fix",
     "format": "prettier --write public/"
