@@ -1780,35 +1780,86 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
-    // Debug console minimize/maximize button
+    // Debug console minimize/maximize functionality
     const minimizeDebugBtn = document.getElementById('minimize-debug-btn');
     const debugConsolePanel = document.getElementById('debug-console-panel');
+    const debugConsoleTitle = document.getElementById('debug-console-title');
+    const debugConsoleButtons = document.getElementById('debug-console-buttons');
+    const debugConsoleHeader = document.getElementById('debug-console-header');
     let debugMinimized = false;
 
-    if (minimizeDebugBtn && debugConsolePanel) {
-      minimizeDebugBtn.addEventListener('click', () => {
-        debugMinimized = !debugMinimized;
+    const toggleDebugConsole = () => {
+      debugMinimized = !debugMinimized;
 
+      if (debugMinimized) {
+        // Minimize - show as thin vertical bar
+        debugConsolePanel.classList.remove('w-96');
+        debugConsolePanel.classList.add('w-12');
+        debugConsolePanel.title = 'Click to maximize debug console';
+
+        // Rotate title vertically and show only emoji
+        if (debugConsoleTitle) {
+          debugConsoleTitle.style.writingMode = 'vertical-rl';
+          debugConsoleTitle.style.transform = 'rotate(180deg)';
+          debugConsoleTitle.textContent = '🐛';
+        }
+
+        // Hide buttons
+        if (debugConsoleButtons) debugConsoleButtons.style.display = 'none';
+
+        // Center header
+        if (debugConsoleHeader) {
+          debugConsoleHeader.style.justifyContent = 'center';
+          debugConsoleHeader.style.cursor = 'pointer';
+        }
+
+        // Hide content
+        const debugContent = document.getElementById('debug-console-content');
+        if (debugContent) debugContent.style.display = 'none';
+
+        // Add hover effect
+        debugConsolePanel.classList.add('hover:bg-gray-800');
+      } else {
+        // Maximize - show full console
+        debugConsolePanel.classList.remove('w-12', 'hover:bg-gray-800');
+        debugConsolePanel.classList.add('w-96');
+        debugConsolePanel.title = '';
+
+        // Reset title
+        if (debugConsoleTitle) {
+          debugConsoleTitle.style.writingMode = 'horizontal-tb';
+          debugConsoleTitle.style.transform = 'none';
+          debugConsoleTitle.textContent = '🐛 Debug Console';
+        }
+
+        // Show buttons
+        if (debugConsoleButtons) debugConsoleButtons.style.display = 'flex';
+
+        // Reset header
+        if (debugConsoleHeader) {
+          debugConsoleHeader.style.justifyContent = 'space-between';
+          debugConsoleHeader.style.cursor = 'default';
+        }
+
+        // Show content
+        const debugContent = document.getElementById('debug-console-content');
+        if (debugContent) debugContent.style.display = 'block';
+      }
+    };
+
+    // Click minimize button
+    if (minimizeDebugBtn) {
+      minimizeDebugBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDebugConsole();
+      });
+    }
+
+    // Click entire panel when minimized to maximize
+    if (debugConsolePanel) {
+      debugConsolePanel.addEventListener('click', () => {
         if (debugMinimized) {
-          // Minimize - show as thin vertical bar
-          debugConsolePanel.classList.remove('w-96');
-          debugConsolePanel.classList.add('w-12');
-          minimizeDebugBtn.textContent = '+';
-          minimizeDebugBtn.title = 'Maximize console';
-
-          // Hide content, only show header vertically
-          const debugContent = document.getElementById('debug-console-content');
-          if (debugContent) debugContent.style.display = 'none';
-        } else {
-          // Maximize - show full console
-          debugConsolePanel.classList.remove('w-12');
-          debugConsolePanel.classList.add('w-96');
-          minimizeDebugBtn.textContent = '−';
-          minimizeDebugBtn.title = 'Minimize console';
-
-          // Show content
-          const debugContent = document.getElementById('debug-console-content');
-          if (debugContent) debugContent.style.display = 'block';
+          toggleDebugConsole();
         }
       });
     }

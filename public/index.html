@@ -708,10 +708,10 @@
           <div id="chat-container" class="flex-1 p-4 space-y-2 overflow-y-auto"></div>
 
           <!-- Debug Console -->
-          <div id="debug-console-panel" class="w-96 bg-gray-900 text-green-400 font-mono text-xs flex flex-col border-l border-gray-700 transition-all duration-300">
-            <div class="bg-gray-800 px-3 py-2 border-b border-gray-700 flex justify-between items-center">
-              <span class="font-bold text-green-300">🐛 Debug Console</span>
-              <div class="flex gap-2">
+          <div id="debug-console-panel" class="w-96 bg-gray-900 text-green-400 font-mono text-xs flex flex-col border-l border-gray-700 transition-all duration-300 cursor-pointer">
+            <div id="debug-console-header" class="bg-gray-800 px-3 py-2 border-b border-gray-700 flex justify-between items-center">
+              <span id="debug-console-title" class="font-bold text-green-300 transition-all duration-300">🐛 Debug Console</span>
+              <div id="debug-console-buttons" class="flex gap-2">
                 <button id="minimize-debug-btn" class="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700" title="Minimize console">−</button>
                 <button id="clear-debug-btn" class="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700" title="Clear console">Clear</button>
               </div>
