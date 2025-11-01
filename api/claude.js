@@ -43,8 +43,10 @@ export default async function handler(request, response) {
       content: msg.parts[0].text
     }));
 
+    // Try Claude 3 Haiku first (most widely available model)
+    const modelToUse = 'claude-3-haiku-20240307';
     console.log('[Claude API] Sending request with', messages.length, 'messages');
-    console.log('[Claude API] Model:', 'claude-3-5-sonnet-20240620');
+    console.log('[Claude API] Model:', modelToUse);
 
     // Call Claude API
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -55,7 +57,7 @@ export default async function handler(request, response) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20240620',
+        model: modelToUse,
         max_tokens: 1024,
         system: systemInstruction,
         messages: messages
