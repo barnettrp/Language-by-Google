@@ -702,22 +702,9 @@
           </div>
         </div>
 
-        <!-- Chat and Debug Console Container -->
-        <div class="flex-1 flex gap-2 overflow-hidden" style="min-height: 0;">
-          <!-- Chat Container -->
-          <div id="chat-container" class="flex-1 p-4 space-y-2 overflow-y-auto"></div>
-
-          <!-- Debug Console -->
-          <div id="debug-console-panel" class="w-96 bg-gray-900 text-green-400 font-mono text-xs flex flex-col border-l border-gray-700 transition-all duration-300 cursor-pointer">
-            <div id="debug-console-header" class="bg-gray-800 px-3 py-2 border-b border-gray-700 flex justify-between items-center">
-              <span id="debug-console-title" class="font-bold text-green-300 transition-all duration-300">🐛 Debug Console</span>
-              <div id="debug-console-buttons" class="flex gap-2">
-                <button id="minimize-debug-btn" class="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700" title="Minimize console">−</button>
-                <button id="clear-debug-btn" class="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700" title="Clear console">Clear</button>
-              </div>
-            </div>
-            <div id="debug-console-content" class="flex-1 p-3 overflow-y-auto space-y-1"></div>
-          </div>
+        <!-- Chat Container -->
+        <div class="flex-1 overflow-hidden" style="min-height: 0;">
+          <div id="chat-container" class="h-full p-4 space-y-2 overflow-y-auto"></div>
         </div>
 
         <div class="p-2 border-t bg-white/50 flex-shrink-0">

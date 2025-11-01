@@ -22,35 +22,9 @@ import {
 console.log('🟢 Firebase firestore imports loaded');
 
 // Debug logging helper
-// Logs to both browser console and visible debug console
+// Logs to browser console (for debugging with F12 Developer Tools)
 function debugLog(msg) {
-    // Log to browser console (F12 Developer Tools)
     console.log(msg);
-
-    // Log to visible debug console panel
-    const debugContent = document.getElementById('debug-console-content');
-    if (debugContent) {
-        const timestamp = new Date().toLocaleTimeString();
-        const logEntry = document.createElement('div');
-        logEntry.className = 'text-green-400';
-
-        // Color code special log types
-        if (msg.includes('🎯')) {
-            logEntry.className = 'text-yellow-300 font-bold';
-        } else if (msg.includes('🎊')) {
-            logEntry.className = 'text-pink-400 font-bold';
-        } else if (msg.includes('🎉')) {
-            logEntry.className = 'text-purple-400 font-bold';
-        } else if (msg.includes('❌')) {
-            logEntry.className = 'text-red-400';
-        } else if (msg.includes('✅')) {
-            logEntry.className = 'text-green-300';
-        }
-
-        logEntry.textContent = `[${timestamp}] ${msg}`;
-        debugContent.appendChild(logEntry);
-        debugContent.scrollTop = debugContent.scrollHeight;
-    }
 }
 
 // Initialize the application
@@ -1751,102 +1725,6 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
     debugLog('✅ Chat event listeners set');
-
-    // Debug console clear button
-    const clearDebugBtn = document.getElementById('clear-debug-btn');
-    if (clearDebugBtn) {
-      clearDebugBtn.addEventListener('click', () => {
-        const debugContent = document.getElementById('debug-console-content');
-        if (debugContent) {
-          debugContent.innerHTML = '';
-          debugLog('🗑️ Debug console cleared');
-        }
-      });
-    }
-
-    // Debug console minimize/maximize functionality
-    const minimizeDebugBtn = document.getElementById('minimize-debug-btn');
-    const debugConsolePanel = document.getElementById('debug-console-panel');
-    const debugConsoleTitle = document.getElementById('debug-console-title');
-    const debugConsoleButtons = document.getElementById('debug-console-buttons');
-    const debugConsoleHeader = document.getElementById('debug-console-header');
-    let debugMinimized = false;
-
-    const toggleDebugConsole = () => {
-      debugMinimized = !debugMinimized;
-
-      if (debugMinimized) {
-        // Minimize - show as thin vertical bar
-        debugConsolePanel.classList.remove('w-96');
-        debugConsolePanel.classList.add('w-12');
-        debugConsolePanel.title = 'Click to maximize debug console';
-
-        // Rotate title vertically and show only emoji
-        if (debugConsoleTitle) {
-          debugConsoleTitle.style.writingMode = 'vertical-rl';
-          debugConsoleTitle.style.transform = 'rotate(180deg)';
-          debugConsoleTitle.textContent = '🐛';
-        }
-
-        // Hide buttons
-        if (debugConsoleButtons) debugConsoleButtons.style.display = 'none';
-
-        // Center header
-        if (debugConsoleHeader) {
-          debugConsoleHeader.style.justifyContent = 'center';
-          debugConsoleHeader.style.cursor = 'pointer';
-        }
-
-        // Hide content
-        const debugContent = document.getElementById('debug-console-content');
-        if (debugContent) debugContent.style.display = 'none';
-
-        // Add hover effect
-        debugConsolePanel.classList.add('hover:bg-gray-800');
-      } else {
-        // Maximize - show full console
-        debugConsolePanel.classList.remove('w-12', 'hover:bg-gray-800');
-        debugConsolePanel.classList.add('w-96');
-        debugConsolePanel.title = '';
-
-        // Reset title
-        if (debugConsoleTitle) {
-          debugConsoleTitle.style.writingMode = 'horizontal-tb';
-          debugConsoleTitle.style.transform = 'none';
-          debugConsoleTitle.textContent = '🐛 Debug Console';
-        }
-
-        // Show buttons
-        if (debugConsoleButtons) debugConsoleButtons.style.display = 'flex';
-
-        // Reset header
-        if (debugConsoleHeader) {
-          debugConsoleHeader.style.justifyContent = 'space-between';
-          debugConsoleHeader.style.cursor = 'default';
-        }
-
-        // Show content
-        const debugContent = document.getElementById('debug-console-content');
-        if (debugContent) debugContent.style.display = 'block';
-      }
-    };
-
-    // Click minimize button
-    if (minimizeDebugBtn) {
-      minimizeDebugBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleDebugConsole();
-      });
-    }
-
-    // Click entire panel when minimized to maximize
-    if (debugConsolePanel) {
-      debugConsolePanel.addEventListener('click', () => {
-        if (debugMinimized) {
-          toggleDebugConsole();
-        }
-      });
-    }
 
     // Character introduction card
     if (dom.characterIntroContinueBtn) {
