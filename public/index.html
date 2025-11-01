@@ -171,7 +171,12 @@
     /* Improve readability of lighter text in dark mode */
     body.dark-mode #vignette-text,
     body.dark-mode .text-gray-600:not(.npc-message):not(.user-message) {
-      color: rgba(30, 30, 30, 1) !important;
+      color: var(--text-primary) !important;
+    }
+
+    /* Force character intro description to be pure black in dark mode */
+    body.dark-mode #character-intro-description {
+      color: #000000 !important;
     }
 
     /* Auth dark mode toggle button */
@@ -530,7 +535,7 @@
             </div>
           </div>
           <div class="flex items-center gap-1">
-            <span class="text-xs text-gray-400 mr-2 font-mono">v1.0.3</span>
+            <span class="text-xs text-gray-400 mr-2 font-mono">v1.0.5</span>
             <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
               <span class="dark-mode-icon">🌙</span>
             </button>
