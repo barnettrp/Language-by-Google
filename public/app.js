@@ -1916,6 +1916,76 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
+    // Keyboard Navigation Support
+    document.addEventListener('keydown', (e) => {
+      // Escape key to close modals
+      if (e.key === 'Escape') {
+        // Close settings modal
+        if (dom.settingsModal && !dom.settingsModal.classList.contains('hidden')) {
+          dom.settingsModal.classList.add('hidden');
+          debugLog('⌨️ Closed settings modal with Escape');
+          return;
+        }
+
+        // Close other modals
+        const modals = document.querySelectorAll('.modal-bg:not(.hidden)');
+        modals.forEach(modal => {
+          if (modal.id !== 'settings-modal') {
+            modal.classList.add('hidden');
+            debugLog(`⌨️ Closed modal ${modal.id} with Escape`);
+          }
+        });
+
+        // Go back from chat view to quest view (if in chat)
+        const inChatView = dom.chatView && dom.chatView.style.display !== 'none';
+        if (inChatView) {
+          dom.chatView.style.display = 'none';
+          dom.questView.style.display = 'flex';
+          updateMobileNavActive('quests');
+          TTSManager.stop();
+          debugLog('⌨️ Returned to quest list with Escape');
+        }
+      }
+
+      // Ctrl/Cmd + K for quick settings
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (dom.settingsModal) {
+          const isHidden = dom.settingsModal.classList.contains('hidden');
+          if (isHidden) {
+            dom.settingsModal.classList.remove('hidden');
+            debugLog('⌨️ Opened settings with Ctrl/Cmd+K');
+          } else {
+            dom.settingsModal.classList.add('hidden');
+            debugLog('⌨️ Closed settings with Ctrl/Cmd+K');
+          }
+        }
+      }
+
+      // Ctrl/Cmd + / for help (toggle between views)
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        const inChatView = dom.chatView && dom.chatView.style.display !== 'none';
+        if (inChatView) {
+          dom.chatView.style.display = 'none';
+          dom.questView.style.display = 'flex';
+          updateMobileNavActive('quests');
+          debugLog('⌨️ Toggled to quest view with Ctrl/Cmd+/');
+        }
+      }
+    });
+
+    // Add visible focus indicators
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        document.body.classList.add('keyboard-navigation');
+      }
+    });
+
+    document.addEventListener('mousedown', () => {
+      document.body.classList.remove('keyboard-navigation');
+    });
+
     debugLog('✅ All event listeners set successfully');
   } catch (error) {
     debugLog(`❌ Error setting up event listeners: ${error.message}`);
