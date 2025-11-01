@@ -1536,9 +1536,8 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         <div class="text-sm mb-3">You've completed all objectives for this quest.</div>
         ${stage.reward?.clue ? `<div class="text-sm mt-2 italic bg-white/50 p-3 rounded-lg">"${stage.reward.clue}"</div>` : ''}
         ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP earned! ⭐</div>` : ''}
-        <div class="text-sm mt-4 text-gray-600 italic">Returning to quest selection in <span id="countdown-timer">5</span> seconds...</div>
-        <button id="continue-after-stage-btn" class="w-full mt-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
-          Continue Now
+        <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
+          Return to Quests
         </button>
       </div>
     `;
@@ -1562,26 +1561,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       console.log('[ConvoQuest] Quest completed. Returned to quest selection.');
     };
 
-    // Countdown timer for auto-return
-    let countdown = 5;
-    const countdownElement = document.getElementById('countdown-timer');
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      if (countdownElement) {
-        countdownElement.textContent = countdown;
-      }
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        returnToQuests();
-      }
-    }, 1000);
-
-    // Add event listener to the continue button for immediate return
+    // Add event listener to the return button
     const continueBtn = document.getElementById('continue-after-stage-btn');
     if (continueBtn) {
       continueBtn.addEventListener('click', () => {
-        console.log('[ConvoQuest] User clicked continue button - returning immediately');
-        clearInterval(countdownInterval);
+        console.log('[ConvoQuest] User clicked return to quests button');
         returnToQuests();
       });
     }
