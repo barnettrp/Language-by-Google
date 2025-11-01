@@ -346,7 +346,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "Buenos días. ¿En qué puedo ayudarle hoy?",
+          initialMessage: "Good morning. How can I help you hoy (today)?",
 
           // Stage objectives for tracking
           objectives: [
@@ -2458,7 +2458,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "Buenos días. ¿En qué puedo ayudarle hoy?",
+          initialMessage: "Good morning. How can I help you hoy (today)?",
 
           // Learning objectives with grammar integration point
           objectives: [
