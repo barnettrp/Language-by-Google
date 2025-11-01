@@ -736,11 +736,29 @@ export function initializeApp() {
     dom.questList.innerHTML = '';
     const completedQuests = userSettings.completedQuests || [];
 
+    // Organize quests into categories
+    const availableQuests = [];
+    const lockedQuests = [];
+    const completedQuestsArray = [];
+
     Object.entries(quests).forEach(([questKey, quest]) => {
       const prerequisites = quest.prerequisites || [];
       const isLocked = !prerequisites.every(prereq => completedQuests.includes(prereq));
       const isCompleted = completedQuests.includes(questKey);
 
+      const questData = { questKey, quest, isLocked, isCompleted, prerequisites };
+
+      if (isCompleted) {
+        completedQuestsArray.push(questData);
+      } else if (isLocked) {
+        lockedQuests.push(questData);
+      } else {
+        availableQuests.push(questData);
+      }
+    });
+
+    // Helper function to create quest card
+    const createQuestCard = ({ questKey, quest, isLocked, isCompleted, prerequisites }) => {
       // Get difficulty badge styling
       const difficultyColors = {
         'beginner': 'bg-green-100 text-green-700 border-green-300',
@@ -821,9 +839,45 @@ export function initializeApp() {
       if (!isLocked) {
         questEl.addEventListener('click', () => startQuest(questKey));
       }
-      
-      dom.questList.appendChild(questEl);
-    });
+
+      return questEl;
+    };
+
+    // Render Available Quests
+    if (availableQuests.length > 0) {
+      const availableHeader = document.createElement('h2');
+      availableHeader.className = 'text-lg font-bold text-gray-800 mb-3 mt-2';
+      availableHeader.textContent = '✨ Available Quests';
+      dom.questList.appendChild(availableHeader);
+
+      availableQuests.forEach(questData => {
+        dom.questList.appendChild(createQuestCard(questData));
+      });
+    }
+
+    // Render Locked Quests
+    if (lockedQuests.length > 0) {
+      const lockedHeader = document.createElement('h2');
+      lockedHeader.className = 'text-lg font-bold text-gray-500 mb-3 mt-6';
+      lockedHeader.textContent = '🔒 Locked Quests';
+      dom.questList.appendChild(lockedHeader);
+
+      lockedQuests.forEach(questData => {
+        dom.questList.appendChild(createQuestCard(questData));
+      });
+    }
+
+    // Render Completed Quests
+    if (completedQuestsArray.length > 0) {
+      const completedHeader = document.createElement('h2');
+      completedHeader.className = 'text-lg font-bold text-green-600 mb-3 mt-6';
+      completedHeader.textContent = '✓ Completed Quests';
+      dom.questList.appendChild(completedHeader);
+
+      completedQuestsArray.forEach(questData => {
+        dom.questList.appendChild(createQuestCard(questData));
+      });
+    }
   }
 
   // Start a quest
