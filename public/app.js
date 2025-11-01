@@ -224,10 +224,11 @@ export function initializeApp() {
   };
 
   // AI Manager for secure backend communication
+  // Uses Claude 3.5 Sonnet for better rule-following in NPC conversations
   const AIManager = {
     async callAPI(systemInstruction, contents, retries = 3, delay = 1000) {
       try {
-        const response = await fetch('/api/gemini', {
+        const response = await fetch('/api/claude', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ systemInstruction, contents })
