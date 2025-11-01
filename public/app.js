@@ -2038,6 +2038,185 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     // Expose announcement function globally for use in other parts of the app
     window.announceToScreenReader = announceToScreenReader;
 
+    // Onboarding Tour
+    const onboardingOverlay = document.getElementById('onboarding-overlay');
+    const onboardingSpotlight = document.getElementById('onboarding-spotlight');
+    const onboardingTooltip = document.getElementById('onboarding-tooltip');
+    const onboardingTitle = document.getElementById('onboarding-title');
+    const onboardingMessage = document.getElementById('onboarding-message');
+    const onboardingNext = document.getElementById('onboarding-next');
+    const onboardingSkip = document.getElementById('onboarding-skip');
+
+    const tourSteps = [
+      {
+        target: '#welcome-message',
+        title: 'Welcome to ConvoQuest! 🎉',
+        message: 'This is your quest hub where you can see all available language learning adventures.',
+        position: 'bottom'
+      },
+      {
+        target: '#quest-list-container',
+        title: 'Choose Your Quest',
+        message: 'Browse through quests and click on one to start your Spanish learning journey!',
+        position: 'top'
+      },
+      {
+        target: '#settings-btn',
+        title: 'Personalize Your Experience',
+        message: 'Access settings here to adjust font size, high contrast mode, and other accessibility features.',
+        position: 'bottom'
+      },
+      {
+        target: '#mobile-bottom-nav',
+        title: 'Quick Navigation (Mobile)',
+        message: 'Use the bottom navigation to quickly switch between quests, quiz, and your profile.',
+        position: 'top'
+      }
+    ];
+
+    let currentTourStep = 0;
+
+    function positionTooltip(targetElement, position) {
+      const targetRect = targetElement.getBoundingClientRect();
+      const tooltipRect = onboardingTooltip.getBoundingClientRect();
+      const arrow = onboardingTooltip.querySelector('.onboarding-arrow');
+
+      // Remove previous arrow classes
+      arrow.classList.remove('top', 'bottom', 'left', 'right');
+
+      let top, left;
+
+      switch (position) {
+        case 'bottom':
+          top = targetRect.bottom + 20;
+          left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+          arrow.classList.add('top');
+          break;
+        case 'top':
+          top = targetRect.top - tooltipRect.height - 20;
+          left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+          arrow.classList.add('bottom');
+          break;
+        case 'left':
+          top = targetRect.top + (targetRect.height / 2) - (tooltipRect.height / 2);
+          left = targetRect.left - tooltipRect.width - 20;
+          arrow.classList.add('right');
+          break;
+        case 'right':
+          top = targetRect.top + (targetRect.height / 2) - (tooltipRect.height / 2);
+          left = targetRect.right + 20;
+          arrow.classList.add('left');
+          break;
+      }
+
+      // Keep tooltip on screen
+      const padding = 10;
+      left = Math.max(padding, Math.min(left, window.innerWidth - tooltipRect.width - padding));
+      top = Math.max(padding, Math.min(top, window.innerHeight - tooltipRect.height - padding));
+
+      onboardingTooltip.style.top = `${top}px`;
+      onboardingTooltip.style.left = `${left}px`;
+    }
+
+    function showTourStep(stepIndex) {
+      if (stepIndex >= tourSteps.length) {
+        endTour();
+        return;
+      }
+
+      const step = tourSteps[stepIndex];
+      const targetElement = document.querySelector(step.target);
+
+      if (!targetElement) {
+        // Skip to next step if target not found
+        currentTourStep++;
+        showTourStep(currentTourStep);
+        return;
+      }
+
+      const rect = targetElement.getBoundingClientRect();
+
+      // Position spotlight
+      onboardingSpotlight.style.top = `${rect.top - 5}px`;
+      onboardingSpotlight.style.left = `${rect.left - 5}px`;
+      onboardingSpotlight.style.width = `${rect.width + 10}px`;
+      onboardingSpotlight.style.height = `${rect.height + 10}px`;
+
+      // Update tooltip content
+      onboardingTitle.textContent = step.title;
+      onboardingMessage.textContent = step.message;
+
+      // Update button text for last step
+      if (stepIndex === tourSteps.length - 1) {
+        onboardingNext.textContent = 'Finish';
+      } else {
+        onboardingNext.textContent = 'Next';
+      }
+
+      // Update progress dots
+      const dots = document.querySelectorAll('.onboarding-dot');
+      dots.forEach((dot, index) => {
+        if (index === stepIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+
+      // Position tooltip
+      positionTooltip(targetElement, step.position);
+
+      // Show elements
+      onboardingOverlay.classList.remove('hidden');
+      onboardingSpotlight.classList.remove('hidden');
+      onboardingTooltip.classList.remove('hidden');
+    }
+
+    function endTour() {
+      onboardingOverlay.classList.add('hidden');
+      onboardingSpotlight.classList.add('hidden');
+      onboardingTooltip.classList.add('hidden');
+      localStorage.setItem('onboardingCompleted', 'true');
+      announceToScreenReader('Onboarding tour completed');
+      debugLog('✅ Onboarding tour completed');
+    }
+
+    function startOnboardingTour() {
+      currentTourStep = 0;
+      showTourStep(currentTourStep);
+      announceToScreenReader('Welcome tour started');
+      debugLog('🎓 Onboarding tour started');
+    }
+
+    // Event listeners for onboarding
+    if (onboardingNext) {
+      onboardingNext.addEventListener('click', () => {
+        currentTourStep++;
+        showTourStep(currentTourStep);
+      });
+    }
+
+    if (onboardingSkip) {
+      onboardingSkip.addEventListener('click', () => {
+        endTour();
+      });
+    }
+
+    // Check if onboarding should be shown
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    if (!onboardingCompleted && currentUser && dom.mainAppView && !dom.mainAppView.classList.contains('hidden')) {
+      // Start onboarding after a short delay to ensure UI is ready
+      setTimeout(() => {
+        startOnboardingTour();
+      }, 1000);
+    }
+
+    // Expose function to restart tour (for testing or user request)
+    window.restartOnboardingTour = function() {
+      localStorage.removeItem('onboardingCompleted');
+      startOnboardingTour();
+    };
+
     debugLog('✅ All event listeners set successfully');
   } catch (error) {
     debugLog(`❌ Error setting up event listeners: ${error.message}`);
