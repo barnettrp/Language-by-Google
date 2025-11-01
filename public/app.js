@@ -73,6 +73,7 @@ export function initializeApp() {
   let stageCompleted = false;
   let farewellSent = false;
   let stageStartTime = null;
+  let lastObjectiveAttemptCount = {}; // Track failed attempts per objective
 
   // TTS state
   let autoplayEnabled = true;
@@ -851,6 +852,7 @@ export function initializeApp() {
     stageCompleted = false;
     farewellSent = false;
     stageStartTime = Date.now(); // Track when stage started
+    lastObjectiveAttemptCount = {}; // Reset attempt tracking
 
     const quest = quests[currentQuest];
     if (!quest) {
@@ -1474,18 +1476,32 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
 
     if (!stage.objectives) return;
 
-    // Show hint after 5 messages if no progress on required objectives
-    if (stageMessageCount >= 5) {
-      stage.objectives.forEach(objective => {
-        if (objective.required && !completedObjectives.has(objective.id)) {
-          // Show first hint that hasn't been shown yet
-          const hintKey = `${currentStage}-${objective.id}`;
-          if (!shownHints.has(hintKey) && objective.hints && objective.hints.length > 0) {
-            showHint(objective.hints[0]);
-            shownHints.add(hintKey);
-          }
-        }
-      });
+    // Only check hints if user has been chatting for a while
+    if (stageMessageCount < 8) return;
+
+    // Find the first uncompleted required objective (assumes linear progression)
+    const uncompletedObjective = stage.objectives.find(
+      obj => obj.required && !completedObjectives.has(obj.id)
+    );
+
+    if (!uncompletedObjective) return; // All objectives complete
+
+    // Track attempts on this objective
+    if (!lastObjectiveAttemptCount[uncompletedObjective.id]) {
+      lastObjectiveAttemptCount[uncompletedObjective.id] = 0;
+    }
+    lastObjectiveAttemptCount[uncompletedObjective.id]++;
+
+    // Only show hint if user has been stuck on THIS objective for 5+ messages
+    const attemptsOnThisObjective = lastObjectiveAttemptCount[uncompletedObjective.id];
+    if (attemptsOnThisObjective >= 5) {
+      const hintKey = `${currentStage}-${uncompletedObjective.id}`;
+      if (!shownHints.has(hintKey) && uncompletedObjective.hints && uncompletedObjective.hints.length > 0) {
+        showHint(uncompletedObjective.hints[0]);
+        shownHints.add(hintKey);
+        // Reset count after showing hint
+        lastObjectiveAttemptCount[uncompletedObjective.id] = 0;
+      }
     }
   }
 
