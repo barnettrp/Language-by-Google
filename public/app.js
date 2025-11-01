@@ -2028,6 +2028,77 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     });
   }
 
+  // Swipe Gesture Navigation
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+  let isSwiping = false;
+  const minSwipeDistance = 50; // Minimum distance for a swipe
+  const maxVerticalDistance = 100; // Maximum vertical movement to still count as horizontal swipe
+
+  function handleSwipeGesture() {
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = Math.abs(touchEndY - touchStartY);
+
+    // Only process if horizontal swipe is significant and vertical movement is minimal
+    if (Math.abs(deltaX) < minSwipeDistance || deltaY > maxVerticalDistance) {
+      return;
+    }
+
+    // Determine current view
+    const inChatView = dom.chatView && dom.chatView.style.display !== 'none';
+    const inQuestView = dom.questView && dom.questView.style.display !== 'none';
+
+    // Swipe right (go back)
+    if (deltaX > 0 && inChatView) {
+      // Return to quest list from chat
+      dom.chatView.style.display = 'none';
+      dom.questView.style.display = 'flex';
+      updateMobileNavActive('quests');
+      TTSManager.stop();
+      debugLog('⬅️ Swiped right: Returned to quest list');
+    }
+    // Swipe left (not implemented for now - could be used for quick actions)
+    else if (deltaX < 0 && inQuestView) {
+      debugLog('➡️ Swiped left in quest view');
+      // Future: Could implement quest navigation or quick access to profile
+    }
+  }
+
+  // Touch event listeners for swipe gestures
+  const swipeContainer = document.getElementById('app-container');
+  if (swipeContainer) {
+    swipeContainer.addEventListener('touchstart', (e) => {
+      // Don't interfere with scrolling or button interactions
+      const target = e.target;
+      if (target.closest('button') || target.closest('input') || target.closest('textarea')) {
+        return;
+      }
+
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+      isSwiping = true;
+    }, { passive: true });
+
+    swipeContainer.addEventListener('touchmove', (e) => {
+      if (!isSwiping) return;
+
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    swipeContainer.addEventListener('touchend', (e) => {
+      if (!isSwiping) return;
+
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+
+      handleSwipeGesture();
+      isSwiping = false;
+    }, { passive: true });
+  }
+
   debugLog('✅ Application initialized successfully');
   console.log('[ConvoQuest] Application initialized successfully');
 }
