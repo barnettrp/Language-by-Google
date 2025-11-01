@@ -166,6 +166,19 @@
       outline-offset: 2px;
     }
 
+    /* Screen Reader Only - hides content visually but keeps it accessible */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
     /* Font Size Options */
     body.font-size-small {
       font-size: 14px;
@@ -888,10 +901,10 @@
     </div>
 
     <!-- MAIN APP VIEW -->
-    <div id="main-app-view" class="main-view flex-col h-full" style="min-height: 0;">
+    <div id="main-app-view" class="main-view flex-col h-full" style="min-height: 0;" role="main" aria-label="Main application">
       <div id="main-content"></div>
       <div id="quest-view" class="flex flex-col h-full" style="min-height: 0;">
-        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0" role="banner">
           <div class="flex items-center gap-3">
             <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
             <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
@@ -929,7 +942,7 @@
         </div>
 
         <!-- Quest List View (default) -->
-        <div id="quest-list-container" class="flex-1 p-4 space-y-3 overflow-y-auto" style="min-height: 0;"></div>
+        <div id="quest-list-container" class="flex-1 p-4 space-y-3 overflow-y-auto" style="min-height: 0;" role="list" aria-label="Available quests"></div>
 
         <!-- Quest Map View (hidden by default) -->
         <div id="quest-map-container" class="hidden flex-1 overflow-hidden relative">
@@ -1152,9 +1165,9 @@
             <button id="send-reset-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors mt-4">Reset Password</button>
         </div>
     </div>
-    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
+    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 id="settings-title" class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl" aria-label="Close settings">&times;</button></div>
             <div class="space-y-4">
                 <!-- Avatar Display -->
                 <div class="text-center pb-4 border-b">
@@ -1330,18 +1343,21 @@
   <!-- Quest Map UI -->
   <script src="/quest-map.js"></script>
 
+  <!-- ARIA Live Region for screen reader announcements -->
+  <div id="sr-announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
   <!-- Mobile Bottom Navigation (visible on mobile/tablet only) -->
-  <nav id="mobile-bottom-nav">
-    <button class="mobile-nav-button active" data-view="quests" aria-label="Quests">
-      <span class="mobile-nav-icon">🗺️</span>
+  <nav id="mobile-bottom-nav" role="navigation" aria-label="Main navigation">
+    <button class="mobile-nav-button active" data-view="quests" aria-label="View quests" aria-current="page">
+      <span class="mobile-nav-icon" aria-hidden="true">🗺️</span>
       <span class="mobile-nav-label">Quests</span>
     </button>
-    <button class="mobile-nav-button" data-view="quiz" aria-label="Quiz">
-      <span class="mobile-nav-icon">📝</span>
+    <button class="mobile-nav-button" data-view="quiz" aria-label="Take placement quiz">
+      <span class="mobile-nav-icon" aria-hidden="true">📝</span>
       <span class="mobile-nav-label">Quiz</span>
     </button>
-    <button class="mobile-nav-button" data-view="profile" aria-label="Profile">
-      <span class="mobile-nav-icon">👤</span>
+    <button class="mobile-nav-button" data-view="profile" aria-label="View profile and settings">
+      <span class="mobile-nav-icon" aria-hidden="true">👤</span>
       <span class="mobile-nav-label">Profile</span>
     </button>
   </nav>

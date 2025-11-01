@@ -1986,6 +1986,58 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       document.body.classList.remove('keyboard-navigation');
     });
 
+    // Screen Reader Announcements
+    const srAnnouncements = document.getElementById('sr-announcements');
+
+    function announceToScreenReader(message, priority = 'polite') {
+      if (!srAnnouncements) return;
+
+      // Clear previous announcement
+      srAnnouncements.textContent = '';
+
+      // Set priority
+      srAnnouncements.setAttribute('aria-live', priority); // 'polite' or 'assertive'
+
+      // Announce new message after a small delay to ensure screen readers pick it up
+      setTimeout(() => {
+        srAnnouncements.textContent = message;
+        debugLog(`📢 Screen reader announcement: ${message}`);
+      }, 100);
+
+      // Clear after announcement to avoid repetition
+      setTimeout(() => {
+        srAnnouncements.textContent = '';
+      }, 3000);
+    }
+
+    // Update ARIA current when mobile nav changes
+    const originalUpdateMobileNavActive = updateMobileNavActive;
+    updateMobileNavActive = function(activeView) {
+      originalUpdateMobileNavActive(activeView);
+
+      // Update aria-current attribute
+      const navButtons = document.querySelectorAll('.mobile-nav-button');
+      navButtons.forEach(btn => {
+        if (btn.dataset.view === activeView) {
+          btn.setAttribute('aria-current', 'page');
+        } else {
+          btn.removeAttribute('aria-current');
+        }
+      });
+
+      // Announce view change
+      const viewNames = {
+        quests: 'Quest list',
+        quiz: 'Placement quiz',
+        profile: 'Profile and settings'
+      };
+      const viewName = viewNames[activeView] || activeView;
+      announceToScreenReader(`Navigated to ${viewName}`);
+    };
+
+    // Expose announcement function globally for use in other parts of the app
+    window.announceToScreenReader = announceToScreenReader;
+
     debugLog('✅ All event listeners set successfully');
   } catch (error) {
     debugLog(`❌ Error setting up event listeners: ${error.message}`);
