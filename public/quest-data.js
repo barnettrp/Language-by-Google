@@ -953,7 +953,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "¡Buenos días! Necesito ayuda preparando para el gran mercado de mañana. ¿Puedes ayudarme? Mira mi puesto de frutas arriba - ¡necesito contar todo!",
+          initialMessage: "Good morning! I need ayuda (help) preparing for the big mercado (market) tomorrow. Can you help me? Look at my fruit stand above - I need to contar (count) everything!",
 
           objectives: [
             {
@@ -1452,7 +1452,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "¡Bienvenido a La Café del Puerto! ¿Qué te puedo ofrecer hoy?",
+          initialMessage: "Welcome to La Café del Puerto! What can I offer you hoy (today)?",
 
           objectives: [
             {
@@ -2670,7 +2670,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "¡Buenos días! ¿A dónde quiere ir?",
+          initialMessage: "Good morning! Where do you quiere (want) to go?",
 
           // Learning objectives with grammar integration point
           objectives: [
@@ -2882,7 +2882,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "Buenas tardes. Bienvenido a la biblioteca. ¿En qué puedo ayudarle?",
+          initialMessage: "Good afternoon. Welcome to the biblioteca (library). How can I ayudarle (help you)?",
 
           // Learning objectives with grammar integration point
           objectives: [
@@ -3093,7 +3093,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "Buenos días. ¿Busca algo en particular?",
+          initialMessage: "Good morning. Are you looking for algo (something) in particular?",
 
           // Learning objectives with grammar integration point
           objectives: [
@@ -3304,7 +3304,7 @@ CRITICAL - AVOID REPETITION: Review the conversation history before responding. 
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
-          initialMessage: "Clínica de Salud, buenos días. Habla Luisa. ¿En qué puedo ayudarle?",
+          initialMessage: "Clínica de Salud, good morning. This is Luisa speaking. How can I ayudarle (help you)?",
 
           // Learning objectives with grammar integration point
           objectives: [
