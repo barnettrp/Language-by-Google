@@ -1951,6 +1951,28 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   window.startQuest = startQuest;
   window.showQuestList = () => showView('main-app-view');
 
+  // Add ripple effect to all buttons
+  document.addEventListener('click', function(e) {
+    const button = e.target.closest('button, .btn');
+    if (!button || button.disabled) return;
+
+    const ripple = document.createElement('span');
+    ripple.classList.add('ripple');
+
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+
+    button.appendChild(ripple);
+
+    setTimeout(() => ripple.remove(), 600);
+  });
+
   debugLog('✅ Application initialized successfully');
   console.log('[ConvoQuest] Application initialized successfully');
 }

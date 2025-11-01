@@ -221,6 +221,103 @@
 
     .modal-content, .hint-popover, #translation-popover { animation: pop-in 0.3s ease-out forwards; }
 
+    /* Button Micro-interactions */
+    button, .btn {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+
+    button:active, .btn:active {
+      transform: scale(0.95);
+    }
+
+    button:not(:disabled):hover, .btn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Ripple effect */
+    @keyframes ripple {
+      0% {
+        transform: scale(0);
+        opacity: 0.6;
+      }
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      pointer-events: none;
+      animation: ripple 0.6s ease-out;
+    }
+
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    * {
+      scroll-behavior: smooth;
+    }
+
+    /* Skeleton Loading States */
+    @keyframes skeleton-loading {
+      0% {
+        background-position: -200px 0;
+      }
+      100% {
+        background-position: calc(200px + 100%) 0;
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 0px, #f8f8f8 40px, #f0f0f0 80px);
+      background-size: 200px 100%;
+      animation: skeleton-loading 1.5s ease-in-out infinite;
+    }
+
+    body.dark-mode .skeleton {
+      background: linear-gradient(90deg, #2a2a3e 0px, #3a3a4e 40px, #2a2a3e 80px);
+      background-size: 200px 100%;
+    }
+
+    .skeleton-text {
+      height: 1rem;
+      border-radius: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .skeleton-title {
+      height: 1.5rem;
+      border-radius: 0.25rem;
+      margin-bottom: 0.75rem;
+      width: 60%;
+    }
+
+    .skeleton-card {
+      height: 200px;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .skeleton-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+    }
+
+    .skeleton-button {
+      height: 40px;
+      border-radius: 0.5rem;
+      width: 100px;
+    }
+
     /* Modern Chat Bubbles */
     .message {
       animation: pop-in 0.3s ease-out;
@@ -896,7 +993,11 @@
      <div id="correction-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Correction</h2><button id="close-correction-btn" class="font-bold text-2xl">&times;</button></div>
-            <div id="correction-loading" class="hidden text-center p-8">Loading...</div>
+            <div id="correction-loading" class="hidden p-8">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-text"></div>
+              <div class="skeleton skeleton-text" style="width: 80%;"></div>
+            </div>
             <div id="correction-content">
                 <p class="text-sm text-gray-500">Original:</p>
                 <p id="original-sentence-el" class="italic text-red-600 bg-red-50 p-2 rounded-md mb-3"></p>
