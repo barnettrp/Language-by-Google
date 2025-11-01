@@ -45,6 +45,93 @@
       --border-color: rgba(255, 255, 255, 0.1);
     }
 
+    /* High Contrast Mode - Light Theme */
+    body.high-contrast {
+      --bg-gradient-start: #ffffff;
+      --bg-gradient-mid1: #ffffff;
+      --bg-gradient-mid2: #ffffff;
+      --bg-gradient-mid3: #ffffff;
+      --bg-gradient-end: #ffffff;
+      --container-bg: #ffffff;
+      --text-primary: #000000;
+      --text-secondary: #1a1a1a;
+      --border-color: #000000;
+    }
+
+    /* High Contrast Mode - Dark Theme */
+    body.dark-mode.high-contrast {
+      --bg-gradient-start: #000000;
+      --bg-gradient-mid1: #000000;
+      --bg-gradient-mid2: #000000;
+      --bg-gradient-mid3: #000000;
+      --bg-gradient-end: #000000;
+      --container-bg: #000000;
+      --text-primary: #ffffff;
+      --text-secondary: #e0e0e0;
+      --border-color: #ffffff;
+    }
+
+    body.high-contrast {
+      background: var(--container-bg) !important;
+      animation: none !important;
+    }
+
+    body.high-contrast button,
+    body.high-contrast .btn {
+      border: 2px solid var(--text-primary) !important;
+      font-weight: 600;
+    }
+
+    body.high-contrast .bg-blue-500,
+    body.high-contrast .bg-blue-600 {
+      background-color: #0000ff !important;
+      color: #ffffff !important;
+      border: 2px solid #000000 !important;
+    }
+
+    body.dark-mode.high-contrast .bg-blue-500,
+    body.dark-mode.high-contrast .bg-blue-600 {
+      background-color: #00ffff !important;
+      color: #000000 !important;
+      border: 2px solid #ffffff !important;
+    }
+
+    body.high-contrast input,
+    body.high-contrast textarea {
+      border: 2px solid var(--text-primary) !important;
+      background: var(--container-bg) !important;
+      color: var(--text-primary) !important;
+    }
+
+    body.high-contrast .text-gray-500,
+    body.high-contrast .text-gray-600,
+    body.high-contrast .text-gray-700,
+    body.high-contrast .text-gray-800 {
+      color: var(--text-primary) !important;
+    }
+
+    body.high-contrast .border,
+    body.high-contrast .border-t,
+    body.high-contrast .border-b,
+    body.high-contrast .border-l,
+    body.high-contrast .border-r {
+      border-color: var(--text-primary) !important;
+      border-width: 2px !important;
+    }
+
+    body.high-contrast .user-message,
+    body.high-contrast .npc-message {
+      border: 2px solid var(--text-primary) !important;
+    }
+
+    body.high-contrast a:focus,
+    body.high-contrast button:focus,
+    body.high-contrast input:focus,
+    body.high-contrast textarea:focus {
+      outline: 3px solid var(--text-primary) !important;
+      outline-offset: 2px !important;
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       /* Vibrant gaming-inspired gradient */
@@ -1059,6 +1146,23 @@
                     <button id="test-voice-btn" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">
                         Test Voice
                     </button>
+                </div>
+
+                <!-- Accessibility Settings Section -->
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Accessibility</h3>
+
+                    <!-- High Contrast Mode -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-1">
+                            <label for="high-contrast-toggle" class="text-sm font-medium text-gray-700">High Contrast Mode</label>
+                            <p class="text-xs text-gray-500 mt-1">Increases contrast for better visibility</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer ml-3">
+                            <input type="checkbox" id="high-contrast-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
                 </div>
 
                 <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>

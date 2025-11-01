@@ -1855,6 +1855,38 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         }
       });
     }
+
+    // High Contrast Mode
+    const highContrastToggle = document.getElementById('high-contrast-toggle');
+
+    function applyHighContrast(enabled) {
+      if (enabled) {
+        document.body.classList.add('high-contrast');
+        debugLog('✅ High contrast mode enabled');
+      } else {
+        document.body.classList.remove('high-contrast');
+        debugLog('✅ High contrast mode disabled');
+      }
+      // Save preference
+      localStorage.setItem('highContrast', enabled ? 'true' : 'false');
+    }
+
+    // Load saved high contrast preference
+    const savedHighContrast = localStorage.getItem('highContrast') === 'true';
+    if (savedHighContrast) {
+      applyHighContrast(true);
+      if (highContrastToggle) {
+        highContrastToggle.checked = true;
+      }
+    }
+
+    // Handle high contrast toggle
+    if (highContrastToggle) {
+      highContrastToggle.addEventListener('change', (e) => {
+        applyHighContrast(e.target.checked);
+      });
+    }
+
     debugLog('✅ All event listeners set successfully');
   } catch (error) {
     debugLog(`❌ Error setting up event listeners: ${error.message}`);
