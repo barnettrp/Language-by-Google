@@ -1887,6 +1887,35 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
+    // Font Size Options
+    const fontSizeSelect = document.getElementById('font-size-select');
+
+    function applyFontSize(size) {
+      // Remove all font size classes
+      document.body.classList.remove('font-size-small', 'font-size-normal', 'font-size-large', 'font-size-xlarge');
+
+      // Add the selected font size class
+      document.body.classList.add(`font-size-${size}`);
+
+      // Save preference
+      localStorage.setItem('fontSize', size);
+      debugLog(`✅ Font size set to: ${size}`);
+    }
+
+    // Load saved font size preference
+    const savedFontSize = localStorage.getItem('fontSize') || 'normal';
+    applyFontSize(savedFontSize);
+    if (fontSizeSelect) {
+      fontSizeSelect.value = savedFontSize;
+    }
+
+    // Handle font size selection
+    if (fontSizeSelect) {
+      fontSizeSelect.addEventListener('change', (e) => {
+        applyFontSize(e.target.value);
+      });
+    }
+
     debugLog('✅ All event listeners set successfully');
   } catch (error) {
     debugLog(`❌ Error setting up event listeners: ${error.message}`);
