@@ -1,0 +1,42 @@
+# Version Update Process
+
+Every time we make changes to the app, update the version number so users can verify they're not seeing cached content.
+
+## How to Update Version
+
+1. **Update package.json**:
+   - Change the `"version"` field to the new version number
+   - Follow semantic versioning: MAJOR.MINOR.PATCH
+     - MAJOR: Breaking changes
+     - MINOR: New features (backward compatible)
+     - PATCH: Bug fixes
+
+2. **Update index.html** (4 locations):
+   - Line ~433: Auth screen version (top-left corner)
+   - Line ~548: Quest list view version (top-right header)
+   - Line ~628: Chat view version (top-right header)
+   - Search for `v1.2.0` and replace all occurrences
+
+3. **Commit with version in message**:
+   ```bash
+   git add .
+   git commit -m "feat: [Brief description] (v1.2.0)"
+   git push
+   ```
+
+## Current Version
+
+**v1.2.0** (2025-01-11)
+
+### Changes in v1.2.0:
+- Added comprehensive scaffolding instructions for AI
+- Improved quest completion flow with auto-return
+- Fixed correction formatting (strikethrough display)
+- Added Claude API endpoint for better NPC conversations
+- Reduced onboarding quest requirements for better UX
+- Added version numbers to all app screens
+- Enhanced "always end with question" rule enforcement
+
+### Previous Versions:
+- **v1.1.9**: Spanish mixing enforcement in NPC responses
+- **v1.1.8**: Vercel deployment fixes

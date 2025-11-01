@@ -66,6 +66,10 @@ export function initializeApp() {
   let messages = [];
   let placementMessages = [];
 
+  // Dev mode detection (set once, used throughout)
+  const isDevMode = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1';
+
   // Objective tracking variables
   let stageMessageCount = 0;
   let completedObjectives = new Set();
@@ -532,8 +536,8 @@ export function initializeApp() {
       const finalLevel = this.calculateCurrentLevel();
       debugLog(`✅ Placement test complete. Level: ${finalLevel}`);
 
-      // Save to Firebase
-      if (currentUser && currentUser.uid) {
+      // Save to Firebase (skip in dev mode)
+      if (!isDevMode && currentUser && currentUser.uid) {
         try {
           const userDocRef = doc(db, 'users', currentUser.uid);
           await setDoc(userDocRef, {
@@ -548,6 +552,8 @@ export function initializeApp() {
         } catch (error) {
           console.error('[PlacementTest] Error saving results:', error);
         }
+      } else if (isDevMode) {
+        console.log('[DEV MODE] Skipping Firebase save for placement test');
       }
 
       // Show results
@@ -1050,48 +1056,78 @@ export function initializeApp() {
 
   // Format corrections with strikethrough
   function formatCorrections(text) {
-    // Escape HTML to prevent XSS
+    // Helper to escape HTML in specific parts
     const escapeHtml = (str) => {
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
     };
 
-    // Escape the entire text first
-    let formatted = escapeHtml(text);
+    // Helper to create correction HTML safely
+    const makeStrikethrough = (text) => {
+      return `<span style="text-decoration: line-through; opacity: 0.6;">${escapeHtml(text)}</span>`;
+    };
 
-    // Pattern 1: "not X, Y" or "not X but Y" -> strikethrough X, show Y
+    const makeCorrect = (text) => {
+      return `<strong style="color: #10b981;">${escapeHtml(text)}</strong>`;
+    };
+
+    const makeHighlight = (text) => {
+      return `<strong style="color: #10b981; background: #d1fae5; padding: 2px 6px; border-radius: 4px;">${escapeHtml(text)}</strong>`;
+    };
+
+    let formatted = text;
+
+    // Pattern 1: "not X, Y" -> strikethrough X, highlight Y
     formatted = formatted.replace(/\bnot\s+([^,]+),\s*([^.!?]+)/gi, (match, incorrect, correct) => {
-      return `not <span style="text-decoration: line-through; opacity: 0.6;">${incorrect.trim()}</span>, <strong>${correct.trim()}</strong>`;
+      return `not ${makeStrikethrough(incorrect.trim())}, ${makeCorrect(correct.trim())}`;
     });
 
+    // Pattern 2: "not X but Y" -> strikethrough X, highlight Y
     formatted = formatted.replace(/\bnot\s+([^,]+)\s+but\s+([^.!?]+)/gi, (match, incorrect, correct) => {
-      return `not <span style="text-decoration: line-through; opacity: 0.6;">${incorrect.trim()}</span> but <strong>${correct.trim()}</strong>`;
+      return `not ${makeStrikethrough(incorrect.trim())} but ${makeCorrect(correct.trim())}`;
     });
 
-    // Pattern 2: "*word" (asterisk correction pattern)
+    // Pattern 3: "it's X, not Y" -> highlight X, strikethrough Y
+    formatted = formatted.replace(/it'?s\s+([^,]+),\s*not\s+([^.!?-]+)/gi, (match, correct, incorrect) => {
+      return `it's ${makeCorrect(correct.trim())}, not ${makeStrikethrough(incorrect.trim())}`;
+    });
+
+    // Pattern 4: "*word" (asterisk correction pattern)
     formatted = formatted.replace(/\*(\w+)/g, (match, word) => {
-      return `<strong style="color: #10b981;">*${word}</strong>`;
+      return makeCorrect(`*${word}`);
     });
 
-    // Pattern 3: "You meant X" or "Did you mean X"
+    // Pattern 5: "You meant X" or "Did you mean X"
     formatted = formatted.replace(/(you meant|did you mean)\s+([^.!?,]+)/gi, (match, phrase, correction) => {
-      return `${phrase} <strong style="color: #10b981;">${correction.trim()}</strong>`;
+      return `${escapeHtml(phrase)} ${makeCorrect(correction.trim())}`;
     });
 
-    // Pattern 4: "Actually, it's X"
+    // Pattern 6: "Actually, it's X"
     formatted = formatted.replace(/actually,?\s+it'?s\s+([^.!?,]+)/gi, (match, correction) => {
-      return `actually, it's <strong style="color: #10b981;">${correction.trim()}</strong>`;
+      return `actually, it's ${makeCorrect(correction.trim())}`;
     });
 
-    // Pattern 5: "It's X, not Y" or "It's 'X', not 'Y'"
-    formatted = formatted.replace(/it'?s\s+['"]?([^'",.!?]+)['"]?,?\s+not\s+['"]?([^'",.!?]+)['"]?/gi, (_match, correct, incorrect) => {
-      return `it's <strong style="color: #10b981;">${correct.trim()}</strong>, not <span style="text-decoration: line-through; opacity: 0.6;">${incorrect.trim()}</span>`;
-    });
-
-    // Pattern 6: "(correct: X)" or "(correction: X)"
+    // Pattern 7: "(correct: X)" or "(correction: X)"
     formatted = formatted.replace(/\((correct|correction):\s*([^)]+)\)/gi, (_match, _label, correction) => {
-      return `<strong style="color: #10b981; background: #d1fae5; padding: 2px 6px; border-radius: 4px;">${correction.trim()}</strong>`;
+      return makeHighlight(correction.trim());
+    });
+
+    // Escape any remaining unformatted HTML
+    // First, protect our formatted HTML by replacing it with placeholders
+    const protectedSections = [];
+    formatted = formatted.replace(/(<[^>]+>)/g, (match) => {
+      const index = protectedSections.length;
+      protectedSections.push(match);
+      return `__PROTECTED_${index}__`;
+    });
+
+    // Now escape any remaining HTML
+    formatted = escapeHtml(formatted);
+
+    // Restore protected sections
+    protectedSections.forEach((section, index) => {
+      formatted = formatted.replace(`__PROTECTED_${index}__`, section);
     });
 
     return formatted;
@@ -1234,22 +1270,21 @@ export function initializeApp() {
 
       // If stage is complete and farewell hasn't been sent, ask AI to send farewell
       if (stageCompleted && !farewellSent) {
-        objectivesContext += `\n\n🚨🚨🚨 STOP - QUEST ENDING NOW - DO NOT CONTINUE 🚨🚨🚨
-ALL COMPLETION CRITERIA MET. This conversation MUST END with this response.
+        objectivesContext += `\n\n🎉 QUEST COMPLETE - TIME TO CELEBRATE AND WRAP UP! 🎉
+ALL OBJECTIVES ACHIEVED! The user has successfully completed this quest.
 
-YOUR FINAL MESSAGE MUST:
-1. Acknowledge their success (1 sentence)
-2. Say goodbye with Spanish vocabulary (1 sentence)
-3. END with "¡Bienvenido a ConvoQuest!" (Welcome to ConvoQuest!)
+YOUR NEXT RESPONSE SHOULD:
+1. Warmly congratulate them on completing the mission (1 sentence with Spanish)
+2. Include "¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
+3. Ask how they feel about completing their primera misión (first mission)
+4. END with a friendly question to invite their response
 
-Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión (mission) perfectly. ¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
+✅ PERFECT Example:
+"¡Increíble trabajo! (Amazing work!) You successfully completed your primera misión (first mission)! ¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!) How do you feel about helping abuela? ¿Feliz? (Happy?)"
 
-🚫 ABSOLUTELY FORBIDDEN - DO NOT:
-- Ask ANY follow-up questions
-- Suggest new activities (markets, colors, shopping, etc.)
-- Continue the conversation in ANY way
-- Introduce new topics
-- This is your FINAL message. Period. Full stop. Do not continue.`;
+After they respond to your question (especially if they say goodbye/thanks/adiós), you can bid them farewell warmly.
+
+REMEMBER: Always end responses with a question mark (?) to keep conversation flowing naturally.`;
       }
 
       const response = await AIManager.callAPI(
@@ -1269,8 +1304,11 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
       addMessage('npc', response);
 
       // If this was the farewell message, mark it as sent and show completion
+      console.log(`[Farewell Check] After AI response: stageCompleted=${stageCompleted}, farewellSent=${farewellSent}, messages=${stageMessageCount}, objectives=${completedObjectives.size}`);
+
       if (stageCompleted && !farewellSent) {
-        console.log('🎊 [Farewell] Stage completed, sending farewell and scheduling notification');
+        console.log('🎊 [Farewell] QUEST COMPLETE - Disabling chat and scheduling completion notification');
+        console.log(`[Farewell] Criteria met - Messages: ${stageMessageCount}, Objectives: ${completedObjectives.size}/${stage.objectives?.length || 0}`);
         farewellSent = true;
 
         // Disable chat input to prevent further messages
@@ -1285,7 +1323,11 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
           showStageCompletionNotification();
         }, 4500);
       } else {
-        console.log(`[Farewell Check] stageCompleted=${stageCompleted}, farewellSent=${farewellSent}`);
+        console.log(`[Farewell Check] NOT showing completion - stageCompleted=${stageCompleted}, farewellSent=${farewellSent}`);
+        if (!stageCompleted) {
+          const criteria = stage.completionCriteria || {};
+          console.log(`[Farewell Check] Still need - Messages: ${stageMessageCount}/${criteria.minMessages || 0}, Objectives: ${completedObjectives.size}/${criteria.objectivesRequired || 0}`);
+        }
       }
 
       // Update UI after response
@@ -1304,8 +1346,11 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
       hideTypingIndicator();
       addMessage('npc', 'Sorry, I couldn\'t understand that. Could you try again?');
     } finally {
-      dom.sendBtn.disabled = false;
-      dom.sendBtn.textContent = 'Send';
+      // Only re-enable if quest isn't complete
+      if (!farewellSent) {
+        dom.sendBtn.disabled = false;
+        dom.sendBtn.textContent = 'Send';
+      }
     }
   }
 
@@ -1476,8 +1521,9 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
         <div class="text-sm mb-3">You've completed all objectives for this quest.</div>
         ${stage.reward?.clue ? `<div class="text-sm mt-2 italic bg-white/50 p-3 rounded-lg">"${stage.reward.clue}"</div>` : ''}
         ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP earned! ⭐</div>` : ''}
-        <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
-          Continue to Quest Selection
+        <div class="text-sm mt-4 text-gray-600 italic">Returning to quest selection in <span id="countdown-timer">5</span> seconds...</div>
+        <button id="continue-after-stage-btn" class="w-full mt-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
+          Continue Now
         </button>
       </div>
     `;
@@ -1487,20 +1533,41 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
     dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
     console.log('✅ [showStageCompletionNotification] Notification appended and scrolled to');
 
-    // Add event listener to the continue button
+    // Function to return to quest view
+    const returnToQuests = () => {
+      console.log('[ConvoQuest] Returning to quest view');
+      // Return to quest view
+      dom.chatView.style.display = 'none';
+      dom.questView.style.display = 'flex';
+
+      // Re-render the quest list to show updated completion status
+      renderQuests();
+
+      // Show success message
+      console.log('[ConvoQuest] Quest completed. Returned to quest selection.');
+    };
+
+    // Countdown timer for auto-return
+    let countdown = 5;
+    const countdownElement = document.getElementById('countdown-timer');
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdownElement) {
+        countdownElement.textContent = countdown;
+      }
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        returnToQuests();
+      }
+    }, 1000);
+
+    // Add event listener to the continue button for immediate return
     const continueBtn = document.getElementById('continue-after-stage-btn');
     if (continueBtn) {
       continueBtn.addEventListener('click', () => {
-        console.log('[ConvoQuest] User clicked continue button - returning to quest view');
-        // Return to quest view
-        dom.chatView.style.display = 'none';
-        dom.questView.style.display = 'flex';
-
-        // Re-render the quest list to show updated completion status
-        renderQuests();
-
-        // Show success message
-        console.log('[ConvoQuest] Quest completed. Returned to quest selection.');
+        console.log('[ConvoQuest] User clicked continue button - returning immediately');
+        clearInterval(countdownInterval);
+        returnToQuests();
       });
     }
   }
@@ -1508,6 +1575,10 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
   // Mark the onboarding quest as complete in Firestore
   async function completeOnboardingQuest() {
     if (!currentUser) return;
+    if (isDevMode) {
+      console.log('[DEV MODE] Skipping Firebase save for onboarding quest completion');
+      return;
+    }
     try {
       await setDoc(doc(db, 'users', currentUser.uid), {
         onboardingQuestCompleted: true
@@ -1527,18 +1598,22 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
       userSettings.completedQuests.push(questId);
     }
 
+    // Re-render quests to reflect the change
+    renderQuests();
+    if (typeof window.updateUserProgress === 'function') {
+      window.updateUserProgress({ completedQuests: userSettings.completedQuests });
+    }
+
+    if (isDevMode) {
+      console.log(`[DEV MODE] Skipping Firebase save for quest completion: ${questId}`);
+      return;
+    }
+
     try {
       await setDoc(doc(db, 'users', currentUser.uid), {
         completedQuests: userSettings.completedQuests
       }, { merge: true });
       console.log(`[ConvoQuest] Quest '${questId}' marked as complete.`);
-      
-      // Re-render quests to reflect the change
-      renderQuests();
-      if (typeof window.updateUserProgress === 'function') {
-        window.updateUserProgress({ completedQuests: userSettings.completedQuests });
-      }
-
     } catch (error) {
       console.error(`Error updating completed quests for ${questId}:`, error);
     }
@@ -1764,8 +1839,7 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
   debugLog(`Checking host for dev mode... hostname: ${window.location.hostname}`);
   // DEV MODE: Bypass Firebase Auth for local development ONLY
   // Only works on localhost - production/Vercel will require real authentication
-  const isDevMode = window.location.hostname === 'localhost' ||
-                    window.location.hostname === '127.0.0.1';
+  // Note: isDevMode is already defined at the top of initializeApp() function
 
   if (isDevMode) {
     debugLog('[DEV MODE] Bypassing Firebase Auth. Using mock user.');

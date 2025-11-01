@@ -263,6 +263,100 @@ async function handleTranslateRequest(req, res) {
   });
 }
 
+// Handle Claude API requests
+async function handleClaudeRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { systemInstruction, contents } = JSON.parse(body);
+
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+      if (!anthropicApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'Anthropic API key not configured. Please set ANTHROPIC_API_KEY in .env'
+        }));
+        return;
+      }
+
+      // Convert Gemini-style contents to Claude messages format
+      const messages = contents.map(msg => ({
+        role: msg.role === 'model' ? 'assistant' : msg.role,
+        content: msg.parts[0].text
+      }));
+
+      // Use Claude Sonnet 4.5 (latest model)
+      const modelToUse = 'claude-sonnet-4-5-20250929';
+      console.log('[Claude API] Sending request with', messages.length, 'messages');
+
+      // Call Claude API
+      const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicApiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: modelToUse,
+          max_tokens: 1024,
+          system: systemInstruction,
+          messages: messages
+        })
+      });
+
+      const data = await claudeResponse.json();
+
+      if (!claudeResponse.ok) {
+        console.error('[Claude API] Error:', data);
+        res.writeHead(claudeResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: data.error?.message || 'Claude API request failed'
+        }));
+        return;
+      }
+
+      // Convert Claude response to Gemini-style format for compatibility
+      const formattedResponse = {
+        candidates: [{
+          content: {
+            parts: [{
+              text: data.content[0].text
+            }],
+            role: 'model'
+          }
+        }]
+      };
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify(formattedResponse));
+
+    } catch (error) {
+      console.error('[Claude API] Error handling request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to communicate with Claude API'
+      }));
+    }
+  });
+}
+
 // Handle API requests
 async function handleApiRequest(req, res) {
   // Handle translation API
@@ -273,6 +367,11 @@ async function handleApiRequest(req, res) {
   // Handle TTS API
   if (req.url === '/api/tts' && req.method === 'POST') {
     return handleTTSRequest(req, res);
+  }
+
+  // Handle Claude API
+  if (req.url === '/api/claude' && req.method === 'POST') {
+    return handleClaudeRequest(req, res);
   }
 
   // Handle Gemini API
@@ -438,10 +537,12 @@ server.listen(PORT, () => {
   console.log(`\n  ✨ Development server running at:`);
   console.log(`  \x1b[36m➜  Local:   http://localhost:${PORT}/\x1b[0m\n`);
   console.log(`  📦 Serving static files from: ${PUBLIC_DIR}`);
-  console.log(`  🤖 API endpoint available at: http://localhost:${PORT}/api/gemini`);
-  console.log(`  🌐 Translation endpoint available at: http://localhost:${PORT}/api/translate`);
-  console.log(`  🔊 Text-to-Speech endpoint available at: http://localhost:${PORT}/api/tts`);
+  console.log(`  🤖 Gemini API endpoint: http://localhost:${PORT}/api/gemini`);
+  console.log(`  🤖 Claude API endpoint: http://localhost:${PORT}/api/claude`);
+  console.log(`  🌐 Translation endpoint: http://localhost:${PORT}/api/translate`);
+  console.log(`  🔊 Text-to-Speech endpoint: http://localhost:${PORT}/api/tts`);
   console.log(`  🔑 Gemini API Key: ${process.env.GEMINI_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+  console.log(`  🔑 Claude API Key: ${process.env.ANTHROPIC_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 Google Translate API Key: ${process.env.GOOGLE_TRANSLATE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase API Key: ${process.env.VITE_FIREBASE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase Project: ${process.env.VITE_FIREBASE_PROJECT_ID || 'Not set'}\n`);
