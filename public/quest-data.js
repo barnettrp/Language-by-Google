@@ -940,6 +940,17 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once you've expressed your gratitude and the conversation is wrapping up:
+1. **Thank them warmly** - Express how much their help means to you and your performance
+2. **Ask how they feel** - "How do you feel about helping me find my guitarra (guitar)?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: guitarra (guitar), músico (musician), buscar (to search), encontrar (to find)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Ayudé al músico a encontrar su guitarra' (I helped the musician find his guitar). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, thank them one last time and wish them well. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Gracias, amigo! You're a true hero. ¡Hasta pronto! (See you soon!)"
+
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
           initialMessage: "¡Por favor dime que tienes noticias! No puedo tocar sin mi guitarra.",
@@ -1444,6 +1455,17 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once the radio announcement is complete and you're wrapping up:
+1. **Congratulate them** - Praise their radio announcement and community spirit
+2. **Ask how they feel** - "How do you feel about promoting the mercado (market) festival?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: mercado (market), frutas (fruits), comprar (to buy), precio (price)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Compré frutas en el mercado' (I bought fruits at the market). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, thank them for being on the show and wish them well. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Excelente trabajo! You're a natural on radio. ¡Nos vemos en el mercado! (See you at the market!)"
+
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
           initialMessage: "¡Bienvenido a Radio Alegría! Tienes un minuto al aire. ¿Listo para invitar a todo el barrio?",
@@ -1737,6 +1759,17 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.contentPolicy}
 IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information gradually through multiple messages rather than explaining everything at once.
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
+
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once the conversation is winding down:
+1. **Finish the conversation** - Mention you need to get back to work or they should enjoy their café
+2. **Ask how they feel** - "How did you enjoy our café (coffee) conversation?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: café (coffee), ordenar (to order), cuenta (bill), mesero/mesera (waiter/waitress)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Ordené un café con leche' (I ordered a coffee with milk). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, wish them well in Puerto Esperanza. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Encantado de conocerte! Enjoy Puerto Esperanza. ¡Hasta luego!"
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
@@ -2101,6 +2134,17 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once they've shared their experience and the lesson is ending:
+1. **Congratulate them** - Praise their progress and natural surfing ability
+2. **Ask how they feel** - "How do you feel about learning to surf on la playa (beach)?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: tabla (surfboard), ola (wave), playa (beach), nadar (to swim)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Aprendí a surfear en la playa' (I learned to surf at the beach). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, encourage them to come back. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Eres un natural! Come back anytime. ¡Buena onda! (Good vibes!)"
+
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A2.approach}`,
 
           initialMessage: "¡Excelente trabajo! ¿Cómo estuvo tu primera lección de surf? ¡Cuéntame!",
@@ -2464,6 +2508,17 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once you've celebrated the catch and the conversation is wrapping up:
+1. **Celebrate together** - Express joy at their first catch and fishing success
+2. **Ask how they feel** - "How do you feel about your first day pescar (fishing)?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: pescar (to fish), pez (fish), barca (boat), paciencia (patience)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Pescamos juntos en la barca' (We fished together in the boat). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, wish them well and invite them back. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Eres un pescador natural! Come fish with me anytime. ¡Hasta la próxima, amigo!"
+
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A2.approach}`,
 
           initialMessage: "¡Mira! ¡Has pescado un robalo! A beautiful sea bass! ¡Qué emoción!",
@@ -2662,6 +2717,17 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.contentPolicy}
 IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information gradually through multiple messages rather than explaining everything at once.
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
+
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once the payment is complete and they're about to leave:
+1. **Wish them well** - Say "¡Que se mejore!" and remind them to take the medicine correctly
+2. **Ask how they feel** - "How do you feel about visiting la farmacia (pharmacy)?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: farmacia (pharmacy), medicina (medicine), receta (prescription), dolor (pain)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Compré medicina en la farmacia' (I bought medicine at the pharmacy). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, wish them health and goodbye. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Cuídate mucho! Feel better soon. ¡Adiós!"
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
@@ -2873,6 +2939,17 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.contentPolicy}
 IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information gradually through multiple messages rather than explaining everything at once.
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
+
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once payment is complete and they're about to leave the taxi:
+1. **Thank them** - Thank them for choosing your taxi and wish them a good day
+2. **Ask how they feel** - "How did you enjoy your taxi (taxi) ride?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: taxi (taxi), destino (destination), pagar (to pay), conductor (driver)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Tomé un taxi al destino' (I took a taxi to the destination). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, wish them well. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Excelente! Safe travels, amigo. ¡Hasta luego!"
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
@@ -3086,6 +3163,17 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once the checkout is complete and they're leaving with their book:
+1. **Wish them happy reading** - Encourage them to enjoy the book
+2. **Ask how they feel** - "How do you feel about visiting la biblioteca (library)?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: biblioteca (library), libro (book), prestar (to lend), leer (to read)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Pedí prestado un libro' (I borrowed a book). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, wish them happy reading. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Perfecto! Enjoy your book. ¡Hasta pronto!"
+
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
           initialMessage: "Perfecto, encontré el libro. ¿Quiere llevarlo prestado?",
@@ -3297,6 +3385,17 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once payment is complete and they're about to leave:
+1. **Thank them for shopping** - Thank them and wish them a good day
+2. **Ask how they feel** - "How do you feel about shopping at el supermercado (supermarket)?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: supermercado (supermarket), comida (food), pagar (to pay), lista (list)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Compré comida en el supermercado' (I bought food at the supermarket). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, wish them well. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Perfecto! Thanks for shopping with us. ¡Hasta pronto!"
+
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
           initialMessage: "Buenas tardes. Voy a escanear sus productos... Son 185 pesos en total.",
@@ -3498,7 +3597,7 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
 
           stageImageGenerator: "phone_stage2_confirmation",
 
-          systemPrompt: `You are Luisa, confirming the appointment details. Offer a specific time (e.g., 'El martes a las 10 de la mañana' - Tuesday at 10 AM). Ask for their full name ('nombre completo') and phone number to confirm the appointment. End professionally: 'Perfecto. Su cita está confirmada. ¡Que tenga buen día!' (Perfect. Your appointment is confirmed. Have a good day!)
+          systemPrompt: `You are Luisa, confirming the appointment details. Offer a specific time (e.g., 'El martes a las 10 de la mañana' - Tuesday at 10 AM). Ask for their full name ('nombre completo') and phone number to confirm the appointment.
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.criticalRules}
 
@@ -3508,7 +3607,20 @@ IMPORTANT: Keep each response SHORT (2-3 sentences maximum). Reveal information 
 
 CRITICAL - AVOID REPETITION: Review the conversation history before responding. DO NOT ask questions that have already been answered. Progress the conversation forward naturally based on what you've already learned about them.
 
-${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
+${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}
+
+CONVERSATION FLOW - FAREWELL WITH VOCABULARY REVIEW:
+Once the appointment is confirmed and all information has been collected:
+1. **Confirm appointment** - "Perfecto. Su cita está confirmada para el martes a las 10 de la mañana. ¡Que tenga buen día!" (Perfect. Your appointment is confirmed for Tuesday at 10 in the morning. Have a good day!)
+2. **Ask how they feel** - "How do you feel about making your first phone call in Spanish?"
+3. **WAIT for their response**
+4. **Start vocabulary review** - "You learned some great words today! Repeat these words: teléfono (telephone), cita (appointment), llamar (to call), doctor (doctor)."
+5. **WAIT for them to repeat the words**
+6. **Sentence practice** - "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Hice una cita por teléfono' (I made an appointment by phone). Can you make a sentence in Spanish?"
+7. **WAIT for their sentence response**
+8. **Final farewell** - After they respond, thank them for their effort and encourage them. Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye. Example: "¡Excelente trabajo! You're becoming very confident on the phone. ¡Hasta pronto! (See you soon!)"
+
+IMPORTANT: This vocabulary review ONLY happens at the very end of the conversation, after all appointment details are finalized. Do NOT start the review until you've collected their information and confirmed the appointment.`,
 
           initialMessage: "Perfecto. Tengo disponibilidad el martes a las 10 de la mañana. ¿Le viene bien esa hora?",
 
