@@ -1973,6 +1973,61 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     setTimeout(() => ripple.remove(), 600);
   });
 
+  // Mobile Bottom Navigation
+  function updateMobileNavActive(activeView) {
+    const navButtons = document.querySelectorAll('.mobile-nav-button');
+    navButtons.forEach(btn => {
+      if (btn.dataset.view === activeView) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  // Handle mobile nav button clicks
+  const mobileNavButtons = document.querySelectorAll('.mobile-nav-button');
+  mobileNavButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetView = button.dataset.view;
+
+      // Update active state
+      updateMobileNavActive(targetView);
+
+      // Handle navigation based on view
+      if (targetView === 'quests') {
+        // Show quest list
+        if (dom.chatView) dom.chatView.style.display = 'none';
+        if (dom.questView) dom.questView.style.display = 'flex';
+        showView('main-app-view');
+      } else if (targetView === 'quiz') {
+        // Show placement test
+        showView('placement-view');
+      } else if (targetView === 'profile') {
+        // Show settings modal as a "profile" view
+        if (dom.settingsModal) {
+          dom.settingsModal.classList.remove('hidden');
+        }
+      }
+    });
+  });
+
+  // Update mobile nav when returning to quests from chat
+  if (dom.backToQuestsBtn) {
+    const originalClickHandler = dom.backToQuestsBtn.onclick;
+    dom.backToQuestsBtn.addEventListener('click', () => {
+      updateMobileNavActive('quests');
+    });
+  }
+
+  // Update mobile nav when ending session
+  const endSessionBtn = document.getElementById('end-session-btn');
+  if (endSessionBtn) {
+    endSessionBtn.addEventListener('click', () => {
+      updateMobileNavActive('quests');
+    });
+  }
+
   debugLog('✅ Application initialized successfully');
   console.log('[ConvoQuest] Application initialized successfully');
 }

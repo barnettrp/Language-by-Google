@@ -318,6 +318,106 @@
       width: 100px;
     }
 
+    /* Mobile Bottom Navigation */
+    #mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--container-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-color);
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      display: none; /* Hidden by default, shown only on mobile */
+      padding-bottom: env(safe-area-inset-bottom); /* Handle iPhone notch */
+    }
+
+    /* Show bottom nav on mobile and tablet only */
+    @media (max-width: 1024px) {
+      #mobile-bottom-nav {
+        display: flex;
+      }
+
+      /* Add padding to main content to prevent overlap with bottom nav */
+      #app-container {
+        padding-bottom: 72px;
+      }
+    }
+
+    .mobile-nav-button {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      position: relative;
+      min-width: 64px; /* Minimum touch target size */
+      min-height: 56px;
+    }
+
+    .mobile-nav-button:active {
+      transform: scale(0.92);
+    }
+
+    .mobile-nav-button.active {
+      color: #667eea;
+    }
+
+    .mobile-nav-button.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 0 0 3px 3px;
+      animation: slide-down 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slide-down {
+      from {
+        transform: translateX(-50%) translateY(-3px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .mobile-nav-icon {
+      font-size: 24px;
+      line-height: 1;
+      transition: transform 0.3s ease;
+    }
+
+    .mobile-nav-button.active .mobile-nav-icon {
+      transform: scale(1.1);
+    }
+
+    .mobile-nav-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+
+    body.dark-mode .mobile-nav-button.active {
+      color: #a8b5ff;
+    }
+
     /* Modern Chat Bubbles */
     .message {
       animation: pop-in 0.3s ease-out;
@@ -1046,6 +1146,22 @@
 
   <!-- Quest Map UI -->
   <script src="/quest-map.js"></script>
+
+  <!-- Mobile Bottom Navigation (visible on mobile/tablet only) -->
+  <nav id="mobile-bottom-nav">
+    <button class="mobile-nav-button active" data-view="quests" aria-label="Quests">
+      <span class="mobile-nav-icon">🗺️</span>
+      <span class="mobile-nav-label">Quests</span>
+    </button>
+    <button class="mobile-nav-button" data-view="quiz" aria-label="Quiz">
+      <span class="mobile-nav-icon">📝</span>
+      <span class="mobile-nav-label">Quiz</span>
+    </button>
+    <button class="mobile-nav-button" data-view="profile" aria-label="Profile">
+      <span class="mobile-nav-icon">👤</span>
+      <span class="mobile-nav-label">Profile</span>
+    </button>
+  </nav>
 
   <!-- Firebase configuration for dev server -->
   <script>
