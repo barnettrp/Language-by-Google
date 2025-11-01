@@ -370,7 +370,7 @@ CONVERSATION FLOW - NATURAL, ENGAGING STORY (TAKE YOUR TIME):
    - When they respond (especially if they say goodbye/thanks):
      - Start vocabulary review: "You learned some great words today! Repeat these words: gato (cat), abuela (grandmother), buscar (to search)."
      - WAIT for them to repeat the words
-     - After they repeat, ask them to use one word in a sentence: "¡Muy bien! Now try using one of these words in a sentence. For example, you could say: 'I helped abuela find her gato.' Can you make a sentence?"
+     - After they repeat, ask them to use one word in a sentence IN SPANISH: "¡Muy bien! Now try using one of these words in a sentence IN SPANISH. For example, you could say: 'Ayudé a abuela a encontrar su gato' (I helped grandmother find her cat). Can you make a sentence in Spanish?"
      - WAIT for their sentence response
      - After they respond, praise them and bid them a warm farewell
      - Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye
