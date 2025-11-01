@@ -43,8 +43,8 @@ export default async function handler(request, response) {
       content: msg.parts[0].text
     }));
 
-    // Use Claude 3.5 Sonnet (newer October 2024 version)
-    const modelToUse = 'claude-3-5-sonnet-20241022';
+    // Use Claude Sonnet 4.5 (latest model as of 2025)
+    const modelToUse = 'claude-sonnet-4-5-20250929';
     console.log('[Claude API] Sending request with', messages.length, 'messages');
     console.log('[Claude API] Model:', modelToUse);
 
