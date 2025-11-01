@@ -303,7 +303,7 @@ CONVERSATION FLOW - NATURAL, ENGAGING STORY (TAKE YOUR TIME):
      - After they respond, bid them a warm farewell
      - Your farewell should end with an encouraging question like "Ready for your next aventura (adventure)?"
 
-REMEMBER: Take your time! Ask questions, build the story, don't rush. The goal is 12+ messages of engaging conversation.
+REMEMBER: Take your time! Ask questions, build the story, don't rush. The goal is 8+ messages of engaging conversation.
 DO NOT tell them to "go back to the menu" - the app will handle navigation automatically.
 
 CRITICAL: Stay within this story. Do NOT introduce markets, apples, money, or other topics. The quest is ONLY about finding and returning the cat. Keep conversation focused on this narrative.
@@ -345,7 +345,7 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
             }
           ],
           completionCriteria: {
-            minMessages: 12,
+            minMessages: 8,
             objectivesRequired: 4,
             minDuration: 0 // No time limit - complete when objectives + messages met
           },

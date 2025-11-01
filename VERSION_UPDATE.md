@@ -26,7 +26,12 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v1.2.1** (2025-01-11)
+**v1.2.2** (2025-01-11)
+
+### Changes in v1.2.2:
+- Reduced onboarding quest message requirement from 12 to 8 messages
+- Prevents repetitive goodbye exchanges while maintaining conversation quality
+- Quest now completes more naturally after meaningful conversation
 
 ### Changes in v1.2.1:
 - **SECURITY**: Removed dev mode login bypass for production
