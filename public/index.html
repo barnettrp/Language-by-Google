@@ -179,6 +179,15 @@
       color: #000000 !important;
     }
 
+    /* Force quest card text to be pure black in dark mode */
+    body.dark-mode #character-name-mini,
+    body.dark-mode #quest-objective-mini,
+    body.dark-mode #quest-title,
+    body.dark-mode #character-name-display,
+    body.dark-mode #quest-objective-display {
+      color: #000000 !important;
+    }
+
     /* Auth dark mode toggle button */
     body.dark-mode #auth-dark-mode-toggle {
       background: rgba(255, 255, 255, 0.1) !important;
@@ -535,7 +544,7 @@
             </div>
           </div>
           <div class="flex items-center gap-1">
-            <span class="text-xs text-gray-400 mr-2 font-mono">v1.0.5</span>
+            <span class="text-xs text-gray-400 mr-2 font-mono">v1.0.6</span>
             <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
               <span class="dark-mode-icon">🌙</span>
             </button>
