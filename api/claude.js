@@ -18,6 +18,9 @@ export default async function handler(request, response) {
   }
 
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+  console.log('[Claude API] API key present:', !!anthropicApiKey);
+  console.log('[Claude API] API key starts with:', anthropicApiKey?.substring(0, 10));
+
   if (!anthropicApiKey) {
     console.error('ANTHROPIC_API_KEY environment variable is not set');
     return response.status(500).json({
@@ -40,6 +43,9 @@ export default async function handler(request, response) {
       content: msg.parts[0].text
     }));
 
+    console.log('[Claude API] Sending request with', messages.length, 'messages');
+    console.log('[Claude API] Model:', 'claude-3-5-sonnet-20241022');
+
     // Call Claude API
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -49,7 +55,7 @@ export default async function handler(request, response) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-opus-20240229',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         system: systemInstruction,
         messages: messages
