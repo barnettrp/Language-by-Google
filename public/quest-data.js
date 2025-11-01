@@ -353,7 +353,6 @@ CONVERSATION FLOW - NATURAL, ENGAGING STORY (TAKE YOUR TIME):
      - Your farewell should end with an encouraging statement (NOT a question) since this is the final goodbye
 
 REMEMBER: Take your time! Ask questions, build the story, don't rush. The goal is 8+ messages of engaging conversation.
-DO NOT tell them to "go back to the menu" - the app will handle navigation automatically.
 
 CRITICAL: Stay within this story. Do NOT introduce markets, apples, money, or other topics. The quest is ONLY about finding and returning the cat. Keep conversation focused on this narrative.
 
