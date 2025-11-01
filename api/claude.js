@@ -44,7 +44,7 @@ export default async function handler(request, response) {
     }));
 
     console.log('[Claude API] Sending request with', messages.length, 'messages');
-    console.log('[Claude API] Model:', 'claude-3-5-sonnet-20241022');
+    console.log('[Claude API] Model:', 'claude-3-5-sonnet-20240620');
 
     // Call Claude API
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -55,7 +55,7 @@ export default async function handler(request, response) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-5-sonnet-20240620',
         max_tokens: 1024,
         system: systemInstruction,
         messages: messages
