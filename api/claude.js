@@ -49,7 +49,7 @@ export default async function handler(request, response) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-3-opus-20240229',
         max_tokens: 1024,
         system: systemInstruction,
         messages: messages
@@ -59,9 +59,10 @@ export default async function handler(request, response) {
     const data = await claudeResponse.json();
 
     if (!claudeResponse.ok) {
-      console.error('Claude API Error:', data);
+      console.error('Claude API Error:', JSON.stringify(data, null, 2));
+      console.error('Status:', claudeResponse.status);
       return response.status(claudeResponse.status).json({
-        error: data.error?.message || 'Claude API request failed'
+        error: data.error?.message || data.error?.type || JSON.stringify(data) || 'Claude API request failed'
       });
     }
 
