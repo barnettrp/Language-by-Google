@@ -1047,6 +1047,55 @@ export function initializeApp() {
     }
   }
 
+  // Format corrections with strikethrough
+  function formatCorrections(text) {
+    // Escape HTML to prevent XSS
+    const escapeHtml = (str) => {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+
+    // Escape the entire text first
+    let formatted = escapeHtml(text);
+
+    // Pattern 1: "not X, Y" or "not X but Y" -> strikethrough X, show Y
+    formatted = formatted.replace(/\bnot\s+([^,]+),\s*([^.!?]+)/gi, (match, incorrect, correct) => {
+      return `not <span style="text-decoration: line-through; opacity: 0.6;">${incorrect.trim()}</span>, <strong>${correct.trim()}</strong>`;
+    });
+
+    formatted = formatted.replace(/\bnot\s+([^,]+)\s+but\s+([^.!?]+)/gi, (match, incorrect, correct) => {
+      return `not <span style="text-decoration: line-through; opacity: 0.6;">${incorrect.trim()}</span> but <strong>${correct.trim()}</strong>`;
+    });
+
+    // Pattern 2: "*word" (asterisk correction pattern)
+    formatted = formatted.replace(/\*(\w+)/g, (match, word) => {
+      return `<strong style="color: #10b981;">*${word}</strong>`;
+    });
+
+    // Pattern 3: "You meant X" or "Did you mean X"
+    formatted = formatted.replace(/(you meant|did you mean)\s+([^.!?,]+)/gi, (match, phrase, correction) => {
+      return `${phrase} <strong style="color: #10b981;">${correction.trim()}</strong>`;
+    });
+
+    // Pattern 4: "Actually, it's X"
+    formatted = formatted.replace(/actually,?\s+it'?s\s+([^.!?,]+)/gi, (match, correction) => {
+      return `actually, it's <strong style="color: #10b981;">${correction.trim()}</strong>`;
+    });
+
+    // Pattern 5: "It's X, not Y" or "It's 'X', not 'Y'"
+    formatted = formatted.replace(/it'?s\s+['"]?([^'",.!?]+)['"]?,?\s+not\s+['"]?([^'",.!?]+)['"]?/gi, (_match, correct, incorrect) => {
+      return `it's <strong style="color: #10b981;">${correct.trim()}</strong>, not <span style="text-decoration: line-through; opacity: 0.6;">${incorrect.trim()}</span>`;
+    });
+
+    // Pattern 6: "(correct: X)" or "(correction: X)"
+    formatted = formatted.replace(/\((correct|correction):\s*([^)]+)\)/gi, (_match, _label, correction) => {
+      return `<strong style="color: #10b981; background: #d1fae5; padding: 2px 6px; border-radius: 4px;">${correction.trim()}</strong>`;
+    });
+
+    return formatted;
+  }
+
   // Add message to chat
   function addMessage(sender, text) {
     if (!dom.chatContainer) {
@@ -1095,7 +1144,13 @@ export function initializeApp() {
     }
 
     messageEl.className = `message ${senderClass}`;
-    messageEl.textContent = text;
+
+    // Apply correction formatting for NPC messages
+    if (sender === 'npc') {
+      messageEl.innerHTML = formatCorrections(text);
+    } else {
+      messageEl.textContent = text;
+    }
 
     messageWrapper.appendChild(messageEl);
 
@@ -1151,6 +1206,10 @@ export function initializeApp() {
 
     // Check objectives against user message
     checkObjectives(message);
+
+    // Check if stage is complete right after objectives check
+    checkStageCompletion();
+    console.log(`[Completion Check] After user message: stageCompleted=${stageCompleted}, messages=${stageMessageCount}, objectives=${completedObjectives.size}`);
 
     // Show typing indicator while waiting for AI response
     showTypingIndicator();
@@ -1210,6 +1269,7 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
 
       // If this was the farewell message, mark it as sent and show completion
       if (stageCompleted && !farewellSent) {
+        console.log('🎊 [Farewell] Stage completed, sending farewell and scheduling notification');
         farewellSent = true;
 
         // Disable chat input to prevent further messages
@@ -1218,9 +1278,13 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
         dom.sendBtn.disabled = true;
 
         // Show completion notification after a delay to let user read farewell
+        console.log('[Farewell] Scheduling completion notification in 4.5 seconds');
         setTimeout(() => {
+          console.log('[Farewell] Timeout fired, calling showStageCompletionNotification()');
           showStageCompletionNotification();
         }, 4500);
+      } else {
+        console.log(`[Farewell Check] stageCompleted=${stageCompleted}, farewellSent=${farewellSent}`);
       }
 
       // Update UI after response
@@ -1291,7 +1355,10 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
 
-    if (!stage.completionCriteria) return;
+    if (!stage.completionCriteria) {
+      console.log('[Completion Check] No completion criteria defined for this stage');
+      return;
+    }
 
     const criteria = stage.completionCriteria;
     const minMessagesMet = stageMessageCount >= (criteria.minMessages || 0);
@@ -1300,6 +1367,13 @@ Example: "¡Excelente trabajo, Rick! (Excellent work!) You completed the misión
     // Check time requirement (in seconds)
     const elapsedTimeSeconds = stageStartTime ? (Date.now() - stageStartTime) / 1000 : 0;
     const minDurationMet = elapsedTimeSeconds >= (criteria.minDuration || 0);
+
+    console.log('[Completion Check] Criteria check:', {
+      minMessagesMet: `${minMessagesMet} (${stageMessageCount}/${criteria.minMessages || 0})`,
+      objectivesMet: `${objectivesMet} (${completedObjectives.size}/${criteria.objectivesRequired || 0})`,
+      minDurationMet: `${minDurationMet} (${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration || 0}s)`,
+      stageCompleted
+    });
 
     if (minMessagesMet && objectivesMet && minDurationMet && !stageCompleted) {
       console.log('🎉 Stage completion criteria met!');
