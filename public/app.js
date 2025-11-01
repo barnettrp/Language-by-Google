@@ -22,27 +22,34 @@ import {
 console.log('🟢 Firebase firestore imports loaded');
 
 // Debug logging helper
-// Logs to browser console (always) and optional on-screen debug console
-// To enable on-screen console: uncomment the debug-console div in HTML above
+// Logs to both browser console and visible debug console
 function debugLog(msg) {
     // Log to browser console (F12 Developer Tools)
     console.log(msg);
 
-    // Log to on-screen debug console (if enabled)
-    const debugConsole = document.getElementById('debug-console');
-    if (debugConsole) {
+    // Log to visible debug console panel
+    const debugContent = document.getElementById('debug-console-content');
+    if (debugContent) {
         const timestamp = new Date().toLocaleTimeString();
-        debugConsole.innerHTML += `[${timestamp}] ${msg}<br>`;
-        debugConsole.scrollTop = debugConsole.scrollHeight;
-    }
+        const logEntry = document.createElement('div');
+        logEntry.className = 'text-green-400';
 
-    // TEMPORARY: Log to visible debug panel
-    const debugOutput = document.getElementById('debug-output');
-    if (debugOutput) {
-        const timestamp = new Date().toLocaleTimeString();
-        debugOutput.innerHTML += `[${timestamp}] ${msg}<br>`;
-        const panel = document.getElementById('debug-panel');
-        if (panel) panel.scrollTop = panel.scrollHeight;
+        // Color code special log types
+        if (msg.includes('🎯')) {
+            logEntry.className = 'text-yellow-300 font-bold';
+        } else if (msg.includes('🎊')) {
+            logEntry.className = 'text-pink-400 font-bold';
+        } else if (msg.includes('🎉')) {
+            logEntry.className = 'text-purple-400 font-bold';
+        } else if (msg.includes('❌')) {
+            logEntry.className = 'text-red-400';
+        } else if (msg.includes('✅')) {
+            logEntry.className = 'text-green-300';
+        }
+
+        logEntry.textContent = `[${timestamp}] ${msg}`;
+        debugContent.appendChild(logEntry);
+        debugContent.scrollTop = debugContent.scrollHeight;
     }
 }
 
@@ -1374,7 +1381,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
       if (hasMatch) {
         completedObjectives.add(objective.id);
-        console.log(`✅ Objective completed: ${objective.description}`);
+        debugLog(`🎯🎯🎯 OBJECTIVE COMPLETED 🎯🎯🎯`);
+        debugLog(`   ✅ ${objective.description}`);
+        debugLog(`   📊 Progress: ${completedObjectives.size}/${stage.objectives.length} objectives`);
+        debugLog(`   📝 Messages: ${stageMessageCount} sent`);
       }
     });
   }
@@ -1422,8 +1432,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     });
 
     if (minMessagesMet && objectivesMet && minDurationMet && !stageCompleted) {
-      console.log('🎉 Stage completion criteria met!');
-      console.log(`Messages: ${stageMessageCount}/${criteria.minMessages}, Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}, Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
+      debugLog('🎊🎊🎊🎊🎊 QUEST CRITERIA MET! 🎊🎊🎊🎊🎊');
+      debugLog(`   ✅ Messages: ${stageMessageCount}/${criteria.minMessages}`);
+      debugLog(`   ✅ Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}`);
+      debugLog(`   ✅ Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
+      debugLog(`   ⏳ Waiting for AI farewell message...`);
       stageCompleted = true;
       // Don't show notification yet - let the AI send a farewell message first
     }
@@ -1492,7 +1505,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   function showStageCompletionNotification() {
-    console.log('🎉 [showStageCompletionNotification] Called!');
+    debugLog('🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
+    debugLog('🎉 SHOWING COMPLETION BANNER NOW!');
+    debugLog('🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
 
     // Trigger celebration effects
     triggerCelebration();
@@ -1753,6 +1768,51 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     }
     debugLog('✅ Chat event listeners set');
 
+    // Debug console clear button
+    const clearDebugBtn = document.getElementById('clear-debug-btn');
+    if (clearDebugBtn) {
+      clearDebugBtn.addEventListener('click', () => {
+        const debugContent = document.getElementById('debug-console-content');
+        if (debugContent) {
+          debugContent.innerHTML = '';
+          debugLog('🗑️ Debug console cleared');
+        }
+      });
+    }
+
+    // Debug console minimize/maximize button
+    const minimizeDebugBtn = document.getElementById('minimize-debug-btn');
+    const debugConsolePanel = document.getElementById('debug-console-panel');
+    let debugMinimized = false;
+
+    if (minimizeDebugBtn && debugConsolePanel) {
+      minimizeDebugBtn.addEventListener('click', () => {
+        debugMinimized = !debugMinimized;
+
+        if (debugMinimized) {
+          // Minimize - show as thin vertical bar
+          debugConsolePanel.classList.remove('w-96');
+          debugConsolePanel.classList.add('w-12');
+          minimizeDebugBtn.textContent = '+';
+          minimizeDebugBtn.title = 'Maximize console';
+
+          // Hide content, only show header vertically
+          const debugContent = document.getElementById('debug-console-content');
+          if (debugContent) debugContent.style.display = 'none';
+        } else {
+          // Maximize - show full console
+          debugConsolePanel.classList.remove('w-12');
+          debugConsolePanel.classList.add('w-96');
+          minimizeDebugBtn.textContent = '−';
+          minimizeDebugBtn.title = 'Minimize console';
+
+          // Show content
+          const debugContent = document.getElementById('debug-console-content');
+          if (debugContent) debugContent.style.display = 'block';
+        }
+      });
+    }
+
     // Character introduction card
     if (dom.characterIntroContinueBtn) {
       dom.characterIntroContinueBtn.addEventListener('click', () => {
@@ -1836,63 +1896,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
   // Auth state listener
   debugLog('🔐 Setting up auth state listener...');
-  debugLog(`Checking host for dev mode... hostname: ${window.location.hostname}`);
-  // DEV MODE: Bypass Firebase Auth for local development ONLY
-  // Only works on localhost - production/Vercel will require real authentication
-  // Note: isDevMode is already defined at the top of initializeApp() function
 
-  if (isDevMode) {
-    debugLog('[DEV MODE] Bypassing Firebase Auth. Using mock user.');
-    currentUser = {
-      uid: 'dev-user',
-      displayName: 'Test User',
-      email: 'test@example.com'
-    };
-
-    // Simulate a new user who has completed placement but not onboarding
-    const mockUserData = {
-      placementCompleted: true,
-      onboardingQuestCompleted: false,
-      completedQuests: []
-    };
-
-    // Setup the UI for the mock user
-    if (dom.userDisplayName) {
-      dom.userDisplayName.textContent = currentUser.displayName;
-    }
-    if (dom.welcomeMessage) {
-      dom.welcomeMessage.textContent = `Welcome, ${currentUser.displayName}!`;
-    }
-
-    // Hide auth container and show main app
-    if (dom.authContainer) {
-      dom.authContainer.style.display = 'none';
-      debugLog('✅ Auth container hidden');
-    }
-
-    // Directly call the logic that runs after user data is loaded
-    if (typeof window.updateUserProgress === 'function') {
-      window.updateUserProgress({ completedQuests: mockUserData.completedQuests });
-    }
-
-    if (!mockUserData.placementCompleted) {
-      debugLog('[DEV MODE] Showing placement-view.');
-      showView('placement-view');
-    } else if (!mockUserData.onboardingQuestCompleted) {
-      debugLog('[DEV MODE] Starting quest-zero-onboarding.');
-      showView('main-app-view');
-      if (dom.questView) dom.questView.style.display = 'none';
-      if (dom.chatView) dom.chatView.style.display = 'flex';
-      startQuest('quest-zero-onboarding');
-    } else {
-      debugLog('[DEV MODE] Showing main-app-view.');
-      showView('main-app-view');
-    }
-
-  } else {
-    debugLog('[PRODUCTION MODE] Using real Firebase Auth.');
-    // PRODUCTION: Use real Firebase Auth
-    onAuthStateChanged(auth, async (user) => {
+  // Use real Firebase Auth
+  onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
         if (dom.userDisplayName) {
@@ -1958,10 +1964,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
         // Show login view
         showAuthView('login-view');
-        debugLog('[PRODUCTION MODE] Login view shown.');
+        debugLog('Login view shown.');
       }
     });
-  }
 
   // Initialize quest list
   debugLog('📋 Initializing quest list...');

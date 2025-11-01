@@ -430,7 +430,7 @@
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v1.2.0</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v1.2.1</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -549,7 +549,7 @@
             </div>
           </div>
           <div class="flex items-center gap-1">
-            <span class="text-xs text-gray-400 mr-2 font-mono" title="App Version - Refresh to check for updates">v1.2.0</span>
+            <span class="text-xs text-gray-400 mr-2 font-mono" title="App Version - Refresh to check for updates">v1.2.1</span>
             <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
               <span class="dark-mode-icon">🌙</span>
             </button>
@@ -629,7 +629,7 @@
             <p class="text-xs text-gray-500 mt-1">💡 Tip: Tap any word or select a phrase to translate it</p>
           </div>
           <div class="flex gap-2 items-center">
-            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v1.2.0</span>
+            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v1.2.1</span>
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
             <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
           </div>
@@ -702,7 +702,24 @@
           </div>
         </div>
 
-        <div id="chat-container" class="flex-1 p-4 space-y-2 overflow-y-auto" style="min-height: 0;"></div>
+        <!-- Chat and Debug Console Container -->
+        <div class="flex-1 flex gap-2 overflow-hidden" style="min-height: 0;">
+          <!-- Chat Container -->
+          <div id="chat-container" class="flex-1 p-4 space-y-2 overflow-y-auto"></div>
+
+          <!-- Debug Console -->
+          <div id="debug-console-panel" class="w-96 bg-gray-900 text-green-400 font-mono text-xs flex flex-col border-l border-gray-700 transition-all duration-300">
+            <div class="bg-gray-800 px-3 py-2 border-b border-gray-700 flex justify-between items-center">
+              <span class="font-bold text-green-300">🐛 Debug Console</span>
+              <div class="flex gap-2">
+                <button id="minimize-debug-btn" class="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700" title="Minimize console">−</button>
+                <button id="clear-debug-btn" class="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700" title="Clear console">Clear</button>
+              </div>
+            </div>
+            <div id="debug-console-content" class="flex-1 p-3 overflow-y-auto space-y-1"></div>
+          </div>
+        </div>
+
         <div class="p-2 border-t bg-white/50 flex-shrink-0">
           <div class="flex items-center space-x-2">
             <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>

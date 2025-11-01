@@ -26,7 +26,15 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v1.2.0** (2025-01-11)
+**v1.2.1** (2025-01-11)
+
+### Changes in v1.2.1:
+- **SECURITY**: Removed dev mode login bypass for production
+- Added visible debug console panel next to chat
+- Debug console with color-coded logging and minimize/maximize
+- Added vocabulary review to quest farewell sequence
+- Enhanced debug logging for quest completion tracking
+- All quest progress now visible in real-time debug panel
 
 ### Changes in v1.2.0:
 - Added comprehensive scaffolding instructions for AI
