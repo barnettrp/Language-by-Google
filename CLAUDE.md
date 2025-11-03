@@ -1,0 +1,1 @@
+- Always update the version number with each new build or patch.

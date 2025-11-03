@@ -48,7 +48,16 @@
       "Bash(npm --version)",
       "Bash(nvm current:*)",
       "Bash(nvm ls:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(PORT=5173 node:*)",
+      "Bash(PORT=5174 node:*)",
+      "Bash(PORT=5175 node:*)",
+      "Bash(PORT=5176 node:*)",
+      "Bash(PORT=5177 node:*)",
+      "WebSearch",
+      "Bash(node test-mood-detection.js:*)",
+      "Bash(sed:*)",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "ask": []

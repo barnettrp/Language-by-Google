@@ -193,6 +193,298 @@ async function handleTTSRequest(req, res) {
   });
 }
 
+// Handle OpenAI TTS requests
+async function handleOpenAITTSRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { text, characterName, characterGender, speedMultiplier = 1.0, preferredVoice = 'auto' } = JSON.parse(body);
+
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'OpenAI API key not configured',
+          provider: 'openai'
+        }));
+        return;
+      }
+
+      let selectedVoice;
+      let baseSpeed = 1.0;
+
+      // If user has selected a specific voice, use that
+      if (preferredVoice && preferredVoice !== 'auto') {
+        selectedVoice = preferredVoice;
+        baseSpeed = 1.0; // Use default speed for user-selected voices
+      } else {
+        // Auto-select voice based on character (original logic)
+        const OPENAI_VOICES = {
+          'male_young': { voice: 'echo', speed: 1.0 },
+          'male_mature': { voice: 'onyx', speed: 0.95 },
+          'male_elder': { voice: 'onyx', speed: 0.85 },
+          'male_energetic': { voice: 'fable', speed: 1.05 },
+          'female_young': { voice: 'nova', speed: 1.0 },
+          'female_mature': { voice: 'shimmer', speed: 0.95 },
+          'female_elder': { voice: 'shimmer', speed: 0.85 },
+          'female_energetic': { voice: 'alloy', speed: 1.05 },
+        };
+
+        // Select voice based on character
+        const name = characterName?.toLowerCase() || '';
+        let voiceConfig;
+
+        if (name.includes('don pedro') || name.includes('don ernesto') || name.includes('señor rivera')) {
+          voiceConfig = OPENAI_VOICES.male_elder;
+        } else if (name.includes('andrés')) {
+          voiceConfig = OPENAI_VOICES.male_energetic;
+        } else if (name.includes('javier') || (name.includes('carlos') && name.includes('musician'))) {
+          voiceConfig = OPENAI_VOICES.male_young;
+        } else if (name.includes('mateo') || name.includes('roberto') || name.includes('miguel')) {
+          voiceConfig = OPENAI_VOICES.male_mature;
+        } else if (name.includes('carolina') && name.includes('festival')) {
+          voiceConfig = OPENAI_VOICES.female_energetic;
+        } else if (name.includes('sofia') || name.includes('elena')) {
+          voiceConfig = OPENAI_VOICES.female_young;
+        } else if (name.includes('maría') || name.includes('lucía')) {
+          voiceConfig = OPENAI_VOICES.female_mature;
+        } else if (characterGender === 'male') {
+          voiceConfig = OPENAI_VOICES.male_mature;
+        } else if (characterGender === 'female') {
+          voiceConfig = OPENAI_VOICES.female_mature;
+        } else {
+          voiceConfig = OPENAI_VOICES.male_mature;
+        }
+
+        selectedVoice = voiceConfig.voice;
+        baseSpeed = voiceConfig.speed || 1.0;
+      }
+
+      const finalSpeed = baseSpeed * speedMultiplier;
+
+      console.log(`[OpenAI TTS] Generating speech for "${characterName}" using voice: ${selectedVoice} (speed: ${finalSpeed.toFixed(2)}, preferred: ${preferredVoice})`);
+
+      // Use OpenAI Text-to-Speech API
+      const url = 'https://api.openai.com/v1/audio/speech';
+
+      const ttsResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'tts-1-hd',
+          voice: selectedVoice,
+          input: text,
+          speed: Math.max(0.25, Math.min(4.0, finalSpeed)),
+          response_format: 'mp3'
+        }),
+      });
+
+      if (!ttsResponse.ok) {
+        const errorData = await ttsResponse.json().catch(() => ({}));
+        console.error('[OpenAI TTS] API Error:', errorData);
+        res.writeHead(ttsResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: errorData.error?.message || 'OpenAI TTS generation failed',
+          provider: 'openai'
+        }));
+        return;
+      }
+
+      // OpenAI returns raw MP3 audio data (not JSON)
+      const audioBuffer = await ttsResponse.arrayBuffer();
+      const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        audioContent: audioBase64,
+        voiceName: selectedVoice,
+        provider: 'openai'
+      }));
+
+    } catch (error) {
+      console.error('[OpenAI TTS] Error handling request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to generate speech',
+        provider: 'openai'
+      }));
+    }
+  });
+}
+
+// Handle Cartesia TTS requests
+async function handleCartesiaTTSRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { text, characterName, characterGender, speedMultiplier = 1.0, preferredVoice = 'auto', emotions = [] } = JSON.parse(body);
+
+      const cartesiaApiKey = process.env.CARTESIA_API_KEY;
+      if (!cartesiaApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'Cartesia API key not configured',
+          provider: 'cartesia'
+        }));
+        return;
+      }
+
+      let selectedVoice;
+      let baseSpeed = 1.0;
+
+      // Cartesia voice IDs - Real Spanish voices from Cartesia API
+      const CARTESIA_VOICES = {
+        // Male voices
+        'spanish_narrator': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Deep and resonant, perfect for narratives
+        'male_default': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Spanish Narrator Man
+
+        // Female voices
+        'marta': '5c29d7e3-a133-4c7e-804a-1d9c6dea83f6', // Smooth, casual South American
+        'teresa': '0afd8614-31cb-438c-8a46-80650e19c29c', // Casual, great for conversations
+        'peninsular_narrator': 'a956b555-5c82-404f-9580-243b5178978d', // Calm, Peninsular dialect
+        'female_default': '5c29d7e3-a133-4c7e-804a-1d9c6dea83f6', // Marta (casual and natural)
+      };
+
+      // If user has selected a specific voice, use that
+      if (preferredVoice && preferredVoice !== 'auto') {
+        selectedVoice = CARTESIA_VOICES[preferredVoice] || CARTESIA_VOICES.male_default;
+        baseSpeed = 0.85;  // Slightly slower for more natural speech
+      } else {
+        // Auto-select voice based on character gender
+        if (characterGender === 'female') {
+          selectedVoice = CARTESIA_VOICES.female_default;
+        } else {
+          selectedVoice = CARTESIA_VOICES.male_default;
+        }
+        baseSpeed = 0.85;  // Slightly slower for more natural speech
+      }
+
+      const finalSpeed = baseSpeed * speedMultiplier;
+
+      // Detect primary language by counting structural/grammatical words
+      // This helps with code-switching (Spanglish) by identifying the base language
+      // Count English grammatical words (articles, pronouns, auxiliary verbs, prepositions)
+      const englishIndicators = (text.match(/\b(the|a|an|is|are|was|were|am|be|been|have|has|had|do|does|did|can|could|will|would|should|shall|may|might|must|i|you|he|she|it|we|they|me|him|her|us|them|my|your|his|its|our|their|this|that|these|those|in|on|at|to|for|of|with|from|by|about|as|into|through|during|before|after|above|below|between|under|over)\b/gi) || []).length;
+
+      // Count Spanish grammatical words (articles, pronouns, auxiliary verbs, prepositions)
+      const spanishIndicators = (text.match(/\b(el|la|los|las|un|una|unos|unas|de|del|al|es|son|está|están|fue|fueron|era|eran|ser|estar|he|has|ha|hemos|han|hacer|hago|hace|hacen|yo|tú|él|ella|usted|nosotros|vosotros|ellos|ellas|ustedes|me|te|le|nos|os|les|mi|mis|tu|tus|su|sus|nuestro|vuestra|este|esta|estos|estas|ese|esa|esos|esas|en|con|por|para|sin|sobre|bajo|entre|desde|hasta|durante|contra)\b/gi) || []).length;
+
+      // Use English if there are more English grammatical indicators
+      // Spanish voice will use English pronunciation for text, with slight accent
+      // Spanish words in English text will be pronounced with English phonetics (understandable for learners)
+      const language = englishIndicators > spanishIndicators ? 'en' : 'es';
+
+      console.log(`[Cartesia TTS] Text analysis: ${englishIndicators} English indicators vs ${spanishIndicators} Spanish indicators → Language: ${language}`);
+      console.log(`[Cartesia TTS] Generating speech for "${characterName}" using voice: ${preferredVoice || 'auto'} (speed: ${finalSpeed.toFixed(2)}) with emotions: [${emotions.join(', ')}]`);
+
+      // Use Cartesia Sonic 3 API
+      const url = 'https://api.cartesia.ai/tts/bytes';
+
+      // Build voice object with emotion controls if provided
+      const voiceConfig = {
+        mode: 'id',
+        id: selectedVoice
+      };
+
+      // Add experimental emotion controls if emotions are provided
+      if (emotions && emotions.length > 0) {
+        voiceConfig.__experimental_controls = {
+          emotion: emotions
+        };
+      }
+
+      const ttsResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': cartesiaApiKey,
+          'Cartesia-Version': '2024-06-10',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model_id: 'sonic-3',
+          transcript: text,
+          voice: voiceConfig,
+          language: language,
+          output_format: {
+            container: 'mp3',
+            encoding: 'mp3',
+            sample_rate: 44100
+          },
+          duration: null,
+          speed: finalSpeed
+        }),
+      });
+
+      if (!ttsResponse.ok) {
+        const errorData = await ttsResponse.json().catch(() => ({}));
+        console.error('[Cartesia TTS] API Error:', errorData);
+        res.writeHead(ttsResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: errorData.error?.message || 'Cartesia TTS generation failed',
+          provider: 'cartesia'
+        }));
+        return;
+      }
+
+      // Cartesia returns raw audio data
+      const audioBuffer = await ttsResponse.arrayBuffer();
+      const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+
+      console.log(`[Cartesia TTS] ✓ Successfully generated ${audioBase64.length} bytes of audio`);
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        audioContent: audioBase64,
+        voiceName: preferredVoice || 'auto',
+        provider: 'cartesia'
+      }));
+
+    } catch (error) {
+      console.error('[Cartesia TTS] Error handling request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to generate speech',
+        provider: 'cartesia'
+      }));
+    }
+  });
+}
+
 // Handle translation requests
 async function handleTranslateRequest(req, res) {
   let body = '';
@@ -369,6 +661,16 @@ async function handleApiRequest(req, res) {
     return handleTTSRequest(req, res);
   }
 
+  // Handle OpenAI TTS API
+  if (req.url === '/api/openai-tts' && req.method === 'POST') {
+    return handleOpenAITTSRequest(req, res);
+  }
+
+  // Handle Cartesia TTS API
+  if (req.url === '/api/cartesia-tts' && req.method === 'POST') {
+    return handleCartesiaTTSRequest(req, res);
+  }
+
   // Handle Claude API
   if (req.url === '/api/claude' && req.method === 'POST') {
     return handleClaudeRequest(req, res);
@@ -541,8 +843,12 @@ server.listen(PORT, () => {
   console.log(`  🤖 Claude API endpoint: http://localhost:${PORT}/api/claude`);
   console.log(`  🌐 Translation endpoint: http://localhost:${PORT}/api/translate`);
   console.log(`  🔊 Text-to-Speech endpoint: http://localhost:${PORT}/api/tts`);
+  console.log(`  🔊 OpenAI TTS endpoint: http://localhost:${PORT}/api/openai-tts`);
+  console.log(`  🔊 Cartesia TTS endpoint: http://localhost:${PORT}/api/cartesia-tts`);
   console.log(`  🔑 Gemini API Key: ${process.env.GEMINI_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 Claude API Key: ${process.env.ANTHROPIC_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+  console.log(`  🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+  console.log(`  🔑 Cartesia API Key: ${process.env.CARTESIA_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 Google Translate API Key: ${process.env.GOOGLE_TRANSLATE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase API Key: ${process.env.VITE_FIREBASE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase Project: ${process.env.VITE_FIREBASE_PROJECT_ID || 'Not set'}\n`);

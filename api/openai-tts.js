@@ -1,22 +1,23 @@
-// api/tts.js
+// api/openai-tts.js
 
-// This is a Vercel Serverless Function for Google Cloud Text-to-Speech API
+// This is a Vercel Serverless Function for OpenAI Text-to-Speech API
+// OpenAI TTS offers very natural-sounding voices at an affordable price ($15 per 1M characters)
 
-// Character voice mapping for Google Cloud TTS
-// Available voices: https://cloud.google.com/text-to-speech/docs/voices
-// Using Journey voices for better naturalness (same price as Neural2)
+// Character voice mapping for OpenAI TTS
+// Available voices: alloy, echo, fable, onyx, nova, shimmer
+// All voices support Spanish with excellent pronunciation
 const CHARACTER_VOICES = {
-  // Male voices - different ages and styles (Journey voices)
-  'male_young': { name: 'es-US-Journey-D', gender: 'MALE', pitch: 2.0, rate: 1.0 }, // Young male - higher pitch
-  'male_mature': { name: 'es-US-Journey-D', gender: 'MALE', pitch: 0.0, rate: 0.95 }, // Mature male - neutral
-  'male_elder': { name: 'es-US-Journey-D', gender: 'MALE', pitch: -2.0, rate: 0.9 }, // Older male - deeper, slower
-  'male_energetic': { name: 'es-US-Journey-D', gender: 'MALE', pitch: 1.0, rate: 1.05 }, // Energetic male
+  // Male voices
+  'male_young': { voice: 'echo', speed: 1.0 }, // Echo - bright, youthful male
+  'male_mature': { voice: 'onyx', speed: 0.95 }, // Onyx - deep, authoritative male
+  'male_elder': { voice: 'onyx', speed: 0.85 }, // Onyx - slower for elder characters
+  'male_energetic': { voice: 'fable', speed: 1.05 }, // Fable - energetic British male
 
-  // Female voices - different ages and styles (Journey voices)
-  'female_young': { name: 'es-US-Journey-F', gender: 'FEMALE', pitch: 2.0, rate: 1.0 }, // Young female - higher pitch
-  'female_mature': { name: 'es-US-Journey-F', gender: 'FEMALE', pitch: 0.0, rate: 0.95 }, // Mature female - neutral
-  'female_elder': { name: 'es-US-Journey-F', gender: 'FEMALE', pitch: -1.0, rate: 0.9 }, // Older female - lower, slower
-  'female_energetic': { name: 'es-US-Journey-F', gender: 'FEMALE', pitch: 1.5, rate: 1.05 }, // Energetic female
+  // Female voices
+  'female_young': { voice: 'nova', speed: 1.0 }, // Nova - bright, youthful female
+  'female_mature': { voice: 'shimmer', speed: 0.95 }, // Shimmer - warm, mature female
+  'female_elder': { voice: 'shimmer', speed: 0.85 }, // Shimmer - slower for elder characters
+  'female_energetic': { voice: 'alloy', speed: 1.05 }, // Alloy - energetic, versatile
 };
 
 // Select appropriate voice based on character
@@ -99,15 +100,16 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const ttsApiKey = process.env.GOOGLE_CLOUD_TTS_API_KEY || process.env.GEMINI_API_KEY;
-  if (!ttsApiKey) {
-    console.error('GOOGLE_CLOUD_TTS_API_KEY or GEMINI_API_KEY environment variable is not set');
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  if (!openaiApiKey) {
+    console.error('OPENAI_API_KEY environment variable is not set');
     return response.status(500).json({
-      error: 'Google Cloud TTS API key not configured'
+      error: 'OpenAI API key not configured',
+      provider: 'openai'
     });
   }
 
-  const { text, characterName, characterGender, speedMultiplier = 1.0, pitchAdjustment = 0 } = request.body;
+  const { text, characterName, characterGender, speedMultiplier = 1.0 } = request.body;
 
   if (!text) {
     return response.status(400).json({
@@ -119,54 +121,53 @@ export default async function handler(request, response) {
   let voiceConfig = selectVoiceForCharacter(characterName, characterGender);
 
   // Apply user customizations to the base voice settings
-  const finalRate = (voiceConfig.rate || 0.95) * speedMultiplier;
-  const finalPitch = (voiceConfig.pitch || 0.0) + pitchAdjustment;
+  const finalSpeed = (voiceConfig.speed || 1.0) * speedMultiplier;
 
-  console.log(`[TTS] Generating speech for "${characterName}" using voice: ${voiceConfig.name} (pitch: ${finalPitch.toFixed(1)}, rate: ${finalRate.toFixed(2)})`);
+  console.log(`[OpenAI TTS] Generating speech for "${characterName}" using voice: ${voiceConfig.voice} (speed: ${finalSpeed.toFixed(2)})`);
 
-  // Use Google Cloud Text-to-Speech API
-  const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${ttsApiKey}`;
+  // Use OpenAI Text-to-Speech API
+  const url = 'https://api.openai.com/v1/audio/speech';
 
   try {
     const ttsResponse = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
-        input: { text: text },
-        voice: {
-          languageCode: 'es-US',
-          name: voiceConfig.name,
-          ssmlGender: voiceConfig.gender
-        },
-        audioConfig: {
-          audioEncoding: 'MP3',
-          speakingRate: Math.max(0.25, Math.min(4.0, finalRate)), // Clamp between 0.25x and 4.0x
-          pitch: Math.max(-20.0, Math.min(20.0, finalPitch)), // Clamp between -20 and +20
-          volumeGainDb: 2.0, // Slight volume boost for clarity
-          sampleRateHertz: 24000, // Higher quality audio
-          effectsProfileId: ['headphone-class-device'] // Optimize for headphones
-        }
+        model: 'tts-1-hd', // High-quality model for best naturalness
+        voice: voiceConfig.voice,
+        input: text,
+        speed: Math.max(0.25, Math.min(4.0, finalSpeed)), // Clamp between 0.25x and 4.0x
+        response_format: 'mp3'
       }),
     });
 
-    const data = await ttsResponse.json();
-
-    if (ttsResponse.ok && data.audioContent) {
-      return response.status(200).json({
-        audioContent: data.audioContent,
-        voiceName: voiceConfig.name
-      });
-    } else {
-      console.error('[TTS] API Error:', data);
+    if (!ttsResponse.ok) {
+      const errorData = await ttsResponse.json().catch(() => ({}));
+      console.error('[OpenAI TTS] API Error:', errorData);
       return response.status(ttsResponse.status).json({
-        error: data.error || 'TTS generation failed'
+        error: errorData.error?.message || 'OpenAI TTS generation failed',
+        provider: 'openai'
       });
     }
 
+    // OpenAI returns raw MP3 audio data (not JSON)
+    const audioBuffer = await ttsResponse.arrayBuffer();
+    const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+
+    return response.status(200).json({
+      audioContent: audioBase64,
+      voiceName: voiceConfig.voice,
+      provider: 'openai'
+    });
+
   } catch (error) {
-    console.error('[TTS] Error handling request:', error);
+    console.error('[OpenAI TTS] Error handling request:', error);
     return response.status(500).json({
-      error: 'Internal Server Error: Failed to generate speech'
+      error: 'Internal Server Error: Failed to generate speech',
+      provider: 'openai'
     });
   }
 }

@@ -63,6 +63,10 @@ export function initializeApp() {
   // TTS state
   let autoplayEnabled = true;
   let currentAudio = null;
+  let persistentAudioElement = null; // Reusable audio element to avoid autoplay blocks
+  let currentBlobUrl = null; // Track current blob URL for cleanup
+  let isSpeaking = false; // Prevent concurrent speak() calls
+  let lastTTSBlob = null; // Store last TTS audio for repeat functionality
 
   // Placement test state
   let placementQuestions = [];
@@ -96,6 +100,11 @@ export function initializeApp() {
     closeSettingsBtn: document.getElementById('close-settings-btn'),
     dialectSelect: document.getElementById('dialect-select'),
     formalitySelect: document.getElementById('formality-select'),
+    voiceSpeedSlider: document.getElementById('voice-speed-slider'),
+    voiceSpeedValue: document.getElementById('voice-speed-value'),
+    voicePitchSlider: document.getElementById('voice-pitch-slider'),
+    voicePitchValue: document.getElementById('voice-pitch-value'),
+    testVoiceBtn: document.getElementById('test-voice-btn'),
     saveSettingsBtn: document.getElementById('save-settings-btn'),
     questList: document.getElementById('quest-list-container'),
     questView: document.getElementById('quest-view'),
@@ -233,11 +242,24 @@ export function initializeApp() {
           return null; // Return null to indicate failure
         }
 
-        const result = await response.json();
+        // Try to parse JSON response with better error handling
+        let result;
+        try {
+          const responseText = await response.text();
+          console.log('[API] Response text length:', responseText.length);
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('[API] JSON Parse Error:', parseError);
+          console.error('[API] Response status:', response.status);
+          console.error('[API] Response headers:', Object.fromEntries(response.headers.entries()));
+          const errorMessage = "Sorry, I received an invalid response from the server. Please try again.";
+          addMessage('system', errorMessage);
+          return null;
+        }
 
         // Safely access the response text
-        if (result.candidates && result.candidates.length > 0 && 
-            result.candidates[0].content && result.candidates[0].content.parts && 
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
             result.candidates[0].content.parts.length > 0) {
           return result.candidates[0].content.parts[0].text;
         } else {
@@ -245,7 +267,10 @@ export function initializeApp() {
           return "I'm sorry, I couldn't generate a response for that. Please try something else.";
         }
       } catch (error) {
-        console.error("Fetch Error:", error);
+        console.error("[API] Fetch Error:", error);
+        console.error("[API] Error name:", error.name);
+        console.error("[API] Error message:", error.message);
+        console.error("[API] Error stack:", error.stack);
         const errorMessage = "Sorry, there was a network error. Please check your connection and try again.";
         addMessage('system', errorMessage); // Notify user of the error
         return null; // Return null to indicate failure
@@ -259,17 +284,369 @@ export function initializeApp() {
     }
   };
 
+  // Initialize persistent audio element for better autoplay support
+  const initPersistentAudio = () => {
+    if (persistentAudioElement) return;
+
+    persistentAudioElement = new Audio();
+    persistentAudioElement.preload = 'auto';
+
+    // Set up event handlers
+    persistentAudioElement.onended = () => {
+      console.log('[TTS] Audio playback ended');
+      // Clean up blob URL when audio finishes
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+      currentAudio = null;
+      // CRITICAL: Release the lock when audio finishes
+      isSpeaking = false;
+      console.log('[TTS] Lock released (playback ended), isSpeaking = false');
+    };
+
+    persistentAudioElement.onerror = (err) => {
+      console.error('[TTS] Audio error:', err);
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+      currentAudio = null;
+      // CRITICAL: Release the lock on error
+      isSpeaking = false;
+      console.log('[TTS] Lock released (error), isSpeaking = false');
+    };
+
+    console.log('[TTS] Persistent audio element initialized');
+  };
+
+  // Audio unlock for browser autoplay policy
+  let audioUnlocked = false;
+  const unlockAudio = () => {
+    if (audioUnlocked) return;
+
+    // Initialize persistent audio element
+    initPersistentAudio();
+
+    // Play silent audio to unlock
+    if (persistentAudioElement) {
+      persistentAudioElement.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADhADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwP////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAQKAAAAAAAAA4S/C8yPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/+xDEAAPAAAGkAAAAIAAANIAAAAQVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EMQpg8AAAaQAAAAgAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+      persistentAudioElement.volume = 0;
+      persistentAudioElement.play().then(() => {
+        audioUnlocked = true;
+        console.log('[TTS] Audio unlocked for autoplay');
+      }).catch(() => {
+        // Silently fail - will try again on next interaction
+      });
+    }
+  };
+
+  // Add unlock audio on any user interaction
+  ['click', 'touchstart', 'keydown'].forEach(event => {
+    document.addEventListener(event, unlockAudio, { once: true });
+  });
+
   // TTS Manager for natural AI voice output
   const TTSManager = {
-    async speak(text, characterName, characterGender) {
-      // Stop any currently playing audio
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
+    // Clean text for TTS - remove translations and actions
+    _cleanTextForSpeech(text) {
+      // Remove text in parentheses (translations)
+      let cleaned = text.replace(/\([^)]*\)/g, '');
+
+      // Remove text in asterisks only if it's a short action description
+      // Keep longer dialogue/narrative text in asterisks
+      // Actions: "*leans in closer*" - short, no sentence punctuation
+      // Dialogue: "*You're almost there...*" - longer, has punctuation
+      cleaned = cleaned.replace(/\*([^*]+)\*/g, (match, content) => {
+        // Keep if content is long (> 50 chars) or contains sentence punctuation
+        if (content.length > 50 || /[.!?]/.test(content)) {
+          return content; // Remove asterisks but keep content
+        }
+        return ''; // Remove both asterisks and content (it's an action)
+      });
+
+      // Convert ellipsis to period for proper pause (TTS engines don't interpret ... as pauses)
+      // "Please, tell me..." becomes "Please, tell me."
+      cleaned = cleaned.replace(/\.{2,}/g, '.');
+
+      // Handle Spanish inverted exclamation marks
+      // Add a subtle pause before them: "¡Rick!" becomes ". ¡Rick!"
+      // This helps TTS engines separate the exclamation from preceding text
+      cleaned = cleaned.replace(/\s*¡/g, '. ¡');
+
+      // Emphasize questions for better intonation
+      // Add a subtle pause before Spanish question marks: "¿quién eres?" becomes ", ¿quién eres?"
+      cleaned = cleaned.replace(/\s*¿/g, ', ¿');
+
+      // Double question marks help TTS recognize question intonation
+      // "¿quién eres?" becomes "¿quién eres??"
+      cleaned = cleaned.replace(/\?(?!\?)/g, '??');
+
+      // Double exclamation marks for emphasis
+      // "¡Rick!" becomes "¡Rick!!"
+      cleaned = cleaned.replace(/!(?!!)/g, '!!');
+
+      // Ensure proper spacing after punctuation
+      cleaned = cleaned.replace(/([.!?,;:])\s*/g, '$1 ');
+
+      // Clean up multiple periods in a row (caused by our ¡ handling)
+      cleaned = cleaned.replace(/\.{2,}/g, '.');
+
+      // Clean up extra spaces and leading punctuation
+      cleaned = cleaned.replace(/\s+/g, ' ').trim();
+      cleaned = cleaned.replace(/^[,.\s]+/, ''); // Remove leading comma/period if text starts with ¡ or ¿
+
+      return cleaned;
+    },
+
+    // Detect emotional mood from text content
+    _detectMood(text) {
+      const lowerText = text.toLowerCase();
+
+      // Excited/Happy indicators
+      if (lowerText.includes('!') && (lowerText.match(/!/g) || []).length >= 2) {
+        return 'excited';
+      }
+      if (/\b(genial|increíble|fantástico|maravilloso|excelente|perfecto|feliz|alegr|content)\b/.test(lowerText)) {
+        return 'happy';
       }
 
+      // Urgent/Hurried indicators
+      if (/\b(rápid|prisa|urgent|ahora|ya|inmediatamente|corre|deprisa)\b/.test(lowerText)) {
+        return 'urgent';
+      }
+
+      // Sad/Disappointed indicators
+      if (/\b(triste|lament|perdón|disculp|lo siento|desafortunad|pena)\b/.test(lowerText)) {
+        return 'sad';
+      }
+
+      // Angry/Frustrated indicators
+      if (/\b(molest|enfadad|furioso|inaceptable|terrible|ridícul)\b/.test(lowerText)) {
+        return 'angry';
+      }
+
+      // Calm/Peaceful indicators
+      if (/\b(tranquil|calm|relaj|paz|suave|despacio|lentamente)\b/.test(lowerText)) {
+        return 'calm';
+      }
+
+      // Mysterious/Whisper indicators
+      if (/\b(secreto|susurr|silencio|misteriosa?|oculto|escondid)\b/.test(lowerText)) {
+        return 'mysterious';
+      }
+
+      // Question/Curious indicators
+      if (lowerText.includes('?') || /\b(pregunt|curiosidad|interesante|por qué|cómo|qué|cuál)\b/.test(lowerText)) {
+        return 'curious';
+      }
+
+      return 'neutral';
+    },
+
+    // Calculate voice parameter adjustments based on mood
+    _getMoodAdjustments(mood) {
+      const adjustments = {
+        // Speed multiplier (0.7 = slower, 1.3 = faster)
+        // Pitch adjustment (-3 = lower, +3 = higher) - for Google TTS fallback
+        // Cartesia emotions (using Cartesia's native emotion control)
+        excited: { speedMult: 1.15, pitchAdj: 2, cartesiaEmotion: ['positivity:high', 'curiosity'] },
+        happy: { speedMult: 1.05, pitchAdj: 1, cartesiaEmotion: ['positivity:high'] },
+        urgent: { speedMult: 1.25, pitchAdj: 1, cartesiaEmotion: ['surprise:high'] },
+        sad: { speedMult: 0.85, pitchAdj: -2, cartesiaEmotion: ['sadness:high'] },
+        angry: { speedMult: 1.1, pitchAdj: 0, cartesiaEmotion: ['anger:high'] },
+        calm: { speedMult: 0.9, pitchAdj: -1, cartesiaEmotion: ['positivity:low'] },
+        mysterious: { speedMult: 0.85, pitchAdj: -2, cartesiaEmotion: ['curiosity:low'] },
+        curious: { speedMult: 1.0, pitchAdj: 1, cartesiaEmotion: ['curiosity:high'] },
+        neutral: { speedMult: 1.0, pitchAdj: 0, cartesiaEmotion: [] }
+      };
+
+      return adjustments[mood] || adjustments.neutral;
+    },
+
+    async speak(text, characterName, characterGender) {
+      console.log('[TTS] ===== NEW SPEAK REQUEST =====');
+      console.log('[TTS] isSpeaking flag:', isSpeaking);
+
+      // CRITICAL: If already speaking, abort immediately and wait
+      if (isSpeaking) {
+        console.log('[TTS] ⚠️ Already speaking! Aborting previous and waiting...');
+        this.stop();
+        // Wait briefly for audio to fully stop and cleanup
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      // Set flag immediately to block any other calls
+      isSpeaking = true;
+      console.log('[TTS] Lock acquired, isSpeaking = true');
+
+      // Aggressively stop any audio that might be playing
+      this.stop();
+
       try {
-        console.log(`[TTS] Speaking: "${text.substring(0, 50)}..." as ${characterName}`);
+        console.log(`[TTS] Original text: "${text.substring(0, 50)}..."`);
+
+        // Clean text for speech (remove translations and actions)
+        const cleanedText = this._cleanTextForSpeech(text);
+        console.log(`[TTS] Cleaned text: "${cleanedText.substring(0, 50)}..."`);
+
+        if (!cleanedText || cleanedText.trim().length === 0) {
+          console.log('[TTS] No speakable text after cleaning, skipping TTS');
+          isSpeaking = false;
+          console.log('[TTS] Lock released (no text), isSpeaking = false');
+          return;
+        }
+
+        // Detect mood from original text (before cleaning) and apply voice adjustments
+        const mood = this._detectMood(text);
+        const moodAdjustments = this._getMoodAdjustments(mood);
+        console.log(`[TTS] Detected mood: ${mood} (speed: ${moodAdjustments.speedMult}x, pitch: ${moodAdjustments.pitchAdj > 0 ? '+' : ''}${moodAdjustments.pitchAdj})`);
+
+        // Always use Cartesia -> OpenAI -> Google fallback order for best quality
+        let data = null;
+
+        // Try Cartesia first (best quality native Spanish voices)
+        data = await this._tryCartesia(cleanedText, characterName, characterGender, moodAdjustments);
+
+        if (data) {
+          console.log('[TTS] ✓ Cartesia succeeded');
+        }
+
+        // Fallback to OpenAI if Cartesia fails
+        if (!data) {
+          console.log('[TTS] ✗ Cartesia failed, falling back to OpenAI');
+          data = await this._tryOpenAI(cleanedText, characterName, characterGender, moodAdjustments);
+          if (data) {
+            console.log('[TTS] ✓ OpenAI succeeded');
+          }
+        }
+
+        // Final fallback to Google if both Cartesia and OpenAI fail
+        if (!data) {
+          console.log('[TTS] ✗ OpenAI failed, falling back to Google');
+          data = await this._tryGoogle(cleanedText, characterName, characterGender, moodAdjustments);
+          if (data) {
+            console.log('[TTS] ✓ Google succeeded');
+          }
+        }
+
+        // Play audio if we got it from either provider
+        if (data && data.audioContent) {
+          // Ensure persistent audio element is initialized
+          initPersistentAudio();
+
+          // CRITICAL: Completely destroy and recreate audio element to prevent overlap
+          if (persistentAudioElement) {
+            console.log('[TTS] Destroying previous audio element...');
+            persistentAudioElement.pause();
+            persistentAudioElement.currentTime = 0;
+            persistentAudioElement.src = '';
+            persistentAudioElement.load(); // Force abort of any loading
+          }
+
+          // Clean up old blob URL
+          if (currentBlobUrl) {
+            URL.revokeObjectURL(currentBlobUrl);
+            currentBlobUrl = null;
+          }
+
+          // Brief wait for cleanup (load() already aborted any loading)
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          try {
+            console.log('[TTS] Loading new audio...');
+
+            // Convert base64 to blob for better memory management
+            const byteCharacters = atob(data.audioContent);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'audio/mp3' });
+
+            // Store the last TTS audio for repeat functionality
+            lastTTSBlob = blob;
+            // Enable repeat button
+            const repeatBtn = document.getElementById('repeat-tts-btn');
+            if (repeatBtn) repeatBtn.disabled = false;
+
+            // Create blob URL and set as source
+            currentBlobUrl = URL.createObjectURL(blob);
+            persistentAudioElement.src = currentBlobUrl;
+            persistentAudioElement.volume = 1;
+            persistentAudioElement.load(); // Explicitly load the new audio
+            currentAudio = persistentAudioElement;
+
+            console.log('[TTS] Attempting to play...');
+
+            // Play the audio
+            const playPromise = persistentAudioElement.play();
+
+            if (playPromise !== undefined) {
+              await playPromise.then(() => {
+                console.log(`[TTS] ✓ Successfully playing audio from ${data.provider || 'unknown'} provider`);
+              }).catch(err => {
+                console.error('[TTS] Playback error:', err);
+                if (err.name === 'NotAllowedError') {
+                  console.warn('[TTS] Autoplay blocked. Please interact with the page.');
+                }
+                isSpeaking = false;
+                console.log('[TTS] Lock released (playback error), isSpeaking = false');
+              });
+            }
+          } catch (err) {
+            console.error('[TTS] Error preparing audio:', err);
+            isSpeaking = false;
+            console.log('[TTS] Lock released (preparation error), isSpeaking = false');
+          }
+        } else {
+          console.error('[TTS] All TTS providers failed to generate audio');
+          isSpeaking = false;
+          console.log('[TTS] Lock released (no audio), isSpeaking = false');
+        }
+      } catch (error) {
+        console.error('[TTS] Error:', error);
+        isSpeaking = false;
+        console.log('[TTS] Lock released (exception), isSpeaking = false');
+      }
+      // Note: isSpeaking will be released by the onended event handler
+    },
+
+    async _tryOpenAI(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0 }) {
+      try {
+        // Apply mood-based speed adjustment on top of user preference
+        const finalSpeed = (userSettings.voiceSpeed || 1.0) * moodAdjustments.speedMult;
+
+        const response = await fetch('/api/openai-tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            characterName: characterName || 'Unknown',
+            characterGender: characterGender || 'unknown',
+            speedMultiplier: finalSpeed,
+            preferredVoice: 'auto'
+          })
+        });
+
+        if (!response.ok) {
+          console.warn('[TTS] OpenAI API error:', response.status);
+          return null;
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.warn('[TTS] OpenAI error:', error);
+        return null;
+      }
+    },
+
+    async _tryGoogle(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0 }) {
+      try {
+        // Apply mood-based adjustments on top of user preferences
+        const finalSpeed = (userSettings.voiceSpeed || 1.0) * moodAdjustments.speedMult;
+        const finalPitch = (userSettings.voicePitch || 0) + moodAdjustments.pitchAdj;
 
         const response = await fetch('/api/tts', {
           method: 'POST',
@@ -277,44 +654,111 @@ export function initializeApp() {
           body: JSON.stringify({
             text,
             characterName: characterName || 'Unknown',
-            characterGender: characterGender || 'unknown'
+            characterGender: characterGender || 'unknown',
+            speedMultiplier: finalSpeed,
+            pitchAdjustment: finalPitch
           })
         });
 
         if (!response.ok) {
-          console.error('[TTS] API error:', response.status);
-          return;
+          console.warn('[TTS] Google API error:', response.status);
+          return null;
         }
 
         const data = await response.json();
-
-        if (data.audioContent) {
-          // Create audio element from base64 MP3
-          const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-          currentAudio = audio;
-
-          // Play the audio
-          audio.play().catch(err => {
-            console.error('[TTS] Playback error:', err);
-          });
-
-          // Clear reference when done
-          audio.onended = () => {
-            if (currentAudio === audio) {
-              currentAudio = null;
-            }
-          };
-        }
+        return { ...data, provider: 'google' };
       } catch (error) {
-        console.error('[TTS] Error:', error);
+        console.warn('[TTS] Google error:', error);
+        return null;
+      }
+    },
+
+    async _tryCartesia(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0, cartesiaEmotion: [] }) {
+      try {
+        // Apply mood-based speed adjustment on top of user preference
+        const finalSpeed = (userSettings.voiceSpeed || 1.0) * moodAdjustments.speedMult;
+
+        console.log('[TTS] Calling Cartesia API with emotions:', moodAdjustments.cartesiaEmotion || []);
+        const response = await fetch('/api/cartesia-tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            characterName: characterName || 'Unknown',
+            characterGender: characterGender || 'unknown',
+            speedMultiplier: finalSpeed,
+            preferredVoice: 'auto',
+            emotions: moodAdjustments.cartesiaEmotion || []
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.warn('[TTS] Cartesia API error:', response.status, errorData);
+          return null;
+        }
+
+        const data = await response.json();
+        console.log('[TTS] Cartesia response received:', data.provider, `(${data.audioContent ? data.audioContent.length : 0} bytes)`);
+        return data;
+      } catch (error) {
+        console.warn('[TTS] Cartesia error:', error);
+        return null;
       }
     },
 
     stop() {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
+      console.log('[TTS] stop() called');
+      if (persistentAudioElement) {
+        persistentAudioElement.pause();
+        persistentAudioElement.currentTime = 0;
+        persistentAudioElement.src = ''; // Clear source completely
+        persistentAudioElement.load(); // Abort any ongoing loading
       }
+
+      // Clean up blob URL
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+
+      currentAudio = null;
+      console.log('[TTS] Audio stopped, cleared, and loading aborted');
+    },
+
+    repeat() {
+      if (!lastTTSBlob) {
+        console.log('[TTS] No audio to repeat');
+        return;
+      }
+
+      console.log('[TTS] Repeating last TTS audio');
+
+      // Stop current audio if playing
+      this.stop();
+
+      // Initialize audio if needed
+      initPersistentAudio();
+
+      // Clean up old blob URL
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+
+      // Create new blob URL from stored blob
+      currentBlobUrl = URL.createObjectURL(lastTTSBlob);
+      persistentAudioElement.src = currentBlobUrl;
+      persistentAudioElement.volume = 1;
+      persistentAudioElement.load();
+      currentAudio = persistentAudioElement;
+
+      // Play the audio
+      persistentAudioElement.play().then(() => {
+        console.log('[TTS] ✓ Repeat playback started');
+      }).catch(err => {
+        console.error('[TTS] Repeat playback error:', err);
+      });
     }
   };
 
@@ -680,7 +1124,9 @@ export function initializeApp() {
         createdAt: serverTimestamp(),
         settings: {
           dialect: 'Mexico',
-          formality: 'Casual'
+          formality: 'Casual',
+          voiceSpeed: 1.0,
+          voicePitch: 0
         },
         placementCompleted: false,
         onboardingQuestCompleted: false,
@@ -718,11 +1164,20 @@ export function initializeApp() {
           ...userData.settings,
           completedQuests: userData.completedQuests || []
         };
-        
+
         // Update UI with user settings
         dom.dialectSelect.value = userSettings.dialect;
         dom.formalitySelect.value = userSettings.formality;
-        
+
+        // Update voice sliders
+        const voiceSpeed = userSettings.voiceSpeed || 1.0;
+        const voicePitch = userSettings.voicePitch || 0;
+        dom.voiceSpeedSlider.value = voiceSpeed;
+        dom.voiceSpeedValue.textContent = `${voiceSpeed.toFixed(1)}x`;
+        dom.voicePitchSlider.value = voicePitch;
+        const pitchLabels = ['Much Lower', 'Lower', 'Slightly Lower', 'Normal', 'Slightly Higher', 'Higher', 'Much Higher'];
+        dom.voicePitchValue.textContent = pitchLabels[voicePitch + 3] || 'Normal';
+
         return userData;
       }
     } catch (error) {
@@ -1252,6 +1707,9 @@ export function initializeApp() {
     const message = dom.chatInput.value.trim();
     if (!message) return;
 
+    // Unlock audio on user message send (for autoplay policy)
+    unlockAudio();
+
     // Prevent sending messages after quest completion
     if (stageCompleted && farewellSent) {
       console.log('Quest already completed, blocking message');
@@ -1747,6 +2205,14 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
+    // Repeat TTS button
+    const repeatTTSBtn = document.getElementById('repeat-tts-btn');
+    if (repeatTTSBtn) {
+      repeatTTSBtn.addEventListener('click', () => {
+        TTSManager.repeat();
+      });
+    }
+
     // Autoplay toggle button
     const autoplayToggleBtn = document.getElementById('autoplay-toggle-btn');
     if (autoplayToggleBtn) {
@@ -1768,6 +2234,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         // Stop current audio if disabling
         if (!autoplayEnabled) {
           TTSManager.stop();
+        } else {
+          // Re-unlock audio when enabling autoplay (user interaction)
+          unlockAudio();
         }
       });
     }
@@ -1833,6 +2302,122 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.settingsModal.classList.add('hidden');
       });
     }
+
+    // Voice speed slider
+    if (dom.voiceSpeedSlider) {
+      dom.voiceSpeedSlider.addEventListener('input', (e) => {
+        const speed = parseFloat(e.target.value);
+        dom.voiceSpeedValue.textContent = `${speed.toFixed(1)}x`;
+        userSettings.voiceSpeed = speed;
+      });
+      debugLog('✅ Voice speed slider listener set');
+    } else {
+      console.warn('❌ Voice speed slider not found');
+    }
+
+    // Voice pitch slider
+    if (dom.voicePitchSlider) {
+      dom.voicePitchSlider.addEventListener('input', (e) => {
+        const pitch = parseInt(e.target.value);
+        const labels = ['Much Lower', 'Lower', 'Slightly Lower', 'Normal', 'Slightly Higher', 'Higher', 'Much Higher'];
+        dom.voicePitchValue.textContent = labels[pitch + 3] || 'Normal';
+        userSettings.voicePitch = pitch;
+      });
+      debugLog('✅ Voice pitch slider listener set');
+    } else {
+      console.warn('❌ Voice pitch slider not found');
+    }
+
+    // Debug log toggle
+    const debugToggleBtn = document.getElementById('voice-debug-toggle');
+    const debugContent = document.getElementById('voice-debug-content');
+    const debugHeader = document.getElementById('voice-debug-header');
+
+    if (debugToggleBtn && debugContent && debugHeader) {
+      debugHeader.addEventListener('click', () => {
+        const isHidden = debugContent.classList.contains('hidden');
+        if (isHidden) {
+          debugContent.classList.remove('hidden');
+          debugToggleBtn.textContent = '−';
+        } else {
+          debugContent.classList.add('hidden');
+          debugToggleBtn.textContent = '+';
+        }
+      });
+    }
+
+    // Debug log function for voice testing
+    function addVoiceDebugLog(message, type = 'info') {
+      const debugLog = document.getElementById('voice-debug-log');
+      const debugContent = document.getElementById('voice-debug-content');
+
+      if (debugLog && debugContent) {
+        // Show the debug log container
+        debugLog.classList.remove('hidden');
+
+        // Make sure content is visible (expanded)
+        debugContent.classList.remove('hidden');
+        const debugToggle = document.getElementById('voice-debug-toggle');
+        if (debugToggle) debugToggle.textContent = '−';
+
+        // Create log entry
+        const logEntry = document.createElement('div');
+        const timestamp = new Date().toLocaleTimeString();
+        const color = type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-gray-600';
+        logEntry.className = color;
+        logEntry.textContent = `[${timestamp}] ${message}`;
+
+        // Add to log (newest first)
+        debugContent.insertBefore(logEntry, debugContent.firstChild);
+
+        // Keep only last 20 entries
+        while (debugContent.children.length > 20) {
+          debugContent.removeChild(debugContent.lastChild);
+        }
+      }
+
+      // Also log to console
+      console.log(`[Voice Debug] ${message}`);
+    }
+
+    // Test voice button
+    if (dom.testVoiceBtn) {
+      console.log('[Voice] Setting up test voice button listener');
+      dom.testVoiceBtn.addEventListener('click', async () => {
+        addVoiceDebugLog('🔘 Test Voice button clicked', 'info');
+
+        try {
+          const testText = 'Hello! This is a test of the voice system. How does this sound to you?';
+          const characterName = 'Test Character';
+          const characterGender = 'female';
+          const currentSpeed = parseFloat(dom.voiceSpeedSlider.value);
+
+          addVoiceDebugLog(`📝 Text: "${testText}"`, 'info');
+          addVoiceDebugLog(`👤 Character: ${characterName} (${characterGender})`, 'info');
+          addVoiceDebugLog(`🔧 Voice Provider: Cartesia (auto-fallback to OpenAI → Google)`, 'info');
+          addVoiceDebugLog(`🎤 Voice: Auto-selected based on character`, 'info');
+          addVoiceDebugLog(`⚡ Voice Speed: ${currentSpeed}x`, 'info');
+
+          // Temporarily override settings for testing
+          const savedSpeed = userSettings.voiceSpeed;
+          userSettings.voiceSpeed = currentSpeed;
+
+          addVoiceDebugLog('🔊 Calling TTSManager.speak()...', 'info');
+          await TTSManager.speak(testText, characterName, characterGender);
+          addVoiceDebugLog('✅ TTSManager.speak() completed', 'success');
+
+          // Restore saved settings
+          userSettings.voiceSpeed = savedSpeed;
+        } catch (error) {
+          addVoiceDebugLog(`❌ Error: ${error.message}`, 'error');
+          console.error('[Voice Test Error]', error);
+        }
+      });
+      debugLog('✅ Test voice button listener set');
+    } else {
+      console.warn('❌ Test voice button not found in DOM');
+    }
+
     debugLog('✅ Settings event listeners set');
 
     if (dom.saveSettingsBtn) {
@@ -1840,6 +2425,8 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (currentUser) {
           userSettings.dialect = dom.dialectSelect.value;
           userSettings.formality = dom.formalitySelect.value;
+          userSettings.voiceSpeed = parseFloat(dom.voiceSpeedSlider.value);
+          userSettings.voicePitch = parseInt(dom.voicePitchSlider.value);
 
           try {
             await setDoc(doc(db, 'users', currentUser.uid), {

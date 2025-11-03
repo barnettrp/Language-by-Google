@@ -26,7 +26,15 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v1.2.2** (2025-01-11)
+**v1.6.0** (2025-11-03)
+
+### Changes in v1.6.0:
+- **Voice System Overhaul**: Automatic voice provider with Cartesia → OpenAI → Google AI fallback chain
+- **Mood-Based Voice Inflection**: Intelligent emotion detection that automatically adjusts voice speed and pitch
+- **Removed Manual Voice Selection**: Voices now automatically selected based on character traits
+- **Enhanced UX**: Simplified settings by removing provider/voice selection dropdowns
+- **Emotional Voice Adaptation**: Detects 9 moods (excited, happy, urgent, sad, angry, calm, mysterious, curious, neutral)
+- **Spanish Emotion Recognition**: Analyzes Spanish keywords and punctuation for mood detection
 
 ### Changes in v1.2.2:
 - Reduced onboarding quest message requirement from 12 to 8 messages
