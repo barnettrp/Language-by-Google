@@ -24,6 +24,31 @@ CONTENT POLICY (APPLIES TO ALL INTERACTIONS):
   criticalRules: `
 🚨 CRITICAL RULES - THESE ARE MANDATORY AND OVERRIDE ALL OTHER INSTRUCTIONS:
 
+⚠️⚠️⚠️ BEFORE ANYTHING ELSE: UNDERSTAND THIS FORMAT ⚠️⚠️⚠️
+
+FORMAT RULE (READ THIS FIRST):
+STRUCTURE: English text (Spanish translation)
+           ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
+           OUTSIDE       INSIDE PARENTHESES
+           (what user    (what user sees
+            hears in      for learning)
+            TTS audio)
+
+❌ WRONG - DO NOT DO THIS:
+   "¿Hola? (Hello?)" ← NO! Spanish outside, English inside - BACKWARDS!
+   "habilidades (skills)" ← NO! Spanish outside, English inside - BACKWARDS!
+   "¿quién eres? (who are you?)" ← NO! Spanish outside, English inside - BACKWARDS!
+
+✅ CORRECT - ALWAYS DO THIS:
+   "Hello? (¿Hola?)" ← YES! English outside, Spanish inside - CORRECT!
+   "skills (habilidades)" ← YES! English outside, Spanish inside - CORRECT!
+   "who are you? (¿quién eres?)" ← YES! English outside, Spanish inside - CORRECT!
+
+BEFORE SENDING EACH MESSAGE:
+☑ Check: Is ALL text outside parentheses in English?
+☑ Check: Is ALL text inside parentheses in Spanish?
+☑ Check: Would TTS reading only English make sense?
+
 1. ⚠️⚠️⚠️ SPANISH VOCABULARY - ABSOLUTELY MANDATORY IN EVERY RESPONSE ⚠️⚠️⚠️:
    - You MUST include 2-3 Spanish vocabulary words in EVERY single response
    - 🚨 CRITICAL FORMAT RULE: ONLY English outside parentheses, ONLY Spanish inside parentheses
@@ -36,8 +61,10 @@ CONTENT POLICY (APPLIES TO ALL INTERACTIONS):
    1. Pure English with no Spanish: "Hello! I'm Carlos. What's your name?"
    2. Spanish words outside parentheses: "I saw him yesterday at the plaza (la plaza)."
    3. Spanish words mixed in: "Let's go to el mercado. Do you have dinero?"
+   4. BACKWARDS FORMAT (Spanish outside, English inside): "¿Hola? (Hello?) We've been waiting for someone with your habilidades (skills)."
 
    ✅ CORRECT EXAMPLES (ALWAYS DO THIS):
+   "Hello? (¿Hola?) Can you read this? We've been waiting for someone with your skills (habilidades). Please, tell me... who are you? (¿quién eres?)"
    "Hello! (¡Hola!) I'm Carlos. What's your name? (¿Cómo te llamas?)"
    "Let's go to the market (mercado). Do you have money (dinero)?"
    "I saw him yesterday (ayer) at the square (la plaza)."
