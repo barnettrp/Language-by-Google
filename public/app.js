@@ -75,6 +75,10 @@ export function initializeApp() {
   let placementAnswers = [];
   let placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
 
+  // Image attachment state
+  let selectedImage = null;
+  let selectedImageData = null;
+
   // DOM elements (defined early to ensure availability)
   debugLog('ðŸ” Looking up DOM elements...');
   const dom = {
@@ -120,6 +124,11 @@ export function initializeApp() {
     chatInput: document.getElementById('chat-input'),
     sendBtn: document.getElementById('send-btn'),
     hintBtn: document.getElementById('hint-btn'),
+    imageInput: document.getElementById('image-input'),
+    attachImageBtn: document.getElementById('attach-image-btn'),
+    imagePreviewContainer: document.getElementById('image-preview-container'),
+    imagePreview: document.getElementById('image-preview'),
+    removeImageBtn: document.getElementById('remove-image-btn'),
     objectivesProgress: document.getElementById('objectives-progress'),
     objectivesCount: document.getElementById('objectives-count'),
     submitSentenceBtn: document.getElementById('submit-sentence-btn'),
@@ -1679,7 +1688,7 @@ export function initializeApp() {
   }
 
   // Add message to chat
-  function addMessage(sender, text) {
+  function addMessage(sender, text, imageData = null) {
     if (!dom.chatContainer) {
       debugLog('âš ï¸ chatContainer not found, cannot add message');
       return;
@@ -1687,10 +1696,17 @@ export function initializeApp() {
 
     // Store message in conversation history (skip system messages)
     if (sender === 'user' || sender === 'npc') {
-      messages.push({
+      const messageData = {
         role: sender === 'user' ? 'user' : 'model',
         text: text
-      });
+      };
+
+      // Add image data if present (for user messages with images)
+      if (imageData && sender === 'user') {
+        messageData.imageData = imageData;
+      }
+
+      messages.push(messageData);
     }
 
     // Get character avatar if available
@@ -1734,6 +1750,19 @@ export function initializeApp() {
       messageEl.textContent = text;
     }
 
+    // Add image if present
+    if (imageData && sender === 'user') {
+      const imageEl = document.createElement('img');
+      imageEl.src = imageData;
+      imageEl.className = 'message-image';
+      imageEl.alt = 'Attached image';
+      imageEl.onclick = () => {
+        // Open image in new tab when clicked
+        window.open(imageData, '_blank');
+      };
+      messageEl.appendChild(imageEl);
+    }
+
     messageWrapper.appendChild(messageEl);
 
     // Add user avatar
@@ -1757,10 +1786,51 @@ export function initializeApp() {
     }
   }
 
+  // Handle image attachment
+  function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      addMessage('system', 'Please select a valid image file.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      addMessage('system', 'Image file is too large. Please select an image smaller than 5MB.');
+      return;
+    }
+
+    selectedImage = file;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      selectedImageData = e.target.result;
+      dom.imagePreview.src = e.target.result;
+      dom.imagePreviewContainer.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeSelectedImage() {
+    selectedImage = null;
+    selectedImageData = null;
+    dom.imagePreview.src = '';
+    dom.imagePreviewContainer.classList.add('hidden');
+    dom.imageInput.value = '';
+  }
+
   // Send chat message
   async function sendChatMessage() {
     const message = dom.chatInput.value.trim();
-    if (!message) return;
+    const hasImage = selectedImage !== null;
+
+    // Allow sending if there's either a message or an image
+    if (!message && !hasImage) return;
 
     // Unlock audio on user message send (for autoplay policy)
     unlockAudio();
@@ -1781,10 +1851,20 @@ export function initializeApp() {
       return;
     }
 
-    addMessage('user', message);
+    // Store image data before clearing
+    const imageDataToSend = selectedImageData;
+
+    // Add message with image if present
+    addMessage('user', message || '📷 Image', imageDataToSend);
+
+    // Clear input and image
     dom.chatInput.value = '';
+    if (hasImage) {
+      removeSelectedImage();
+    }
+
     dom.sendBtn.disabled = true;
-    dom.sendBtn.textContent = 'â³';
+    dom.sendBtn.textContent = '⏳';
 
     // Increment message count
     stageMessageCount++;
@@ -1805,10 +1885,24 @@ export function initializeApp() {
 
       // Build conversation history for context
       // Convert messages array to Gemini API format
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.text }]
-      }));
+      const conversationHistory = messages.map(msg => {
+        const parts = [{ text: msg.text }];
+
+        // Add image data if present
+        if (msg.imageData) {
+          parts.push({
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: msg.imageData.split(',')[1] // Remove data:image/...;base64, prefix
+            }
+          });
+        }
+
+        return {
+          role: msg.role,
+          parts: parts
+        };
+      });
 
       // Add information about completed objectives to help AI progress conversation
       const completedObjectivesList = Array.from(completedObjectives).join(', ');
@@ -2303,6 +2397,20 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') sendChatMessage();
       });
     }
+
+    // Image attachment event listeners
+    if (dom.attachImageBtn) {
+      dom.attachImageBtn.addEventListener('click', () => {
+        dom.imageInput.click();
+      });
+    }
+    if (dom.imageInput) {
+      dom.imageInput.addEventListener('change', handleImageSelect);
+    }
+    if (dom.removeImageBtn) {
+      dom.removeImageBtn.addEventListener('click', removeSelectedImage);
+    }
+
     debugLog('âœ… Chat event listeners set');
 
     // Character introduction card
