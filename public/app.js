@@ -1,8 +1,8 @@
 // app.js - Main application logic
-console.log('🟢 app.js module loading...');
+console.log('ðŸŸ¢ app.js module loading...');
 
 import { auth, db, isFirebaseConfigured } from './firebase.js';
-console.log('🟢 Firebase imports loaded');
+console.log('ðŸŸ¢ Firebase imports loaded');
 
 import {
   onAuthStateChanged,
@@ -11,7 +11,7 @@ import {
   signOut,
   updateProfile
 } from 'firebase/auth';
-console.log('🟢 Firebase auth imports loaded');
+console.log('ðŸŸ¢ Firebase auth imports loaded');
 
 import {
   doc,
@@ -19,7 +19,7 @@ import {
   getDoc,
   serverTimestamp
 } from 'firebase/firestore';
-console.log('🟢 Firebase firestore imports loaded');
+console.log('ðŸŸ¢ Firebase firestore imports loaded');
 
 // Debug logging helper
 // Logs to browser console (for debugging with F12 Developer Tools)
@@ -29,7 +29,7 @@ function debugLog(msg) {
 
 // Initialize the application
 export function initializeApp() {
-  debugLog('🚀 initializeApp started.');
+  debugLog('ðŸš€ initializeApp started.');
   if (!isFirebaseConfigured()) {
     console.error('[ConvoQuest] Firebase is not configured properly.');
     // Display a user-friendly error message
@@ -76,7 +76,7 @@ export function initializeApp() {
   let placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
 
   // DOM elements (defined early to ensure availability)
-  debugLog('🔍 Looking up DOM elements...');
+  debugLog('ðŸ” Looking up DOM elements...');
   const dom = {
     authContainer: document.getElementById('auth-container'),
     mainAppView: document.getElementById('main-app-view'),
@@ -159,9 +159,9 @@ export function initializeApp() {
   const criticalElements = ['authContainer', 'mainAppView', 'loginView', 'chatView'];
   const missingElements = criticalElements.filter(key => !dom[key]);
   if (missingElements.length > 0) {
-    debugLog(`❌ Missing critical elements: ${missingElements.join(', ')}`);
+    debugLog(`âŒ Missing critical elements: ${missingElements.join(', ')}`);
   } else {
-    debugLog('✅ All critical DOM elements found');
+    debugLog('âœ… All critical DOM elements found');
   }
 
   // Content Moderation System
@@ -209,9 +209,9 @@ export function initializeApp() {
     // Get user-friendly warning message
     getWarningMessage(reason) {
       const messages = {
-        'inappropriate-language': '⚠️ Please keep your language respectful and appropriate. ConvoQuest is a friendly learning environment for all ages.',
-        'excessive-caps': '⚠️ Please avoid using excessive capital letters. Let\'s keep our conversation calm and respectful.',
-        'default': '⚠️ Please keep your messages respectful and appropriate. Let\'s focus on learning Spanish together!'
+        'inappropriate-language': 'âš ï¸ Please keep your language respectful and appropriate. ConvoQuest is a friendly learning environment for all ages.',
+        'excessive-caps': 'âš ï¸ Please avoid using excessive capital letters. Let\'s keep our conversation calm and respectful.',
+        'default': 'âš ï¸ Please keep your messages respectful and appropriate. Let\'s focus on learning Spanish together!'
       };
       return messages[reason] || messages['default'];
     }
@@ -370,31 +370,31 @@ export function initializeApp() {
       cleaned = cleaned.replace(/\.{2,}/g, '.');
 
       // Handle Spanish inverted exclamation marks
-      // Add a subtle pause before them: "¡Rick!" becomes ". ¡Rick!"
+      // Add a subtle pause before them: "Â¡Rick!" becomes ". Â¡Rick!"
       // This helps TTS engines separate the exclamation from preceding text
-      cleaned = cleaned.replace(/\s*¡/g, '. ¡');
+      cleaned = cleaned.replace(/\s*Â¡/g, '. Â¡');
 
       // Emphasize questions for better intonation
-      // Add a subtle pause before Spanish question marks: "¿quién eres?" becomes ", ¿quién eres?"
-      cleaned = cleaned.replace(/\s*¿/g, ', ¿');
+      // Add a subtle pause before Spanish question marks: "Â¿quiÃ©n eres?" becomes ", Â¿quiÃ©n eres?"
+      cleaned = cleaned.replace(/\s*Â¿/g, ', Â¿');
 
       // Double question marks help TTS recognize question intonation
-      // "¿quién eres?" becomes "¿quién eres??"
+      // "Â¿quiÃ©n eres?" becomes "Â¿quiÃ©n eres??"
       cleaned = cleaned.replace(/\?(?!\?)/g, '??');
 
       // Double exclamation marks for emphasis
-      // "¡Rick!" becomes "¡Rick!!"
+      // "Â¡Rick!" becomes "Â¡Rick!!"
       cleaned = cleaned.replace(/!(?!!)/g, '!!');
 
       // Ensure proper spacing after punctuation
       cleaned = cleaned.replace(/([.!?,;:])\s*/g, '$1 ');
 
-      // Clean up multiple periods in a row (caused by our ¡ handling)
+      // Clean up multiple periods in a row (caused by our Â¡ handling)
       cleaned = cleaned.replace(/\.{2,}/g, '.');
 
       // Clean up extra spaces and leading punctuation
       cleaned = cleaned.replace(/\s+/g, ' ').trim();
-      cleaned = cleaned.replace(/^[,.\s]+/, ''); // Remove leading comma/period if text starts with ¡ or ¿
+      cleaned = cleaned.replace(/^[,.\s]+/, ''); // Remove leading comma/period if text starts with Â¡ or Â¿
 
       return cleaned;
     },
@@ -407,22 +407,22 @@ export function initializeApp() {
       if (lowerText.includes('!') && (lowerText.match(/!/g) || []).length >= 2) {
         return 'excited';
       }
-      if (/\b(genial|increíble|fantástico|maravilloso|excelente|perfecto|feliz|alegr|content)\b/.test(lowerText)) {
+      if (/\b(genial|increÃ­ble|fantÃ¡stico|maravilloso|excelente|perfecto|feliz|alegr|content)\b/.test(lowerText)) {
         return 'happy';
       }
 
       // Urgent/Hurried indicators
-      if (/\b(rápid|prisa|urgent|ahora|ya|inmediatamente|corre|deprisa)\b/.test(lowerText)) {
+      if (/\b(rÃ¡pid|prisa|urgent|ahora|ya|inmediatamente|corre|deprisa)\b/.test(lowerText)) {
         return 'urgent';
       }
 
       // Sad/Disappointed indicators
-      if (/\b(triste|lament|perdón|disculp|lo siento|desafortunad|pena)\b/.test(lowerText)) {
+      if (/\b(triste|lament|perdÃ³n|disculp|lo siento|desafortunad|pena)\b/.test(lowerText)) {
         return 'sad';
       }
 
       // Angry/Frustrated indicators
-      if (/\b(molest|enfadad|furioso|inaceptable|terrible|ridícul)\b/.test(lowerText)) {
+      if (/\b(molest|enfadad|furioso|inaceptable|terrible|ridÃ­cul)\b/.test(lowerText)) {
         return 'angry';
       }
 
@@ -437,7 +437,7 @@ export function initializeApp() {
       }
 
       // Question/Curious indicators
-      if (lowerText.includes('?') || /\b(pregunt|curiosidad|interesante|por qué|cómo|qué|cuál)\b/.test(lowerText)) {
+      if (lowerText.includes('?') || /\b(pregunt|curiosidad|interesante|por quÃ©|cÃ³mo|quÃ©|cuÃ¡l)\b/.test(lowerText)) {
         return 'curious';
       }
 
@@ -470,7 +470,7 @@ export function initializeApp() {
 
       // CRITICAL: If already speaking, abort immediately and wait
       if (isSpeaking) {
-        console.log('[TTS] ⚠️ Already speaking! Aborting previous and waiting...');
+        console.log('[TTS] âš ï¸ Already speaking! Aborting previous and waiting...');
         this.stop();
         // Wait briefly for audio to fully stop and cleanup
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -509,24 +509,24 @@ export function initializeApp() {
         data = await this._tryCartesia(cleanedText, characterName, characterGender, moodAdjustments);
 
         if (data) {
-          console.log('[TTS] ✓ Cartesia succeeded');
+          console.log('[TTS] âœ“ Cartesia succeeded');
         }
 
         // Fallback to OpenAI if Cartesia fails
         if (!data) {
-          console.log('[TTS] ✗ Cartesia failed, falling back to OpenAI');
+          console.log('[TTS] âœ— Cartesia failed, falling back to OpenAI');
           data = await this._tryOpenAI(cleanedText, characterName, characterGender, moodAdjustments);
           if (data) {
-            console.log('[TTS] ✓ OpenAI succeeded');
+            console.log('[TTS] âœ“ OpenAI succeeded');
           }
         }
 
         // Final fallback to Google if both Cartesia and OpenAI fail
         if (!data) {
-          console.log('[TTS] ✗ OpenAI failed, falling back to Google');
+          console.log('[TTS] âœ— OpenAI failed, falling back to Google');
           data = await this._tryGoogle(cleanedText, characterName, characterGender, moodAdjustments);
           if (data) {
-            console.log('[TTS] ✓ Google succeeded');
+            console.log('[TTS] âœ“ Google succeeded');
           }
         }
 
@@ -585,7 +585,7 @@ export function initializeApp() {
 
             if (playPromise !== undefined) {
               await playPromise.then(() => {
-                console.log(`[TTS] ✓ Successfully playing audio from ${data.provider || 'unknown'} provider`);
+                console.log(`[TTS] âœ“ Successfully playing audio from ${data.provider || 'unknown'} provider`);
               }).catch(err => {
                 console.error('[TTS] Playback error:', err);
                 if (err.name === 'NotAllowedError') {
@@ -755,7 +755,7 @@ export function initializeApp() {
 
       // Play the audio
       persistentAudioElement.play().then(() => {
-        console.log('[TTS] ✓ Repeat playback started');
+        console.log('[TTS] âœ“ Repeat playback started');
       }).catch(err => {
         console.error('[TTS] Repeat playback error:', err);
       });
@@ -768,7 +768,7 @@ export function initializeApp() {
     init() {
       if (typeof PLACEMENT_QUESTIONS === 'undefined') {
         console.error('[PlacementTest] PLACEMENT_QUESTIONS not loaded!');
-        debugLog('❌ PLACEMENT_QUESTIONS not loaded');
+        debugLog('âŒ PLACEMENT_QUESTIONS not loaded');
         return false;
       }
 
@@ -789,7 +789,7 @@ export function initializeApp() {
       // Display first question
       this.displayQuestion();
 
-      debugLog('✅ Placement test initialized');
+      debugLog('âœ… Placement test initialized');
       return true;
     },
 
@@ -843,7 +843,7 @@ export function initializeApp() {
         // Add "I don't know" option
         const dontKnowBtn = document.createElement('button');
         dontKnowBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
-        dontKnowBtn.textContent = "No sé (I don't know)";
+        dontKnowBtn.textContent = "No sÃ© (I don't know)";
         dontKnowBtn.addEventListener('click', () => this.selectOption(-1, dontKnowBtn));
         dom.quizOptions.appendChild(dontKnowBtn);
       }
@@ -959,7 +959,7 @@ export function initializeApp() {
     // Complete the placement test
     async completeTest() {
       const finalLevel = this.calculateCurrentLevel();
-      debugLog(`✅ Placement test complete. Level: ${finalLevel}`);
+      debugLog(`âœ… Placement test complete. Level: ${finalLevel}`);
 
       // Save to Firebase (skip in dev mode)
       if (!isDevMode && currentUser && currentUser.uid) {
@@ -997,11 +997,11 @@ export function initializeApp() {
   // Load quests from QUEST_DATABASE
   function getQuests() {
     if (typeof QUEST_DATABASE !== 'undefined' && QUEST_DATABASE.quests) {
-      debugLog(`✅ QUEST_DATABASE loaded with ${Object.keys(QUEST_DATABASE.quests).length} quests`);
+      debugLog(`âœ… QUEST_DATABASE loaded with ${Object.keys(QUEST_DATABASE.quests).length} quests`);
       return QUEST_DATABASE.quests;
     }
     // Fallback to inline quest if QUEST_DATABASE not loaded
-    debugLog('⚠️ QUEST_DATABASE not found, using fallback quest');
+    debugLog('âš ï¸ QUEST_DATABASE not found, using fallback quest');
     return {
       "missing-guitar": {
         id: "missing-guitar",
@@ -1012,7 +1012,7 @@ export function initializeApp() {
           "1": {
             characterName: "Mateo, the Concierge",
             vignette: { en: "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen." },
-            systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
+            systemPrompt: "You are Mateo, a professional but worried hotel concierge in BogotÃ¡.",
             objectives: [],
             completionCriteria: { minMessages: 3, objectivesRequired: 0 },
             reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
@@ -1025,12 +1025,12 @@ export function initializeApp() {
   }
 
   const quests = getQuests();
-  debugLog(`📚 Quests object has ${Object.keys(quests).length} quests`);
+  debugLog(`ðŸ“š Quests object has ${Object.keys(quests).length} quests`);
 
   // Utility functions
   // Show auth views (login, signup, email verification)
   function showAuthView(viewId) {
-    debugLog(`🔄 showAuthView called with: ${viewId}`);
+    debugLog(`ðŸ”„ showAuthView called with: ${viewId}`);
 
     // Hide all auth views
     if (dom.loginView) dom.loginView.style.display = 'none';
@@ -1042,12 +1042,12 @@ export function initializeApp() {
     const viewElement = document.getElementById(viewId);
     if (viewElement) {
       viewElement.style.display = 'block';
-      debugLog(`✅ Showing auth view: ${viewId}`);
+      debugLog(`âœ… Showing auth view: ${viewId}`);
     }
   }
 
   function showView(viewId) {
-    debugLog(`🔄 showView called with: ${viewId}`);
+    debugLog(`ðŸ”„ showView called with: ${viewId}`);
 
     // If it's an auth view, use showAuthView instead
     if (viewId === 'login-view' || viewId === 'signup-view' || viewId === 'email-verification-view') {
@@ -1059,7 +1059,7 @@ export function initializeApp() {
       if (view.id === viewId) {
         view.style.display = 'flex';
         view.classList.add('active');
-        debugLog(`✅ Showing view: ${viewId}`);
+        debugLog(`âœ… Showing view: ${viewId}`);
       } else {
         view.style.display = 'none';
         view.classList.remove('active');
@@ -1075,28 +1075,42 @@ export function initializeApp() {
   }
 
   // Authentication functions
-  debugLog('📝 Setting up authentication functions...');
+  debugLog('ðŸ“ Setting up authentication functions...');
   async function handleLogin() {
     const email = dom.loginEmailInput.value.trim();
     const password = dom.loginPasswordInput.value;
 
     if (!email || !password) {
-      alert('Please fill in all fields');
+      dom.loginError.textContent = 'Please fill in both fields!';
       return;
     }
 
     try {
       dom.loginBtn.disabled = true;
-      dom.loginBtn.textContent = 'Signing In...';
+      dom.loginBtn.innerHTML = 'Logging in... â³';
+      dom.loginError.textContent = '';
       
       await signInWithEmailAndPassword(auth, email, password);
       // onAuthStateChanged will handle the UI update
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed: ' + error.message);
+      
+      // Friendly error messages
+      let friendlyMessage = '';
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        friendlyMessage = "Hmm, that didn't work. Check your email and password?";
+      } else if (error.code === 'auth/too-many-requests') {
+        friendlyMessage = "Too many attempts. Take a breather and try again in a few minutes!";
+      } else if (error.code === 'auth/network-request-failed') {
+        friendlyMessage = "Connection issue. Check your internet?";
+      } else {
+        friendlyMessage = "Oops, something went wrong. Try again?";
+      }
+      
+      dom.loginError.textContent = friendlyMessage;
     } finally {
       dom.loginBtn.disabled = false;
-      dom.loginBtn.textContent = 'Login';
+      dom.loginBtn.innerHTML = 'Continue Adventure â†’';
     }
   }
 
@@ -1106,13 +1120,14 @@ export function initializeApp() {
     const displayName = dom.signupDisplayNameInput.value.trim();
 
     if (!email || !password || !displayName) {
-      alert('Please fill in all fields');
+      dom.signupError.textContent = 'Please fill in all fields!';
       return;
     }
 
     try {
       dom.signupBtn.disabled = true;
-      dom.signupBtn.textContent = 'Creating Account...';
+      dom.signupBtn.innerHTML = 'Creating your account... â³';
+      dom.signupError.textContent = '';
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
@@ -1136,10 +1151,25 @@ export function initializeApp() {
       // onAuthStateChanged will handle the UI update
     } catch (error) {
       console.error('Signup error:', error);
-      alert('Signup failed: ' + error.message);
+      
+      // Friendly error messages
+      let friendlyMessage = '';
+      if (error.code === 'auth/email-already-in-use') {
+        friendlyMessage = "Looks like you already have an account! Try logging in instead.";
+      } else if (error.code === 'auth/weak-password') {
+        friendlyMessage = "That password needs to be stronger. Add some numbers or symbols!";
+      } else if (error.code === 'auth/invalid-email') {
+        friendlyMessage = "That email doesn't look quite right. Check for typos?";
+      } else if (error.code === 'auth/network-request-failed') {
+        friendlyMessage = "Connection issue. Check your internet?";
+      } else {
+        friendlyMessage = "Oops, something went wrong. Try again?";
+      }
+      
+      dom.signupError.textContent = friendlyMessage;
     } finally {
       dom.signupBtn.disabled = false;
-      dom.signupBtn.textContent = 'Sign Up';
+      dom.signupBtn.innerHTML = 'Begin Journey â†’';
     }
   }
 
@@ -1212,6 +1242,31 @@ export function initializeApp() {
       }
     });
 
+    // Check for empty state (no available quests)
+    if (availableQuests.length === 0 && lockedQuests.length === 0 && completedQuestsArray.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'text-center py-12';
+      emptyState.innerHTML = `
+        <div class="text-6xl mb-4">ðŸ—ºï¸</div>
+        <h3 class="text-xl font-bold text-gray-800 mb-2">Your Adventure Awaits!</h3>
+        <p class="text-gray-600 mb-4">Quests will appear here once you complete your placement test.</p>
+      `;
+      dom.questList.appendChild(emptyState);
+      return;
+    }
+
+    // Empty state for when all quests are locked (shouldn't happen often)
+    if (availableQuests.length === 0 && completedQuestsArray.length === 0 && lockedQuests.length > 0) {
+      const noAvailableState = document.createElement('div');
+      noAvailableState.className = 'text-center py-8 mb-6';
+      noAvailableState.innerHTML = `
+        <div class="text-5xl mb-3">ðŸ”“</div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Keep Going!</h3>
+        <p class="text-gray-600 text-sm">Complete more quests below to unlock new adventures!</p>
+      `;
+      dom.questList.appendChild(noAvailableState);
+    }
+
     // Helper function to create quest card
     const createQuestCard = ({ questKey, quest, isLocked, isCompleted, prerequisites }) => {
       // Get difficulty badge styling
@@ -1236,8 +1291,8 @@ export function initializeApp() {
           <div class="relative h-32 overflow-hidden">
             <img src="${quest.thumbnailImage}" alt="${quest.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            ${isCompleted ? '<div class="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"><span>✓</span> Completed</div>' : ''}
-            ${isLocked ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><span class="text-5xl">🔒</span></div>' : ''}
+            ${isCompleted ? '<div class="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"><span>âœ“</span> Completed</div>' : ''}
+            ${isLocked ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><span class="text-5xl">ðŸ”’</span></div>' : ''}
           </div>
         ` : ''}
 
@@ -1257,12 +1312,12 @@ export function initializeApp() {
             </span>
             ${quest.estimatedDuration ? `
               <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold">
-                ⏱️ ${quest.estimatedDuration} min
+                â±ï¸ ${quest.estimatedDuration} min
               </span>
             ` : ''}
             ${quest.requiredLevel ? `
               <span class="text-xs px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
-                📚 ${quest.requiredLevel}
+                ðŸ“š ${quest.requiredLevel}
               </span>
             ` : ''}
           </div>
@@ -1272,20 +1327,20 @@ export function initializeApp() {
 
           <!-- Lock Message -->
           ${isLocked ? `
-            <div class="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
-              <p class="text-xs text-red-600 font-medium">🔒 Requires: ${prerequisites.join(', ')}</p>
+            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <p class="text-xs text-blue-700 font-medium">Complete ${prerequisites.join(', ')} first!</p>
             </div>
           ` : ''}
 
           <!-- CTA Button (only for unlocked quests) -->
           ${!isLocked && !isCompleted ? `
             <button class="mt-3 w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 rounded-lg font-semibold text-sm hover:from-purple-600 hover:to-blue-600 transition-all transform group-hover:scale-105 shadow-md">
-              Start Quest →
+              Start Quest â†’
             </button>
           ` : ''}
           ${!isLocked && isCompleted ? `
             <button class="mt-3 w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-2 rounded-lg font-semibold text-sm hover:from-green-600 hover:to-teal-600 transition-all">
-              ↺ Replay Quest
+              â†º Replay Quest
             </button>
           ` : ''}
         </div>
@@ -1302,7 +1357,7 @@ export function initializeApp() {
     if (availableQuests.length > 0) {
       const availableHeader = document.createElement('h2');
       availableHeader.className = 'text-lg font-bold text-gray-800 mb-3 mt-2';
-      availableHeader.textContent = '✨ Available Quests';
+      availableHeader.textContent = 'âœ¨ Ready for You';
       dom.questList.appendChild(availableHeader);
 
       availableQuests.forEach(questData => {
@@ -1314,7 +1369,7 @@ export function initializeApp() {
     if (lockedQuests.length > 0) {
       const lockedHeader = document.createElement('h2');
       lockedHeader.className = 'text-lg font-bold text-gray-500 mb-3 mt-6';
-      lockedHeader.textContent = '🔒 Locked Quests';
+      lockedHeader.textContent = 'ðŸ”’ Coming Soon';
       dom.questList.appendChild(lockedHeader);
 
       lockedQuests.forEach(questData => {
@@ -1326,7 +1381,7 @@ export function initializeApp() {
     if (completedQuestsArray.length > 0) {
       const completedHeader = document.createElement('h2');
       completedHeader.className = 'text-lg font-bold text-green-600 mb-3 mt-6';
-      completedHeader.textContent = '✓ Completed Quests';
+      completedHeader.textContent = 'âœ“ Completed';
       dom.questList.appendChild(completedHeader);
 
       completedQuestsArray.forEach(questData => {
@@ -1337,7 +1392,7 @@ export function initializeApp() {
 
   // Start a quest
   function startQuest(questKey) {
-    debugLog(`📍 startQuest called with: ${questKey}`);
+    debugLog(`ðŸ“ startQuest called with: ${questKey}`);
     currentQuest = questKey;
     currentStage = "1";
     messages = [];
@@ -1354,18 +1409,18 @@ export function initializeApp() {
     const quest = quests[currentQuest];
     if (!quest) {
       console.error(`Quest not found: ${questKey}`);
-      debugLog(`❌ Quest not found: ${questKey}`);
+      debugLog(`âŒ Quest not found: ${questKey}`);
       return;
     }
 
     const stage = quest.stages[currentStage];
     if (!stage) {
       console.error(`Stage not found: ${currentStage} for quest ${questKey}`);
-      debugLog(`❌ Stage not found: ${currentStage}`);
+      debugLog(`âŒ Stage not found: ${currentStage}`);
       return;
     }
 
-    debugLog(`✅ Starting quest: ${quest.title}, Stage: ${currentStage}`);
+    debugLog(`âœ… Starting quest: ${quest.title}, Stage: ${currentStage}`);
 
     // Set all quest information (with null checks)
     if (dom.chatTitle) dom.chatTitle.textContent = quest.title;
@@ -1380,10 +1435,10 @@ export function initializeApp() {
     const questObjectiveMini = document.getElementById('quest-objective-mini');
     const characterAvatarExpanded = document.getElementById('character-avatar-expanded');
 
-    if (characterEmojiMini) characterEmojiMini.textContent = stage.characterAvatar || '🎭';
+    if (characterEmojiMini) characterEmojiMini.textContent = stage.characterAvatar || 'ðŸŽ­';
     if (characterNameMini) characterNameMini.textContent = stage.characterName || 'Character';
     if (questObjectiveMini) questObjectiveMini.textContent = quest.objective || '';
-    if (characterAvatarExpanded) characterAvatarExpanded.textContent = stage.characterAvatar || '🎭';
+    if (characterAvatarExpanded) characterAvatarExpanded.textContent = stage.characterAvatar || 'ðŸŽ­';
 
     // Handle vignette (support both old and new format)
     const vignetteText = stage.vignette?.en || stage.vignette_en || '';
@@ -1432,7 +1487,7 @@ export function initializeApp() {
       }, 5000);
     }
 
-    debugLog(`✅ Quest started successfully: ${quest.title}`);
+    debugLog(`âœ… Quest started successfully: ${quest.title}`);
   }
 
   // Dark Mode functions
@@ -1455,12 +1510,12 @@ export function initializeApp() {
     // Update main app icon
     const icon = document.querySelector('.dark-mode-icon');
     if (icon) {
-      icon.textContent = isDarkMode ? '☀️' : '🌙';
+      icon.textContent = isDarkMode ? 'â˜€ï¸' : 'ðŸŒ™';
     }
     // Update auth screen icon
     const authIcon = document.querySelector('.auth-dark-mode-icon');
     if (authIcon) {
-      authIcon.textContent = isDarkMode ? '☀️' : '🌙';
+      authIcon.textContent = isDarkMode ? 'â˜€ï¸' : 'ðŸŒ™';
     }
   }
 
@@ -1469,7 +1524,7 @@ export function initializeApp() {
     if (!dom.characterIntroOverlay) return;
 
     // Set character avatar
-    dom.characterIntroAvatar.textContent = stage.characterAvatar || '🎭';
+    dom.characterIntroAvatar.textContent = stage.characterAvatar || 'ðŸŽ­';
 
     // Set character name
     dom.characterIntroName.textContent = stage.characterName || 'Character';
@@ -1498,12 +1553,12 @@ export function initializeApp() {
     if (!dom.chatContainer || typingIndicatorElement) return;
 
     // Get character info for avatar
-    let avatar = '🎭';
+    let avatar = 'ðŸŽ­';
     let characterName = 'NPC';
     if (currentQuest && currentStage) {
       const quest = quests[currentQuest];
       const stage = quest?.stages?.[currentStage];
-      avatar = stage?.characterAvatar || '🎭';
+      avatar = stage?.characterAvatar || 'ðŸŽ­';
       characterName = stage?.characterName || 'NPC';
     }
 
@@ -1626,7 +1681,7 @@ export function initializeApp() {
   // Add message to chat
   function addMessage(sender, text) {
     if (!dom.chatContainer) {
-      debugLog('⚠️ chatContainer not found, cannot add message');
+      debugLog('âš ï¸ chatContainer not found, cannot add message');
       return;
     }
 
@@ -1644,7 +1699,7 @@ export function initializeApp() {
     if (sender === 'npc' && currentQuest && currentStage) {
       const quest = quests[currentQuest];
       const stage = quest?.stages?.[currentStage];
-      avatar = stage?.characterAvatar || '🎭';
+      avatar = stage?.characterAvatar || 'ðŸŽ­';
       characterName = stage?.characterName || 'NPC';
     }
 
@@ -1685,7 +1740,7 @@ export function initializeApp() {
     if (sender === 'user') {
       const userAvatarEl = document.createElement('div');
       userAvatarEl.className = 'flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md';
-      userAvatarEl.textContent = '👤';
+      userAvatarEl.textContent = 'ðŸ‘¤';
       messageWrapper.appendChild(userAvatarEl);
     }
 
@@ -1729,7 +1784,7 @@ export function initializeApp() {
     addMessage('user', message);
     dom.chatInput.value = '';
     dom.sendBtn.disabled = true;
-    dom.sendBtn.textContent = 'Sending...';
+    dom.sendBtn.textContent = 'â³';
 
     // Increment message count
     stageMessageCount++;
@@ -1763,19 +1818,19 @@ export function initializeApp() {
 
       // If stage is complete and farewell hasn't been sent, ask AI to send farewell
       if (stageCompleted && !farewellSent) {
-        objectivesContext += `\n\n🎉 QUEST COMPLETE - TIME TO CELEBRATE AND WRAP UP! 🎉
+        objectivesContext += `\n\nðŸŽ‰ QUEST COMPLETE - TIME TO CELEBRATE AND WRAP UP! ðŸŽ‰
 ALL OBJECTIVES ACHIEVED! The user has successfully completed this quest.
 
 YOUR NEXT RESPONSE SHOULD:
 1. Warmly congratulate them on completing the mission (1 sentence with Spanish)
-2. Include "¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
-3. Ask how they feel about completing their primera misión (first mission)
+2. Include "Â¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
+3. Ask how they feel about completing their primera misiÃ³n (first mission)
 4. END with a friendly question to invite their response
 
-✅ PERFECT Example:
-"¡Increíble trabajo! (Amazing work!) You successfully completed your primera misión (first mission)! ¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!) How do you feel about helping abuela? ¿Feliz? (Happy?)"
+âœ… PERFECT Example:
+"Â¡IncreÃ­ble trabajo! (Amazing work!) You successfully completed your primera misiÃ³n (first mission)! Â¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!) How do you feel about helping abuela? Â¿Feliz? (Happy?)"
 
-After they respond to your question (especially if they say goodbye/thanks/adiós), you can bid them farewell warmly.
+After they respond to your question (especially if they say goodbye/thanks/adiÃ³s), you can bid them farewell warmly.
 
 REMEMBER: Always end responses with a question mark (?) to keep conversation flowing naturally.`;
       }
@@ -1800,13 +1855,13 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       console.log(`[Farewell Check] After AI response: stageCompleted=${stageCompleted}, farewellSent=${farewellSent}, messages=${stageMessageCount}, objectives=${completedObjectives.size}`);
 
       if (stageCompleted && !farewellSent) {
-        console.log('🎊 [Farewell] QUEST COMPLETE - Disabling chat and scheduling completion notification');
+        console.log('ðŸŽŠ [Farewell] QUEST COMPLETE - Disabling chat and scheduling completion notification');
         console.log(`[Farewell] Criteria met - Messages: ${stageMessageCount}, Objectives: ${completedObjectives.size}/${stage.objectives?.length || 0}`);
         farewellSent = true;
 
         // Disable chat input to prevent further messages
         dom.chatInput.disabled = true;
-        dom.chatInput.placeholder = "Quest completing...";
+        dom.chatInput.placeholder = "Quest complete! Great work! ðŸŽ‰";
         dom.sendBtn.disabled = true;
 
         // Show completion notification after a delay to let user read farewell
@@ -1867,10 +1922,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
       if (hasMatch) {
         completedObjectives.add(objective.id);
-        debugLog(`🎯🎯🎯 OBJECTIVE COMPLETED 🎯🎯🎯`);
-        debugLog(`   ✅ ${objective.description}`);
-        debugLog(`   📊 Progress: ${completedObjectives.size}/${stage.objectives.length} objectives`);
-        debugLog(`   📝 Messages: ${stageMessageCount} sent`);
+        debugLog(`ðŸŽ¯ðŸŽ¯ðŸŽ¯ OBJECTIVE COMPLETED ðŸŽ¯ðŸŽ¯ðŸŽ¯`);
+        debugLog(`   âœ… ${objective.description}`);
+        debugLog(`   ðŸ“Š Progress: ${completedObjectives.size}/${stage.objectives.length} objectives`);
+        debugLog(`   ðŸ“ Messages: ${stageMessageCount} sent`);
       }
     });
   }
@@ -1918,11 +1973,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     });
 
     if (minMessagesMet && objectivesMet && minDurationMet && !stageCompleted) {
-      debugLog('🎊🎊🎊🎊🎊 QUEST CRITERIA MET! 🎊🎊🎊🎊🎊');
-      debugLog(`   ✅ Messages: ${stageMessageCount}/${criteria.minMessages}`);
-      debugLog(`   ✅ Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}`);
-      debugLog(`   ✅ Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
-      debugLog(`   ⏳ Waiting for AI farewell message...`);
+      debugLog('ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ QUEST CRITERIA MET! ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ');
+      debugLog(`   âœ… Messages: ${stageMessageCount}/${criteria.minMessages}`);
+      debugLog(`   âœ… Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}`);
+      debugLog(`   âœ… Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
+      debugLog(`   â³ Waiting for AI farewell message...`);
       stageCompleted = true;
       // Don't show notification yet - let the AI send a farewell message first
     }
@@ -1971,7 +2026,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   function triggerSparkles() {
-    const sparkleEmojis = ['✨', '⭐', '🌟', '💫', '⚡'];
+    const sparkleEmojis = ['âœ¨', 'â­', 'ðŸŒŸ', 'ðŸ’«', 'âš¡'];
 
     for (let i = 0; i < 8; i++) {
       setTimeout(() => {
@@ -1991,9 +2046,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   function showStageCompletionNotification() {
-    debugLog('🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
-    debugLog('🎉 SHOWING COMPLETION BANNER NOW!');
-    debugLog('🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
+    debugLog('ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ');
+    debugLog('ðŸŽ‰ SHOWING COMPLETION BANNER NOW!');
+    debugLog('ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ');
 
     // Trigger celebration effects
     triggerCelebration();
@@ -2017,21 +2072,22 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     notification.style.zIndex = '100';
     notification.innerHTML = `
       <div class="text-center">
-        <div class="text-5xl mb-3">🎉</div>
+        <div class="text-5xl mb-3">ðŸŽ‰</div>
         <div class="text-xl font-bold mb-2">Quest Complete!</div>
-        <div class="text-sm mb-3">You've completed all objectives for this quest.</div>
+        <div class="text-sm mb-2">You just held a real conversation in Spanish. That's amazing!</div>
         ${stage.reward?.clue ? `<div class="text-sm mt-2 italic bg-white/50 p-3 rounded-lg">"${stage.reward.clue}"</div>` : ''}
-        ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP earned! ⭐</div>` : ''}
-        <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
-          Return to Quests
+        ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP â­</div>` : ''}
+        <div class="text-xs mt-3 text-green-700 italic">"Every conversation makes you stronger!" - Maya</div>
+        <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-md">
+          Back to Adventures â†’
         </button>
       </div>
     `;
 
-    console.log('📝 [showStageCompletionNotification] Notification created, appending to chat...');
+    console.log('ðŸ“ [showStageCompletionNotification] Notification created, appending to chat...');
     dom.chatContainer.appendChild(notification);
     dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
-    console.log('✅ [showStageCompletionNotification] Notification appended and scrolled to');
+    console.log('âœ… [showStageCompletionNotification] Notification appended and scrolled to');
 
     // Function to return to quest view
     const returnToQuests = () => {
@@ -2145,7 +2201,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     const hintEl = document.createElement('div');
     hintEl.className = 'p-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg mb-2';
     hintEl.innerHTML = `
-      <div class="font-semibold text-sm">💡 Hint</div>
+      <div class="font-semibold text-sm">ðŸ’¡ Maya's Tip</div>
       <div class="text-sm mt-1">${hintText}</div>
     `;
 
@@ -2188,14 +2244,14 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   // Event listeners
-  debugLog('🎯 Setting up event listeners...');
+  debugLog('ðŸŽ¯ Setting up event listeners...');
   try {
     if (dom.showSignupBtn) dom.showSignupBtn.addEventListener('click', () => showView('signup-view'));
     if (dom.showLoginBtn) dom.showLoginBtn.addEventListener('click', () => showView('login-view'));
     if (dom.loginBtn) dom.loginBtn.addEventListener('click', handleLogin);
     if (dom.signupBtn) dom.signupBtn.addEventListener('click', handleSignup);
     if (dom.logoutBtn) dom.logoutBtn.addEventListener('click', handleLogout);
-    debugLog('✅ Auth event listeners set');
+    debugLog('âœ… Auth event listeners set');
 
     if (dom.backToQuestsBtn) {
       dom.backToQuestsBtn.addEventListener('click', () => {
@@ -2218,7 +2274,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     if (autoplayToggleBtn) {
       // Update button text based on initial state
       const updateAutoplayButton = () => {
-        autoplayToggleBtn.textContent = autoplayEnabled ? '🔊 Auto-play' : '🔇 Auto-play';
+        autoplayToggleBtn.textContent = autoplayEnabled ? 'ðŸ”Š Auto-play' : 'ðŸ”‡ Auto-play';
         autoplayToggleBtn.className = autoplayEnabled
           ? 'text-blue-600 hover:text-blue-700 px-3 py-1 rounded-md text-sm transition-colors font-medium'
           : 'text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors';
@@ -2247,7 +2303,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') sendChatMessage();
       });
     }
-    debugLog('✅ Chat event listeners set');
+    debugLog('âœ… Chat event listeners set');
 
     // Character introduction card
     if (dom.characterIntroContinueBtn) {
@@ -2288,7 +2344,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') handlePlacementSend();
       });
     }
-    debugLog('✅ Placement event listeners set');
+    debugLog('âœ… Placement event listeners set');
 
     // Settings modal
     if (dom.settingsBtn) {
@@ -2310,9 +2366,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.voiceSpeedValue.textContent = `${speed.toFixed(1)}x`;
         userSettings.voiceSpeed = speed;
       });
-      debugLog('✅ Voice speed slider listener set');
+      debugLog('âœ… Voice speed slider listener set');
     } else {
-      console.warn('❌ Voice speed slider not found');
+      console.warn('âŒ Voice speed slider not found');
     }
 
     // Voice pitch slider
@@ -2323,9 +2379,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.voicePitchValue.textContent = labels[pitch + 3] || 'Normal';
         userSettings.voicePitch = pitch;
       });
-      debugLog('✅ Voice pitch slider listener set');
+      debugLog('âœ… Voice pitch slider listener set');
     } else {
-      console.warn('❌ Voice pitch slider not found');
+      console.warn('âŒ Voice pitch slider not found');
     }
 
     // Debug log toggle
@@ -2338,7 +2394,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         const isHidden = debugContent.classList.contains('hidden');
         if (isHidden) {
           debugContent.classList.remove('hidden');
-          debugToggleBtn.textContent = '−';
+          debugToggleBtn.textContent = 'âˆ’';
         } else {
           debugContent.classList.add('hidden');
           debugToggleBtn.textContent = '+';
@@ -2358,7 +2414,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         // Make sure content is visible (expanded)
         debugContent.classList.remove('hidden');
         const debugToggle = document.getElementById('voice-debug-toggle');
-        if (debugToggle) debugToggle.textContent = '−';
+        if (debugToggle) debugToggle.textContent = 'âˆ’';
 
         // Create log entry
         const logEntry = document.createElement('div');
@@ -2384,7 +2440,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     if (dom.testVoiceBtn) {
       console.log('[Voice] Setting up test voice button listener');
       dom.testVoiceBtn.addEventListener('click', async () => {
-        addVoiceDebugLog('🔘 Test Voice button clicked', 'info');
+        addVoiceDebugLog('ðŸ”˜ Test Voice button clicked', 'info');
 
         try {
           const testText = 'Hello! This is a test of the voice system. How does this sound to you?';
@@ -2392,33 +2448,33 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           const characterGender = 'female';
           const currentSpeed = parseFloat(dom.voiceSpeedSlider.value);
 
-          addVoiceDebugLog(`📝 Text: "${testText}"`, 'info');
-          addVoiceDebugLog(`👤 Character: ${characterName} (${characterGender})`, 'info');
-          addVoiceDebugLog(`🔧 Voice Provider: Cartesia (auto-fallback to OpenAI → Google)`, 'info');
-          addVoiceDebugLog(`🎤 Voice: Auto-selected based on character`, 'info');
-          addVoiceDebugLog(`⚡ Voice Speed: ${currentSpeed}x`, 'info');
+          addVoiceDebugLog(`ðŸ“ Text: "${testText}"`, 'info');
+          addVoiceDebugLog(`ðŸ‘¤ Character: ${characterName} (${characterGender})`, 'info');
+          addVoiceDebugLog(`ðŸ”§ Voice Provider: Cartesia (auto-fallback to OpenAI â†’ Google)`, 'info');
+          addVoiceDebugLog(`ðŸŽ¤ Voice: Auto-selected based on character`, 'info');
+          addVoiceDebugLog(`âš¡ Voice Speed: ${currentSpeed}x`, 'info');
 
           // Temporarily override settings for testing
           const savedSpeed = userSettings.voiceSpeed;
           userSettings.voiceSpeed = currentSpeed;
 
-          addVoiceDebugLog('🔊 Calling TTSManager.speak()...', 'info');
+          addVoiceDebugLog('ðŸ”Š Calling TTSManager.speak()...', 'info');
           await TTSManager.speak(testText, characterName, characterGender);
-          addVoiceDebugLog('✅ TTSManager.speak() completed', 'success');
+          addVoiceDebugLog('âœ… TTSManager.speak() completed', 'success');
 
           // Restore saved settings
           userSettings.voiceSpeed = savedSpeed;
         } catch (error) {
-          addVoiceDebugLog(`❌ Error: ${error.message}`, 'error');
+          addVoiceDebugLog(`âŒ Error: ${error.message}`, 'error');
           console.error('[Voice Test Error]', error);
         }
       });
-      debugLog('✅ Test voice button listener set');
+      debugLog('âœ… Test voice button listener set');
     } else {
-      console.warn('❌ Test voice button not found in DOM');
+      console.warn('âŒ Test voice button not found in DOM');
     }
 
-    debugLog('✅ Settings event listeners set');
+    debugLog('âœ… Settings event listeners set');
 
     if (dom.saveSettingsBtn) {
       dom.saveSettingsBtn.addEventListener('click', async () => {
@@ -2449,10 +2505,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     function applyHighContrast(enabled) {
       if (enabled) {
         document.body.classList.add('high-contrast');
-        debugLog('✅ High contrast mode enabled');
+        debugLog('âœ… High contrast mode enabled');
       } else {
         document.body.classList.remove('high-contrast');
-        debugLog('✅ High contrast mode disabled');
+        debugLog('âœ… High contrast mode disabled');
       }
       // Save preference
       localStorage.setItem('highContrast', enabled ? 'true' : 'false');
@@ -2486,7 +2542,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
       // Save preference
       localStorage.setItem('fontSize', size);
-      debugLog(`✅ Font size set to: ${size}`);
+      debugLog(`âœ… Font size set to: ${size}`);
     }
 
     // Load saved font size preference
@@ -2510,7 +2566,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         // Close settings modal
         if (dom.settingsModal && !dom.settingsModal.classList.contains('hidden')) {
           dom.settingsModal.classList.add('hidden');
-          debugLog('⌨️ Closed settings modal with Escape');
+          debugLog('âŒ¨ï¸ Closed settings modal with Escape');
           return;
         }
 
@@ -2519,7 +2575,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         modals.forEach(modal => {
           if (modal.id !== 'settings-modal') {
             modal.classList.add('hidden');
-            debugLog(`⌨️ Closed modal ${modal.id} with Escape`);
+            debugLog(`âŒ¨ï¸ Closed modal ${modal.id} with Escape`);
           }
         });
 
@@ -2530,7 +2586,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.questView.style.display = 'flex';
           updateMobileNavActive('quests');
           TTSManager.stop();
-          debugLog('⌨️ Returned to quest list with Escape');
+          debugLog('âŒ¨ï¸ Returned to quest list with Escape');
         }
       }
 
@@ -2541,10 +2597,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           const isHidden = dom.settingsModal.classList.contains('hidden');
           if (isHidden) {
             dom.settingsModal.classList.remove('hidden');
-            debugLog('⌨️ Opened settings with Ctrl/Cmd+K');
+            debugLog('âŒ¨ï¸ Opened settings with Ctrl/Cmd+K');
           } else {
             dom.settingsModal.classList.add('hidden');
-            debugLog('⌨️ Closed settings with Ctrl/Cmd+K');
+            debugLog('âŒ¨ï¸ Closed settings with Ctrl/Cmd+K');
           }
         }
       }
@@ -2557,7 +2613,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.chatView.style.display = 'none';
           dom.questView.style.display = 'flex';
           updateMobileNavActive('quests');
-          debugLog('⌨️ Toggled to quest view with Ctrl/Cmd+/');
+          debugLog('âŒ¨ï¸ Toggled to quest view with Ctrl/Cmd+/');
         }
       }
     });
@@ -2588,7 +2644,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       // Announce new message after a small delay to ensure screen readers pick it up
       setTimeout(() => {
         srAnnouncements.textContent = message;
-        debugLog(`📢 Screen reader announcement: ${message}`);
+        debugLog(`ðŸ“¢ Screen reader announcement: ${message}`);
       }, 100);
 
       // Clear after announcement to avoid repetition
@@ -2637,7 +2693,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     const tourSteps = [
       {
         target: '#welcome-message',
-        title: 'Welcome to ConvoQuest! 🎉',
+        title: 'Welcome to ConvoQuest! ðŸŽ‰',
         message: 'This is your quest hub where you can see all available language learning adventures.',
         position: 'bottom'
       },
@@ -2765,14 +2821,14 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       onboardingTooltip.classList.add('hidden');
       localStorage.setItem('onboardingCompleted', 'true');
       announceToScreenReader('Onboarding tour completed');
-      debugLog('✅ Onboarding tour completed');
+      debugLog('âœ… Onboarding tour completed');
     }
 
     function startOnboardingTour() {
       currentTourStep = 0;
       showTourStep(currentTourStep);
       announceToScreenReader('Welcome tour started');
-      debugLog('🎓 Onboarding tour started');
+      debugLog('ðŸŽ“ Onboarding tour started');
     }
 
     // Event listeners for onboarding
@@ -2804,14 +2860,14 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       startOnboardingTour();
     };
 
-    debugLog('✅ All event listeners set successfully');
+    debugLog('âœ… All event listeners set successfully');
   } catch (error) {
-    debugLog(`❌ Error setting up event listeners: ${error.message}`);
+    debugLog(`âŒ Error setting up event listeners: ${error.message}`);
     console.error('Event listener error:', error);
   }
 
   // Auth state listener
-  debugLog('🔐 Setting up auth state listener...');
+  debugLog('ðŸ” Setting up auth state listener...');
 
   // Use real Firebase Auth
   onAuthStateChanged(auth, async (user) => {
@@ -2821,19 +2877,20 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.userDisplayName.textContent = user.displayName || 'User';
         }
         if (dom.welcomeMessage) {
-          dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'User'}!`;
+          const firstName = (user.displayName || 'Explorer').split(' ')[0];
+          dom.welcomeMessage.textContent = `Hey ${firstName}! ðŸ—ºï¸`;
         }
 
         // Hide auth container and show main app
         if (dom.authContainer) {
           dom.authContainer.style.display = 'none';
-          debugLog('✅ Auth container hidden');
+          debugLog('âœ… Auth container hidden');
         }
 
         try {
           // Load user data
           const userData = await loadUserData(user);
-          debugLog(`📊 User data loaded: ${JSON.stringify(userData ? { placementCompleted: userData.placementCompleted, onboardingQuestCompleted: userData.onboardingQuestCompleted } : 'null')}`);
+          debugLog(`ðŸ“Š User data loaded: ${JSON.stringify(userData ? { placementCompleted: userData.placementCompleted, onboardingQuestCompleted: userData.onboardingQuestCompleted } : 'null')}`);
 
           // Pass user progress to the quest map
           if (typeof window.updateUserProgress === 'function') {
@@ -2857,7 +2914,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           }
         } catch (error) {
           console.error('[PRODUCTION MODE] Error in auth flow:', error);
-          debugLog(`❌ Error in auth flow: ${error.message}`);
+          debugLog(`âŒ Error in auth flow: ${error.message}`);
           // Fallback to placement test if there's an error
           showView('placement-view');
         }
@@ -2875,7 +2932,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (dom.authContainer) {
           dom.authContainer.style.display = 'flex';
           dom.authContainer.classList.add('active');
-          debugLog('✅ Auth container shown');
+          debugLog('âœ… Auth container shown');
         }
 
         // Show login view
@@ -2885,15 +2942,15 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     });
 
   // Initialize quest list
-  debugLog('📋 Initializing quest list...');
+  debugLog('ðŸ“‹ Initializing quest list...');
   renderQuests();
 
   // Initialize quest map
   if (typeof window.initializeQuestMap === 'function') {
-    debugLog('🗺️ Initializing quest map...');
+    debugLog('ðŸ—ºï¸ Initializing quest map...');
     window.initializeQuestMap();
   } else {
-    debugLog('⚠️ Quest map init function not found');
+    debugLog('âš ï¸ Quest map init function not found');
   }
 
   // Expose functions for quest map
@@ -3006,11 +3063,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       dom.questView.style.display = 'flex';
       updateMobileNavActive('quests');
       TTSManager.stop();
-      debugLog('⬅️ Swiped right: Returned to quest list');
+      debugLog('â¬…ï¸ Swiped right: Returned to quest list');
     }
     // Swipe left (not implemented for now - could be used for quick actions)
     else if (deltaX < 0 && inQuestView) {
-      debugLog('➡️ Swiped left in quest view');
+      debugLog('âž¡ï¸ Swiped left in quest view');
       // Future: Could implement quest navigation or quick access to profile
     }
   }
@@ -3048,21 +3105,21 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     }, { passive: true });
   }
 
-  debugLog('✅ Application initialized successfully');
+  debugLog('âœ… Application initialized successfully');
   console.log('[ConvoQuest] Application initialized successfully');
 }
 
 // Auto-initialize when DOM is ready
-console.log('🟢 Setting up auto-initialization...');
-console.log('🟢 Document ready state:', document.readyState);
+console.log('ðŸŸ¢ Setting up auto-initialization...');
+console.log('ðŸŸ¢ Document ready state:', document.readyState);
 
 if (document.readyState === 'loading') {
-  console.log('🟢 Waiting for DOMContentLoaded...');
+  console.log('ðŸŸ¢ Waiting for DOMContentLoaded...');
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('🟢 DOMContentLoaded fired, calling initializeApp...');
+    console.log('ðŸŸ¢ DOMContentLoaded fired, calling initializeApp...');
     initializeApp();
   });
 } else {
-  console.log('🟢 DOM already ready, calling initializeApp immediately...');
+  console.log('ðŸŸ¢ DOM already ready, calling initializeApp immediately...');
   initializeApp();
 }
