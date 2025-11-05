@@ -938,31 +938,56 @@
         </div>
       </div>
       <div id="login-view">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">🗺️</div>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back!</h1>
+          <p class="text-gray-600 text-sm">Your adventure awaits</p>
+        </div>
         <div class="space-y-4">
-          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div>
+            <label for="login-email-input" class="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+            <input type="email" id="login-email-input" placeholder="your.email@example.com" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="login-password-input" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="login-password-input" placeholder="••••••••" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
         </div>
         <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
-          <button id="login-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Login</button>
+          <button id="login-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-md font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">Continue Adventure →</button>
           <button id="forgot-password-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline">Forgot Password?</button>
-          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+          <div class="pt-2 border-t border-gray-200">
+            <button id="show-signup-btn" class="w-full text-center text-sm text-gray-700">New here? <span class="text-blue-600 font-medium hover:underline">Start Your Journey</span></button>
+          </div>
         </div>
       </div>
       <div id="signup-view" class="hidden">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">🗺️</div>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">Start Your Adventure</h1>
+          <p class="text-gray-600 text-sm">"Hey! I'm Maya, and I'll be your guide to Spanish conversations."</p>
+        </div>
         <div class="space-y-4">
           <!-- Avatar Selection -->
-          <div class="flex flex-col items-center mb-4">
+          <div class="flex flex-col items-center mb-2">
             <button type="button" id="select-avatar-btn" class="flex flex-col items-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
               <div id="selected-avatar-display" class="text-5xl">👤</div>
-              <span class="text-sm text-gray-600">Click to choose avatar</span>
+              <span class="text-sm text-gray-600">Choose your avatar</span>
             </button>
           </div>
-          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <input type="password" id="signup-password-input" placeholder="Password (min. 8 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div>
+            <label for="signup-name-input" class="block text-sm font-medium text-gray-700 mb-1">What should we call you?</label>
+            <input type="text" id="signup-name-input" placeholder="Your name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="signup-email-input" class="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+            <input type="email" id="signup-email-input" placeholder="your.email@example.com" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="signup-password-input" class="block text-sm font-medium text-gray-700 mb-1">Create a Password</label>
+            <input type="password" id="signup-password-input" placeholder="At least 8 characters" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
           <div class="text-xs space-y-1">
             <p class="text-gray-600 font-medium">Password must contain:</p>
             <ul class="space-y-1 pl-2">
@@ -977,12 +1002,17 @@
               </li>
             </ul>
           </div>
-          <input type="password" id="signup-password-confirm-input" placeholder="Confirm Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div>
+            <label for="signup-password-confirm-input" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input type="password" id="signup-password-confirm-input" placeholder="Type it again" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
-          <button id="signup-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Sign Up</button>
-          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Login</button>
+          <button id="signup-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-md font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">Begin Journey →</button>
+          <div class="pt-2 border-t border-gray-200">
+            <button id="show-login-btn" class="w-full text-center text-sm text-gray-700">Been here before? <span class="text-blue-600 font-medium hover:underline">Welcome Back</span></button>
+          </div>
         </div>
       </div>
     </div>
@@ -991,8 +1021,11 @@
     <div id="placement-view" class="main-view flex-col h-full">
       <div id="placement-quiz-view" class="flex flex-col h-full p-6 overflow-y-auto">
         <div class="max-w-2xl mx-auto w-full">
-          <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">Placement Test</h1>
-          <p class="text-gray-600 text-center mb-4">Answer 10-15 questions to determine your level.</p>
+          <div class="text-center mb-4">
+            <div class="text-4xl mb-2">📚</div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-1">Let's Find Your Starting Point</h1>
+            <p class="text-gray-600 text-sm">Answer a few questions so we can start you at the right level. Don't worry—this isn't a test you can fail!</p>
+          </div>
 
           <!-- Progress Bar -->
           <div class="mb-6">
@@ -1014,7 +1047,7 @@
           </div>
 
           <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next Question</button>
-          <button id="complete-placement-btn" class="w-full mt-3 bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition-colors">Complete Placement Test</button>
+          <button id="complete-placement-btn" class="w-full mt-3 bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition-colors">See My Results!</button>
         </div>
       </div>
     </div>
@@ -1025,9 +1058,9 @@
       <div id="quest-view" class="flex flex-col h-full" style="min-height: 0;">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0" role="banner">
           <div class="flex items-center gap-3">
-            <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
+            <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose Your Adventure</h1>
             <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
-              <button id="show-quest-list-btn" class="px-3 py-1 rounded text-sm font-medium bg-white text-gray-800 shadow-sm transition-all">📋 List</button>
+              <button id="show-quest-list-btn" class="px-3 py-1 rounded text-sm font-medium bg-white text-gray-800 shadow-sm transition-all">📋 Quests</button>
               <button id="show-quest-map-btn" class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:text-gray-800 transition-all">🗺️ Map</button>
             </div>
           </div>
@@ -1036,7 +1069,7 @@
             <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
               <span class="dark-mode-icon">🌙</span>
             </button>
-            <button id="settings-btn" title="Settings" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
+            <button id="settings-btn" title="Your Preferences" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
             <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
           </div>
         </header>
@@ -1113,9 +1146,9 @@
           </div>
           <div class="flex gap-2 items-center">
             <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.3</span>
-            <button id="repeat-tts-btn" title="Repeat last TTS audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
+            <button id="repeat-tts-btn" title="Repeat last audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
-            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
+            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">← Back</button>
           </div>
         </header>
 
@@ -1193,9 +1226,9 @@
 
         <div class="p-2 border-t bg-white/50 flex-shrink-0">
           <div class="flex items-center space-x-2">
-            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
-            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="mic-btn" title="Use microphone" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
+            <button id="hint-btn" title="Need help? Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
+            <input type="text" id="chat-input" placeholder="Say something in Spanish..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="mic-btn" title="Use your voice" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
             <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
           </div>
         </div>
@@ -1287,7 +1320,13 @@
     </div>
     <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4"><h2 id="settings-title" class="text-2xl font-bold">Settings</h2><button id="close-settings-btn" class="font-bold text-2xl" aria-label="Close settings">&times;</button></div>
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <h2 id="settings-title" class="text-2xl font-bold">Your Preferences</h2>
+                <p class="text-sm text-gray-600 mt-1">Make ConvoQuest yours!</p>
+              </div>
+              <button id="close-settings-btn" class="font-bold text-2xl" aria-label="Close settings">&times;</button>
+            </div>
             <div class="space-y-4">
                 <!-- Avatar Display -->
                 <div class="text-center pb-4 border-b">
@@ -1303,9 +1342,9 @@
                     <p class="text-xs text-gray-500 mt-1">Set how many minutes you want to practice each day</p>
                 </div>
 
-                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
-                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
-                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Spanish Style</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
+                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Conversation Style</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
+                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Quest Descriptions</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
 
                 <!-- Voice Settings Section -->
                 <div class="border-t pt-4 mt-4">
