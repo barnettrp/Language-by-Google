@@ -886,6 +886,21 @@
       box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
     }
 
+    /* Profile silhouette icon in chat header */
+    #chat-view header svg {
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+    #chat-view header svg:hover {
+      transform: scale(1.05);
+      color: #4b5563;
+    }
+    body.dark-mode #chat-view header svg {
+      color: #9ca3af;
+    }
+    body.dark-mode #chat-view header svg:hover {
+      color: #d1d5db;
+    }
+
     /* Dark mode for Santiago welcome card */
     body.dark-mode #santiago-welcome-card {
       background: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(14, 165, 233, 0.1), rgba(20, 184, 166, 0.1));
@@ -927,7 +942,7 @@
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.8</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.9</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -1082,7 +1097,7 @@
             </div>
           </div>
           <div class="flex items-center gap-1">
-            <span class="text-xs text-gray-400 mr-2 font-mono" title="App Version - Refresh to check for updates">v2.1.8</span>
+            <span class="text-xs text-gray-400 mr-2 font-mono" title="App Version - Refresh to check for updates">v2.1.9</span>
             <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
               <span class="dark-mode-icon">🌙</span>
             </button>
@@ -1181,15 +1196,23 @@
       </div>
       <div id="chat-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-          <div class="flex flex-col">
-            <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
-            <div id="objectives-progress" class="text-xs text-blue-600 font-medium mt-1 hidden cursor-pointer hover:underline" title="Click to view quest objective">
-              <span id="objectives-count">0/0</span> objectives completed
+          <div class="flex items-center gap-3">
+            <!-- Profile Silhouette Icon -->
+            <div class="flex-shrink-0">
+              <svg class="w-10 h-10 text-gray-600" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+              </svg>
             </div>
-            <p class="text-xs text-gray-500 mt-1">💡 Tip: Tap any word or select a phrase to translate it</p>
+            <div class="flex flex-col">
+              <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+              <div id="objectives-progress" class="text-xs text-blue-600 font-medium mt-1 hidden cursor-pointer hover:underline" title="Click to view quest objective">
+                <span id="objectives-count">0/0</span> objectives completed
+              </div>
+              <p class="text-xs text-gray-500 mt-1">💡 Tip: Tap any word or select a phrase to translate it</p>
+            </div>
           </div>
           <div class="flex gap-2 items-center">
-            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.8</span>
+            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.9</span>
             <button id="repeat-tts-btn" title="Repeat last audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
             <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">← Back</button>
