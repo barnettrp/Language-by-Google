@@ -9,7 +9,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 console.log('ðŸŸ¢ Firebase auth imports loaded');
 
@@ -68,6 +69,12 @@ export function initializeApp() {
   let isSpeaking = false; // Prevent concurrent speak() calls
   let lastTTSBlob = null; // Store last TTS audio for repeat functionality
 
+  // Background music state
+  let backgroundMusicElement = null; // Separate audio element for background music
+  let backgroundMusicBlobUrl = null; // Track background music blob URL
+  let isBackgroundMusicPlaying = false; // Track if background music is playing
+  let backgroundMusicEnabled = true; // Allow users to toggle background music
+
   // Placement test state
   let placementQuestions = [];
   let currentQuestionIndex = 0;
@@ -86,12 +93,22 @@ export function initializeApp() {
     loginEmailInput: document.getElementById('login-email-input'),
     loginPasswordInput: document.getElementById('login-password-input'),
     loginBtn: document.getElementById('login-btn'),
+    loginError: document.getElementById('login-error'),
     signupEmailInput: document.getElementById('signup-email-input'),
     signupPasswordInput: document.getElementById('signup-password-input'),
-    signupDisplayNameInput: document.getElementById('signup-display-name-input'),
+    signupPasswordConfirmInput: document.getElementById('signup-password-confirm-input'),
+    signupDisplayNameInput: document.getElementById('signup-name-input'),
     signupBtn: document.getElementById('signup-btn'),
+    signupError: document.getElementById('signup-error'),
     showSignupBtn: document.getElementById('show-signup-btn'),
     showLoginBtn: document.getElementById('show-login-btn'),
+    forgotPasswordBtn: document.getElementById('forgot-password-btn'),
+    forgotPasswordModal: document.getElementById('forgot-password-modal'),
+    closeForgotPasswordBtn: document.getElementById('close-forgot-password-btn'),
+    resetEmailInput: document.getElementById('reset-email-input'),
+    sendResetBtn: document.getElementById('send-reset-btn'),
+    resetError: document.getElementById('reset-error'),
+    resetSuccess: document.getElementById('reset-success'),
     userDisplayName: document.getElementById('user-display-name'),
     welcomeMessage: document.getElementById('welcome-message'),
     logoutBtn: document.getElementById('logout-btn'),
@@ -305,16 +322,31 @@ export function initializeApp() {
       console.log('[TTS] Lock released (playback ended), isSpeaking = false');
     };
 
-    persistentAudioElement.onerror = (err) => {
-      console.error('[TTS] Audio error:', err);
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
+    persistentAudioElement.onerror = (event) => {
+      // Get detailed error information
+      const target = event.target;
+      const error = target?.error;
+
+      // Log detailed error info
+      if (error) {
+        console.error(`[TTS] Audio error - Code: ${error.code}, Message: ${error.message || 'Unknown'}`);
+      } else {
+        // This often happens when load() is called to abort - not a real error
+        console.log('[TTS] Audio element error event (likely from abort/reset)');
       }
-      currentAudio = null;
-      // CRITICAL: Release the lock on error
-      isSpeaking = false;
-      console.log('[TTS] Lock released (error), isSpeaking = false');
+
+      // Only clean up and release lock if this is a real playback error
+      // (not just an abort from load() call)
+      if (error && error.code !== error.MEDIA_ERR_ABORTED) {
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl);
+          currentBlobUrl = null;
+        }
+        currentAudio = null;
+        // CRITICAL: Release the lock on error
+        isSpeaking = false;
+        console.log('[TTS] Lock released (real error), isSpeaking = false');
+      }
     };
 
     console.log('[TTS] Persistent audio element initialized');
@@ -502,14 +534,23 @@ export function initializeApp() {
         const moodAdjustments = this._getMoodAdjustments(mood);
         console.log(`[TTS] Detected mood: ${mood} (speed: ${moodAdjustments.speedMult}x, pitch: ${moodAdjustments.pitchAdj > 0 ? '+' : ''}${moodAdjustments.pitchAdj})`);
 
-        // Always use Cartesia -> OpenAI -> Google fallback order for best quality
+        // Always use ElevenLabs -> Cartesia -> OpenAI -> Google fallback order for best quality
         let data = null;
 
-        // Try Cartesia first (best quality native Spanish voices)
-        data = await this._tryCartesia(cleanedText, characterName, characterGender, moodAdjustments);
+        // Try ElevenLabs first (high quality multilingual voices)
+        data = await this._tryElevenLabs(cleanedText, characterName, characterGender, moodAdjustments);
 
         if (data) {
-          console.log('[TTS] âœ“ Cartesia succeeded');
+          console.log('[TTS] âœ" ElevenLabs succeeded');
+        }
+
+        // Fallback to Cartesia if ElevenLabs fails
+        if (!data) {
+          console.log('[TTS] âœ— ElevenLabs failed, falling back to Cartesia');
+          data = await this._tryCartesia(cleanedText, characterName, characterGender, moodAdjustments);
+          if (data) {
+            console.log('[TTS] âœ" Cartesia succeeded');
+          }
         }
 
         // Fallback to OpenAI if Cartesia fails
@@ -517,16 +558,16 @@ export function initializeApp() {
           console.log('[TTS] âœ— Cartesia failed, falling back to OpenAI');
           data = await this._tryOpenAI(cleanedText, characterName, characterGender, moodAdjustments);
           if (data) {
-            console.log('[TTS] âœ“ OpenAI succeeded');
+            console.log('[TTS] âœ" OpenAI succeeded');
           }
         }
 
-        // Final fallback to Google if both Cartesia and OpenAI fail
+        // Final fallback to Google if all others fail
         if (!data) {
           console.log('[TTS] âœ— OpenAI failed, falling back to Google');
           data = await this._tryGoogle(cleanedText, characterName, characterGender, moodAdjustments);
           if (data) {
-            console.log('[TTS] âœ“ Google succeeded');
+            console.log('[TTS] âœ" Google succeeded');
           }
         }
 
@@ -537,21 +578,20 @@ export function initializeApp() {
 
           // CRITICAL: Completely destroy and recreate audio element to prevent overlap
           if (persistentAudioElement) {
-            console.log('[TTS] Destroying previous audio element...');
+            console.log('[TTS] Cleaning up previous audio...');
             persistentAudioElement.pause();
             persistentAudioElement.currentTime = 0;
+
+            // Clean up old blob URL before clearing src
+            if (currentBlobUrl) {
+              URL.revokeObjectURL(currentBlobUrl);
+              currentBlobUrl = null;
+            }
+
+            // Setting src to empty string will trigger an error event, but that's expected
             persistentAudioElement.src = '';
-            persistentAudioElement.load(); // Force abort of any loading
+            // Note: We don't call load() here as it's not necessary and triggers error events
           }
-
-          // Clean up old blob URL
-          if (currentBlobUrl) {
-            URL.revokeObjectURL(currentBlobUrl);
-            currentBlobUrl = null;
-          }
-
-          // Brief wait for cleanup (load() already aborted any loading)
-          await new Promise(resolve => setTimeout(resolve, 50));
 
           try {
             console.log('[TTS] Loading new audio...');
@@ -673,6 +713,38 @@ export function initializeApp() {
       }
     },
 
+    async _tryElevenLabs(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0 }) {
+      try {
+        // Apply mood-based speed adjustment on top of user preference
+        const finalSpeed = (userSettings.voiceSpeed || 1.0) * moodAdjustments.speedMult;
+
+        console.log('[TTS] Calling ElevenLabs API');
+        const response = await fetch('/api/elevenlabs-tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            characterName: characterName || 'Unknown',
+            characterGender: characterGender || 'unknown',
+            speedMultiplier: finalSpeed
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.warn('[TTS] ElevenLabs API error:', response.status, errorData);
+          return null;
+        }
+
+        const data = await response.json();
+        console.log('[TTS] ElevenLabs response received:', data.provider, `(${data.audioContent ? data.audioContent.length : 0} bytes)`);
+        return data;
+      } catch (error) {
+        console.warn('[TTS] ElevenLabs error:', error);
+        return null;
+      }
+    },
+
     async _tryCartesia(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0, cartesiaEmotion: [] }) {
       try {
         // Apply mood-based speed adjustment on top of user preference
@@ -712,18 +784,19 @@ export function initializeApp() {
       if (persistentAudioElement) {
         persistentAudioElement.pause();
         persistentAudioElement.currentTime = 0;
-        persistentAudioElement.src = ''; // Clear source completely
-        persistentAudioElement.load(); // Abort any ongoing loading
-      }
 
-      // Clean up blob URL
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
+        // Clean up blob URL before clearing src
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl);
+          currentBlobUrl = null;
+        }
+
+        persistentAudioElement.src = ''; // Clear source completely
+        // Note: We don't call load() as it's unnecessary and triggers error events
       }
 
       currentAudio = null;
-      console.log('[TTS] Audio stopped, cleared, and loading aborted');
+      console.log('[TTS] Audio stopped and cleared');
     },
 
     repeat() {
@@ -755,10 +828,163 @@ export function initializeApp() {
 
       // Play the audio
       persistentAudioElement.play().then(() => {
-        console.log('[TTS] âœ“ Repeat playback started');
+        console.log('[TTS] âœ" Repeat playback started');
       }).catch(err => {
         console.error('[TTS] Repeat playback error:', err);
       });
+    }
+  };
+
+  // Background Music Manager
+  const BackgroundMusic = {
+    async start(questId, difficulty) {
+      if (!backgroundMusicEnabled) {
+        console.log('[Music] Background music is disabled');
+        return;
+      }
+
+      if (isBackgroundMusicPlaying) {
+        console.log('[Music] Music already playing, stopping current...');
+        this.stop();
+      }
+
+      console.log(`[Music] Starting background music for quest: ${questId}`);
+
+      try {
+        // Generate music from ElevenLabs
+        const response = await fetch('/api/elevenlabs-music', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            questId: questId,
+            difficulty: difficulty
+          })
+        });
+
+        if (!response.ok) {
+          console.warn('[Music] Failed to generate music:', response.status);
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!data.audioContent) {
+          console.warn('[Music] No audio content received');
+          return;
+        }
+
+        // Initialize background music element if needed
+        if (!backgroundMusicElement) {
+          backgroundMusicElement = new Audio();
+          backgroundMusicElement.loop = true; // Loop the music
+          backgroundMusicElement.volume = 0.3; // Lower volume for background
+        }
+
+        // Convert base64 to blob
+        const byteCharacters = atob(data.audioContent);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'audio/mp3' });
+
+        // Clean up old blob URL
+        if (backgroundMusicBlobUrl) {
+          URL.revokeObjectURL(backgroundMusicBlobUrl);
+          backgroundMusicBlobUrl = null;
+        }
+
+        // Create new blob URL and play
+        backgroundMusicBlobUrl = URL.createObjectURL(blob);
+        backgroundMusicElement.src = backgroundMusicBlobUrl;
+        backgroundMusicElement.load();
+
+        // Play with fade-in effect
+        backgroundMusicElement.volume = 0;
+        const playPromise = backgroundMusicElement.play();
+
+        if (playPromise !== undefined) {
+          await playPromise.then(() => {
+            console.log('[Music] âœ" Background music started');
+            isBackgroundMusicPlaying = true;
+
+            // Fade in over 2 seconds
+            let volume = 0;
+            const fadeInterval = setInterval(() => {
+              if (volume < 0.3) {
+                volume += 0.01;
+                if (backgroundMusicElement) {
+                  backgroundMusicElement.volume = Math.min(volume, 0.3);
+                }
+              } else {
+                clearInterval(fadeInterval);
+              }
+            }, 40);
+          }).catch(err => {
+            console.warn('[Music] Playback error:', err);
+            if (err.name === 'NotAllowedError') {
+              console.warn('[Music] Autoplay blocked. User interaction required.');
+            }
+          });
+        }
+
+      } catch (error) {
+        console.error('[Music] Error starting background music:', error);
+      }
+    },
+
+    stop() {
+      if (backgroundMusicElement) {
+        console.log('[Music] Stopping background music');
+
+        // Fade out over 1 second
+        let volume = backgroundMusicElement.volume;
+        const fadeInterval = setInterval(() => {
+          if (volume > 0.01) {
+            volume -= 0.03;
+            if (backgroundMusicElement) {
+              backgroundMusicElement.volume = Math.max(volume, 0);
+            }
+          } else {
+            clearInterval(fadeInterval);
+            if (backgroundMusicElement) {
+              backgroundMusicElement.pause();
+              backgroundMusicElement.currentTime = 0;
+              backgroundMusicElement.src = '';
+            }
+
+            // Clean up blob URL
+            if (backgroundMusicBlobUrl) {
+              URL.revokeObjectURL(backgroundMusicBlobUrl);
+              backgroundMusicBlobUrl = null;
+            }
+
+            isBackgroundMusicPlaying = false;
+            console.log('[Music] Background music stopped');
+          }
+        }, 40);
+      }
+    },
+
+    toggle() {
+      backgroundMusicEnabled = !backgroundMusicEnabled;
+      console.log(`[Music] Background music ${backgroundMusicEnabled ? 'enabled' : 'disabled'}`);
+
+      if (!backgroundMusicEnabled && isBackgroundMusicPlaying) {
+        this.stop();
+      }
+
+      return backgroundMusicEnabled;
+    },
+
+    setVolume(volume) {
+      if (backgroundMusicElement && isBackgroundMusicPlaying) {
+        // Clamp volume between 0 and 0.5 (background should be quieter than voice)
+        const clampedVolume = Math.max(0, Math.min(0.5, volume));
+        backgroundMusicElement.volume = clampedVolume;
+        console.log(`[Music] Volume set to ${clampedVolume}`);
+      }
     }
   };
 
@@ -1183,6 +1409,53 @@ export function initializeApp() {
     }
   }
 
+  async function handleForgotPassword() {
+    const email = dom.resetEmailInput.value.trim();
+
+    if (!email) {
+      dom.resetError.textContent = 'Please enter your email address';
+      return;
+    }
+
+    try {
+      dom.sendResetBtn.disabled = true;
+      dom.sendResetBtn.textContent = 'Sending...';
+      dom.resetError.textContent = '';
+      dom.resetSuccess.textContent = '';
+
+      await sendPasswordResetEmail(auth, email);
+
+      dom.resetSuccess.textContent = 'Password reset email sent! Check your inbox.';
+      dom.resetEmailInput.value = '';
+
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        if (dom.forgotPasswordModal) {
+          dom.forgotPasswordModal.classList.add('hidden');
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error('Password reset error:', error);
+
+      let friendlyMessage = '';
+      if (error.code === 'auth/user-not-found') {
+        friendlyMessage = "No account found with that email. Check for typos?";
+      } else if (error.code === 'auth/invalid-email') {
+        friendlyMessage = "That email doesn't look quite right. Check for typos?";
+      } else if (error.code === 'auth/network-request-failed') {
+        friendlyMessage = "Connection issue. Check your internet?";
+      } else {
+        friendlyMessage = "Oops, something went wrong. Try again?";
+      }
+
+      dom.resetError.textContent = friendlyMessage;
+    } finally {
+      dom.sendResetBtn.disabled = false;
+      dom.sendResetBtn.textContent = 'Reset Password';
+    }
+  }
+
   // Load user data from Firestore
   async function loadUserData(user) {
     try {
@@ -1487,6 +1760,9 @@ export function initializeApp() {
       }, 5000);
     }
 
+    // Start background music for this quest
+    BackgroundMusic.start(questKey, quest.difficulty);
+
     debugLog(`âœ… Quest started successfully: ${quest.title}`);
   }
 
@@ -1709,9 +1985,10 @@ export function initializeApp() {
 
     // Add avatar for NPC messages
     if (sender === 'npc' && avatar) {
-      const avatarEl = document.createElement('div');
-      avatarEl.className = 'flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-lg shadow-md';
-      avatarEl.textContent = avatar;
+      const avatarEl = document.createElement('img');
+      avatarEl.src = '/images/characters/santiago-welcome.png';
+      avatarEl.alt = characterName || 'Santiago';
+      avatarEl.className = 'flex-shrink-0 w-10 h-10 rounded-full border-2 border-blue-400 shadow-md object-cover';
       avatarEl.title = characterName;
       messageWrapper.appendChild(avatarEl);
     }
@@ -2251,6 +2528,72 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     if (dom.loginBtn) dom.loginBtn.addEventListener('click', handleLogin);
     if (dom.signupBtn) dom.signupBtn.addEventListener('click', handleSignup);
     if (dom.logoutBtn) dom.logoutBtn.addEventListener('click', handleLogout);
+
+    // Forgot password modal event listeners
+    if (dom.forgotPasswordBtn) {
+      dom.forgotPasswordBtn.addEventListener('click', () => {
+        if (dom.forgotPasswordModal) {
+          dom.forgotPasswordModal.classList.remove('hidden');
+          dom.resetError.textContent = '';
+          dom.resetSuccess.textContent = '';
+        }
+      });
+    }
+    if (dom.closeForgotPasswordBtn) {
+      dom.closeForgotPasswordBtn.addEventListener('click', () => {
+        if (dom.forgotPasswordModal) {
+          dom.forgotPasswordModal.classList.add('hidden');
+          dom.resetEmailInput.value = '';
+          dom.resetError.textContent = '';
+          dom.resetSuccess.textContent = '';
+        }
+      });
+    }
+    if (dom.sendResetBtn) {
+      dom.sendResetBtn.addEventListener('click', handleForgotPassword);
+    }
+
+    // Enter key support for login form
+    if (dom.loginEmailInput) {
+      dom.loginEmailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+    }
+    if (dom.loginPasswordInput) {
+      dom.loginPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+    }
+
+    // Enter key support for signup form
+    if (dom.signupEmailInput) {
+      dom.signupEmailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSignup();
+      });
+    }
+    if (dom.signupPasswordInput) {
+      dom.signupPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSignup();
+      });
+    }
+    if (dom.signupPasswordConfirmInput) {
+      dom.signupPasswordConfirmInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSignup();
+      });
+    }
+    if (dom.signupDisplayNameInput) {
+      dom.signupDisplayNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSignup();
+      });
+    }
+
+    // Enter key support for forgot password
+    if (dom.resetEmailInput) {
+      dom.resetEmailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleForgotPassword();
+      });
+    }
+
     debugLog('âœ… Auth event listeners set');
 
     if (dom.backToQuestsBtn) {
@@ -2258,6 +2601,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.chatView.style.display = 'none';
         dom.questView.style.display = 'flex';
         TTSManager.stop(); // Stop any playing audio when leaving chat
+        BackgroundMusic.stop(); // Stop background music when leaving quest
       });
     }
 
