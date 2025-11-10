@@ -2688,6 +2688,46 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') handlePlacementSend();
       });
     }
+
+    // Retake Placement Test button
+    if (dom.retakePlacementBtn) {
+      dom.retakePlacementBtn.addEventListener('click', async () => {
+        console.log('[RetakePlacement] Button clicked');
+
+        if (!currentUser) {
+          console.error('[RetakePlacement] No user logged in');
+          return;
+        }
+
+        try {
+          // Reset placement and onboarding status in Firebase
+          await setDoc(doc(db, 'users', currentUser.uid), {
+            placementCompleted: false,
+            onboardingQuestCompleted: false,
+            placementLevel: null,
+            placementScore: null,
+            completedQuests: [] // Reset quest progress to start fresh
+          }, { merge: true });
+
+          console.log('[RetakePlacement] User data reset successfully');
+
+          // Close settings modal
+          if (dom.settingsModal) {
+            dom.settingsModal.classList.add('hidden');
+          }
+
+          // Initialize and show placement test
+          PlacementTestManager.init();
+          showView('placement-view');
+
+          console.log('[RetakePlacement] Placement test restarted');
+        } catch (error) {
+          console.error('[RetakePlacement] Error resetting user data:', error);
+          alert('Error resetting placement test. Please try again.');
+        }
+      });
+    }
+
     debugLog('âœ… Placement event listeners set');
 
     // Settings modal
