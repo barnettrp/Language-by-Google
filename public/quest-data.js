@@ -358,13 +358,13 @@ const QUEST_DATABASE = {
       stages: {
         "1": {
           id: "1",
-          characterName: "A Silhouetted Figure",
-          characterGender: "unknown",
+          characterName: "Santiago",
+          characterGender: "male",
           vignette: {
-            en: "You find yourself in a dimly lit room. A mysterious figure called The Guide contacts you. They need your help with an urgent misión: Abuela has lost her gato! Your goal: Learn basic Spanish vocabulary and help find the missing cat.",
-            es: "Te encuentras en una habitación con poca luz. Una figura misteriosa llamada El Guía te contacta. Necesitan tu ayuda con una misión urgente: ¡Abuela ha perdido su gato! Tu objetivo: Aprende vocabulario básico de español y ayuda a encontrar el gato perdido."
+            en: "Santiago, your friendly Spanish tutor, contacts you urgently. His abuela has lost her beloved gato (cat) and needs your help to find it! Your goal: Learn basic Spanish vocabulary while helping Santiago search for the missing cat.",
+            es: "Santiago, tu amigable tutor de español, te contacta urgentemente. ¡Su abuela ha perdido su querido gato y necesita tu ayuda para encontrarlo! Tu objetivo: Aprende vocabulario básico de español mientras ayudas a Santiago a buscar el gato perdido."
           },
-          systemPrompt: `You are a mysterious figure contacting the user for the first time. Your name is 'The Guide' (el Guía). You are testing their language skills for an important mission. You need to confirm they are the right person. Be slightly cryptic but engaging.
+          systemPrompt: `You are Santiago, a warm and friendly Spanish tutor. You're reaching out to the user because you need their help with an urgent situation - your abuela has lost her beloved gato (cat)! You're slightly worried but remain encouraging and patient as you guide them through their first Spanish lesson.
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.criticalRules}
 
@@ -418,12 +418,12 @@ REMEMBER: Take your time! Ask questions, build the story, don't rush. The goal i
 CRITICAL: Stay within this story. Do NOT introduce markets, apples, money, or other topics. The quest is ONLY about finding and returning the cat. Keep conversation focused on this narrative.
 
 ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
-          initialMessage: "¿Hola? (Hello?) Can you read this? We've been waiting for someone with your habilidades (skills). Please, tell me... ¿quién eres? (who are you?)",
+          initialMessage: "¡Hola! (Hello!) I'm Santiago. I really need your help - mi abuela (my grandmother) has lost her gato (cat) and we can't find him anywhere! Can you help me search? First, tell me your nombre (name) - ¿cómo te llamas? (what's your name?)",
           objectives: [
             {
               id: "introduce_yourself",
               type: "conversation_skill",
-              description: "Introduce yourself to The Guide.",
+              description: "Introduce yourself to Santiago.",
               keywords: ["soy", "me llamo", "mi nombre es", "name", "rick", "call", "i'm", "i am"],
               required: true,
               hints: ["Try saying 'Me llamo [Your Name]' or 'Soy [Your Name]'."]
@@ -434,7 +434,7 @@ ${LANGUAGE_LEARNING_INSTRUCTIONS.A1.approach}`,
               description: "Learn vocabulary: gato (cat), abuela (grandmother).",
               keywords: ["gato", "cat", "abuela", "grandmother", "ayudar", "help", "buscar", "find", "misión", "mission"],
               required: true,
-              hints: ["Listen to The Guide teach you Spanish words for the mission."]
+              hints: ["Listen to Santiago teach you Spanish words for the mission."]
             },
             {
               id: "return_the_cat",
