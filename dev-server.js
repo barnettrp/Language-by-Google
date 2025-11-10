@@ -485,6 +485,203 @@ async function handleCartesiaTTSRequest(req, res) {
   });
 }
 
+// Handle ElevenLabs TTS requests
+async function handleElevenLabsTTSRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { text, characterName, characterGender, speedMultiplier = 1.0 } = JSON.parse(body);
+
+      const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+      if (!elevenLabsApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'ElevenLabs API key not configured',
+          provider: 'elevenlabs'
+        }));
+        return;
+      }
+
+      // Character voice mapping for ElevenLabs
+      const CHARACTER_VOICES = {
+        'male_young': 'Xb7hH8MSUJpSbSDYk0k2',
+        'male_mature': 'VR6AewLTigWG4xSOukaG',
+        'male_elder': 'pNInz6obpgDQGcFmaJgB',
+        'male_energetic': 'TxGEqnHWrfWFTfGW9XjX',
+        'female_young': 'jsCqWAovK2LkecY7zXl4',
+        'female_mature': 'MF3mGyEYCl7XYWbV9V6O',
+        'female_elder': 'XB0fDUnXU5powFXDhCwa',
+        'female_energetic': 'jBpfuIE2acCO8z3wKNLl'
+      };
+
+      // Simple voice selection based on gender
+      const voiceId = characterGender === 'female'
+        ? CHARACTER_VOICES.female_mature
+        : CHARACTER_VOICES.male_mature;
+
+      console.log(`[ElevenLabs TTS] Generating speech for "${characterName}" using voice: ${voiceId}`);
+
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+      const ttsResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': elevenLabsApiKey
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.5,
+            use_speaker_boost: true
+          }
+        })
+      });
+
+      if (!ttsResponse.ok) {
+        const errorData = await ttsResponse.json();
+        console.error('[ElevenLabs TTS] API Error:', errorData);
+        res.writeHead(ttsResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: errorData.detail || 'TTS generation failed',
+          provider: 'elevenlabs'
+        }));
+        return;
+      }
+
+      const audioBuffer = await ttsResponse.arrayBuffer();
+      const base64Audio = Buffer.from(audioBuffer).toString('base64');
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        audioContent: base64Audio,
+        voiceId: voiceId,
+        provider: 'elevenlabs'
+      }));
+
+    } catch (error) {
+      console.error('[ElevenLabs TTS] Error handling request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to generate speech',
+        provider: 'elevenlabs'
+      }));
+    }
+  });
+}
+
+// Handle ElevenLabs Music requests
+async function handleElevenLabsMusicRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+
+  req.on('end', async () => {
+    try {
+      const { questId, difficulty, customPrompt } = JSON.parse(body);
+
+      const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+      if (!elevenLabsApiKey) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: 'ElevenLabs API key not configured',
+          provider: 'elevenlabs'
+        }));
+        return;
+      }
+
+      // Music themes
+      const MUSIC_THEMES = {
+        'find-the-cat': 'light playful spanish guitar melody, friendly cheerful atmosphere, gentle acoustic background music',
+        'order-coffee': 'cozy cafe ambience, soft acoustic guitar, warm and inviting atmosphere',
+        'market-shopping': 'vibrant mexican market atmosphere, light mariachi style, energetic but friendly',
+        'beginner': 'gentle spanish acoustic guitar, warm friendly atmosphere, light and encouraging',
+        'intermediate': 'rhythmic spanish music, engaging dynamic atmosphere, moderately energetic',
+        'advanced': 'sophisticated spanish instrumental, professional confident atmosphere, dramatic undertones',
+        'default': 'ambient spanish background music, neutral pleasant atmosphere, gentle instrumental'
+      };
+
+      const musicPrompt = customPrompt || MUSIC_THEMES[questId] || MUSIC_THEMES[difficulty] || MUSIC_THEMES.default;
+
+      console.log(`[ElevenLabs Music] Generating music for quest "${questId}" with prompt: "${musicPrompt}"`);
+
+      const url = 'https://api.elevenlabs.io/v1/sound-generation';
+      const musicResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': elevenLabsApiKey
+        },
+        body: JSON.stringify({
+          text: musicPrompt,
+          duration_seconds: 30,
+          prompt_influence: 0.5
+        })
+      });
+
+      if (!musicResponse.ok) {
+        const errorData = await musicResponse.json();
+        console.error('[ElevenLabs Music] API Error:', errorData);
+        res.writeHead(musicResponse.status, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: errorData.detail || 'Music generation failed',
+          provider: 'elevenlabs'
+        }));
+        return;
+      }
+
+      const audioBuffer = await musicResponse.arrayBuffer();
+      const base64Audio = Buffer.from(audioBuffer).toString('base64');
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        audioContent: base64Audio,
+        prompt: musicPrompt,
+        provider: 'elevenlabs'
+      }));
+
+    } catch (error) {
+      console.error('[ElevenLabs Music] Error handling request:', error);
+      res.writeHead(500, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        error: 'Internal Server Error: Failed to generate music',
+        provider: 'elevenlabs'
+      }));
+    }
+  });
+}
+
 // Handle translation requests
 async function handleTranslateRequest(req, res) {
   let body = '';
@@ -671,6 +868,16 @@ async function handleApiRequest(req, res) {
     return handleCartesiaTTSRequest(req, res);
   }
 
+  // Handle ElevenLabs TTS API
+  if (req.url === '/api/elevenlabs-tts' && req.method === 'POST') {
+    return handleElevenLabsTTSRequest(req, res);
+  }
+
+  // Handle ElevenLabs Music API
+  if (req.url === '/api/elevenlabs-music' && req.method === 'POST') {
+    return handleElevenLabsMusicRequest(req, res);
+  }
+
   // Handle Claude API
   if (req.url === '/api/claude' && req.method === 'POST') {
     return handleClaudeRequest(req, res);
@@ -845,10 +1052,13 @@ server.listen(PORT, () => {
   console.log(`  🔊 Text-to-Speech endpoint: http://localhost:${PORT}/api/tts`);
   console.log(`  🔊 OpenAI TTS endpoint: http://localhost:${PORT}/api/openai-tts`);
   console.log(`  🔊 Cartesia TTS endpoint: http://localhost:${PORT}/api/cartesia-tts`);
+  console.log(`  🔊 ElevenLabs TTS endpoint: http://localhost:${PORT}/api/elevenlabs-tts`);
+  console.log(`  🎵 ElevenLabs Music endpoint: http://localhost:${PORT}/api/elevenlabs-music`);
   console.log(`  🔑 Gemini API Key: ${process.env.GEMINI_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 Claude API Key: ${process.env.ANTHROPIC_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 Cartesia API Key: ${process.env.CARTESIA_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+  console.log(`  🔑 ElevenLabs API Key: ${process.env.ELEVENLABS_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔑 Google Translate API Key: ${process.env.GOOGLE_TRANSLATE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase API Key: ${process.env.VITE_FIREBASE_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
   console.log(`  🔥 Firebase Project: ${process.env.VITE_FIREBASE_PROJECT_ID || 'Not set'}\n`);
