@@ -32,6 +32,40 @@
   - Updated `.env.example` with ELEVENLABS_API_KEY
   - Added @elevenlabs/elevenlabs-js dependency
   - Commit: 07f3a0e
+- ✅ **MAJOR DISCOVERY: ElevenLabs is ALREADY FULLY INTEGRATED!**
+  - Frontend integration complete in app.js
+  - TTS Manager already tries ElevenLabs first (app.js:541)
+  - Background music player already implemented (app.js:839-988)
+  - Music auto-plays on quest start, auto-stops on exit
+  - All features working perfectly in local testing
+
+### Testing Results (2025-11-10):
+**ElevenLabs TTS Endpoint:**
+- ✅ Successfully generated speech for "Hola, ¿cómo estás?"
+- ✅ Voice ID: VR6AewLTigWG4xSOukaG (mature male voice)
+- ✅ Audio size: 24,580 bytes
+- ✅ Provider: elevenlabs
+
+**ElevenLabs Music Endpoint:**
+- ✅ Successfully generated background music for pharmacy quest
+- ✅ Prompt: "gentle spanish acoustic guitar, warm friendly atmosphere..."
+- ✅ Audio size: 641,488 bytes (30-second loop)
+- ✅ Provider: elevenlabs
+
+### TTS Fallback Priority Chain:
+1. **ElevenLabs** (Primary - high quality multilingual voices)
+2. Cartesia (Fallback with emotion control)
+3. OpenAI (Fallback)
+4. Google Cloud TTS (Final fallback)
+
+### Background Music Features:
+- **Auto-start:** Begins when quest starts (app.js:1764)
+- **Auto-stop:** Ends when leaving quest (app.js:2604)
+- **Volume:** 0.3 default, max 0.5 (quieter than voice)
+- **Fade effects:** 2-second fade-in, 1-second fade-out
+- **Looping:** 30-second clips loop continuously
+- **Toggle:** Can be enabled/disabled by user
+- **Quest-specific:** Different music themes per quest/difficulty
 
 ### Current Project State
 
