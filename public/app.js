@@ -1060,7 +1060,7 @@ export function initializeApp() {
         dom.quizOptions.innerHTML = '';
         question.opts.forEach((option, index) => {
           const optionBtn = document.createElement('button');
-          optionBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all';
+          optionBtn.className = 'w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all';
           optionBtn.textContent = option;
           optionBtn.addEventListener('click', () => this.selectOption(index, optionBtn));
           dom.quizOptions.appendChild(optionBtn);
@@ -1068,7 +1068,7 @@ export function initializeApp() {
 
         // Add "I don't know" option
         const dontKnowBtn = document.createElement('button');
-        dontKnowBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
+        dontKnowBtn.className = 'w-full text-left p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
         dontKnowBtn.textContent = "No sÃ© (I don't know)";
         dontKnowBtn.addEventListener('click', () => this.selectOption(-1, dontKnowBtn));
         dom.quizOptions.appendChild(dontKnowBtn);
