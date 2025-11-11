@@ -113,6 +113,11 @@ export function initializeApp() {
     welcomeMessage: document.getElementById('welcome-message'),
     logoutBtn: document.getElementById('logout-btn'),
     settingsBtn: document.getElementById('settings-btn'),
+    menuToggleBtn: document.getElementById('menu-toggle-btn'),
+    menuDropdown: document.getElementById('menu-dropdown'),
+    darkModeMenuItem: document.getElementById('dark-mode-menu-item'),
+    settingsMenuItem: document.getElementById('settings-menu-item'),
+    logoutMenuItem: document.getElementById('logout-menu-item'),
     settingsModal: document.getElementById('settings-modal'),
     closeSettingsBtn: document.getElementById('close-settings-btn'),
     dialectSelect: document.getElementById('dialect-select'),
@@ -2729,6 +2734,49 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     }
 
     debugLog('âœ… Placement event listeners set');
+
+    // Menu dropdown toggle
+    if (dom.menuToggleBtn && dom.menuDropdown) {
+      dom.menuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dom.menuDropdown.classList.toggle('hidden');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (dom.menuDropdown && !dom.menuDropdown.classList.contains('hidden')) {
+          if (!dom.menuToggleBtn.contains(e.target) && !dom.menuDropdown.contains(e.target)) {
+            dom.menuDropdown.classList.add('hidden');
+          }
+        }
+      });
+
+      // Menu item: Dark Mode
+      if (dom.darkModeMenuItem) {
+        dom.darkModeMenuItem.addEventListener('click', () => {
+          document.body.classList.toggle('dark-mode');
+          const isDark = document.body.classList.contains('dark-mode');
+          localStorage.setItem('darkMode', isDark);
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+
+      // Menu item: Settings
+      if (dom.settingsMenuItem) {
+        dom.settingsMenuItem.addEventListener('click', () => {
+          dom.settingsModal.classList.remove('hidden');
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+
+      // Menu item: Logout
+      if (dom.logoutMenuItem) {
+        dom.logoutMenuItem.addEventListener('click', () => {
+          handleLogout();
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+    }
 
     // Settings modal
     if (dom.settingsBtn) {

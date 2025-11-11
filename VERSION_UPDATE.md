@@ -26,7 +26,13 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v1.6.0** (2025-11-03)
+**v2.1.10** (2025-11-10)
+
+### Changes in v2.1.10:
+- **UI Cleanup**: Simplified quest page header for cleaner, more stylish appearance
+- **Menu Consolidation**: Combined dark mode, settings, and logout into single dropdown menu
+- **Improved UX**: Reduced visual clutter while maintaining all functionality
+- **Version Display**: Moved version number to menu dropdown (still accessible)
 
 ### Changes in v1.6.0:
 - **Voice System Overhaul**: Automatic voice provider with Cartesia → OpenAI → Google AI fallback chain

@@ -444,6 +444,36 @@
       color: rgba(255, 255, 255, 0.6) !important;
     }
 
+    /* Menu dropdown dark mode */
+    body.dark-mode #menu-dropdown {
+      background-color: rgba(30, 30, 46, 0.95);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode #menu-dropdown button {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    body.dark-mode #menu-dropdown button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode #logout-menu-item {
+      color: #ff6b6b !important;
+    }
+
+    body.dark-mode #logout-menu-item:hover {
+      background-color: rgba(255, 107, 107, 0.1);
+    }
+
+    body.dark-mode #menu-dropdown hr {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode #menu-dropdown .text-gray-400 {
+      color: rgba(255, 255, 255, 0.4) !important;
+    }
+
     /* Improve readability of lighter text in dark mode */
     body.dark-mode #vignette-text,
     body.dark-mode .text-gray-600:not(.npc-message):not(.user-message) {
@@ -942,7 +972,7 @@
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.9</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.10</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -1091,18 +1121,40 @@
             <!-- Santiago Avatar -->
             <img src="/images/characters/santiago-welcome.png" alt="Santiago, your adventure guide" class="w-10 h-10 rounded-full border-2 border-blue-400 shadow-sm hover:scale-110 transition-transform cursor-pointer" title="¡Hola! I'm Santiago, your guide!" />
             <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose Your Adventure</h1>
+          </div>
+          <div class="flex items-center gap-3">
+            <!-- View Toggle -->
             <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
               <button id="show-quest-list-btn" class="px-3 py-1 rounded text-sm font-medium bg-white text-gray-800 shadow-sm transition-all">📋 Quests</button>
               <button id="show-quest-map-btn" class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:text-gray-800 transition-all">🗺️ Map</button>
             </div>
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-gray-400 mr-2 font-mono" title="App Version - Refresh to check for updates">v2.1.9</span>
-            <button id="dark-mode-toggle" title="Toggle Dark Mode" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">
-              <span class="dark-mode-icon">🌙</span>
-            </button>
-            <button id="settings-btn" title="Your Preferences" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-8 w-8">⚙️</button>
-            <button id="logout-btn" title="Logout" class="text-gray-500 hover:text-red-500 transition-colors inline-flex items-center justify-center h-8 w-8">⎋</button>
+            <!-- Menu Dropdown -->
+            <div class="relative">
+              <button id="menu-toggle-btn" title="Menu" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                </svg>
+              </button>
+              <!-- Dropdown Menu -->
+              <div id="menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                <button id="dark-mode-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                  <span class="dark-mode-icon">🌙</span>
+                  <span>Dark Mode</span>
+                </button>
+                <button id="settings-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                  <span>⚙️</span>
+                  <span>Settings</span>
+                </button>
+                <hr class="my-1 border-gray-200">
+                <button id="logout-menu-item" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
+                  <span>⎋</span>
+                  <span>Logout</span>
+                </button>
+                <div class="px-4 py-2 text-xs text-gray-400 font-mono text-center border-t border-gray-100 mt-1">
+                  v2.1.10
+                </div>
+              </div>
+            </div>
           </div>
         </header>
         <!-- Daily Progress Tracker -->
@@ -1212,7 +1264,7 @@
             </div>
           </div>
           <div class="flex gap-2 items-center">
-            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.9</span>
+            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.10</span>
             <button id="repeat-tts-btn" title="Repeat last audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
             <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
             <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">← Back</button>

@@ -37,7 +37,6 @@ npm install
 npm run dev
 
 The application will be available at `http://localhostI :5173`
-
 #### Option 2: Live Server (Alternative)
 
 1. Open your project folder in VS Code

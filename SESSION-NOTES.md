@@ -1,8 +1,69 @@
-# Session Notes - Last Updated: 2025-10-30
+# Session Notes - Last Updated: 2025-11-10
 
 ## Current Status: PRODUCTION READY ✅
 
 The app has been successfully deployed to production on Vercel with all critical bugs fixed. Beta testers can now sign up and use the app.
+
+---
+
+## Session 4 Summary (2025-11-10) - UI Header Cleanup
+
+### What We Accomplished
+
+**🎯 Main Goal:** Simplify and clean up the quest page header for better user experience.
+
+**✅ UI Improvements Completed:**
+
+1. **Header Redesign**
+   - Removed cluttered button row with 5+ separate buttons
+   - Created clean two-column layout: avatar/title on left, controls on right
+   - Moved Quest List/Map toggle to right side for better visual balance
+
+2. **Menu Consolidation**
+   - Consolidated dark mode, settings, and logout into single dropdown menu
+   - Used modern three-dot menu icon (⋮) for cleaner appearance
+   - Added version number display at bottom of dropdown (v2.1.10)
+
+3. **Dropdown Menu Implementation**
+   - Created styled dropdown with smooth animations
+   - Click-outside-to-close functionality
+   - Full dark mode support with themed styling
+   - Maintained all original functionality
+
+4. **Visual Improvements**
+   - Reduced header visual clutter significantly
+   - Improved spacing and alignment
+   - Better mobile-friendly layout
+   - Professional, modern appearance
+
+### Technical Changes
+
+**Files Modified:**
+- `public/index.html` (lines 1089-1129): Header HTML restructure
+- `public/index.html` (lines 447-475): Dark mode CSS for dropdown
+- `public/app.js` (lines 116-121): DOM element references
+- `public/app.js` (lines 2738-2779): Menu dropdown event listeners
+- `package.json`: Version bump to 2.1.10
+- `VERSION_UPDATE.md`: Documented v2.1.10 changes
+
+**New Features:**
+- Dropdown menu component with animation
+- Click-outside-to-close functionality
+- Dark mode styling for menu items
+- Version number in dropdown footer
+
+### User Impact
+
+**Before:** Header had 7+ visible elements creating visual noise
+**After:** Clean header with 4 elements (avatar, title, toggle, menu)
+
+All functionality preserved:
+- ✅ Dark mode toggle (in menu)
+- ✅ Settings access (in menu)
+- ✅ Logout button (in menu)
+- ✅ Version number (in menu)
+- ✅ Quest List/Map toggle (visible)
+- ✅ Santiago avatar (visible)
 
 ---
 
