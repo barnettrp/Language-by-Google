@@ -1,7 +1,7 @@
 {
   "name": "language-by-google",
   "private": true,
-  "version": "2.1.10",
+  "version": "2.1.11",
   "type": "module",
   "scripts": {
     "dev": "node dev-server.js",

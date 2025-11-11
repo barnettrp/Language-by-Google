@@ -26,7 +26,15 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v2.1.10** (2025-11-10)
+**v2.1.11** (2025-11-11)
+
+### Changes in v2.1.11:
+- **Enhanced Onboarding Tour**: Comprehensive interactive tour for new users
+- **Tour Improvements**: Updated tour steps to cover all key features (Santiago, quest cards, difficulty badges, menu, progress tracking)
+- **Manual Tour Restart**: Added "Restart Tour" option in menu dropdown for users who want to see the tour again
+- **Better Guidance**: Tour now highlights Santiago's avatar, quest details, view toggles, menu options, and daily progress
+- **6 Tour Steps**: Expanded from 4 to 6 steps covering essential app features
+- **Smart Skip Logic**: Tour gracefully skips steps if elements aren't visible
 
 ### Changes in v2.1.10:
 - **UI Cleanup**: Simplified quest page header for cleaner, more stylish appearance

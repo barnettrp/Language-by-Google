@@ -117,6 +117,7 @@ export function initializeApp() {
     menuDropdown: document.getElementById('menu-dropdown'),
     darkModeMenuItem: document.getElementById('dark-mode-menu-item'),
     settingsMenuItem: document.getElementById('settings-menu-item'),
+    restartTourMenuItem: document.getElementById('restart-tour-menu-item'),
     logoutMenuItem: document.getElementById('logout-menu-item'),
     settingsModal: document.getElementById('settings-modal'),
     closeSettingsBtn: document.getElementById('close-settings-btn'),
@@ -2769,6 +2770,16 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         });
       }
 
+      // Menu item: Restart Tour
+      if (dom.restartTourMenuItem) {
+        dom.restartTourMenuItem.addEventListener('click', () => {
+          dom.menuDropdown.classList.add('hidden');
+          if (typeof window.restartOnboardingTour === 'function') {
+            window.restartOnboardingTour();
+          }
+        });
+      }
+
       // Menu item: Logout
       if (dom.logoutMenuItem) {
         dom.logoutMenuItem.addEventListener('click', () => {
@@ -3124,28 +3135,40 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
     const tourSteps = [
       {
-        target: '#welcome-message',
-        title: 'Welcome to ConvoQuest! ðŸŽ‰',
-        message: 'This is your quest hub where you can see all available language learning adventures.',
+        target: 'img[alt*="Santiago"]',
+        title: 'Meet Santiago, Your Guide! 👋',
+        message: 'I\'m Santiago! I\'ll help you learn Spanish through exciting quests and conversations.',
         position: 'bottom'
       },
       {
         target: '#quest-list-container',
-        title: 'Choose Your Quest',
-        message: 'Browse through quests and click on one to start your Spanish learning journey!',
+        title: 'Choose Your Quest 🗺️',
+        message: 'Browse through interactive quests. Each quest is a unique conversation adventure that teaches you real Spanish!',
         position: 'top'
       },
       {
-        target: '#settings-btn',
-        title: 'Personalize Your Experience',
-        message: 'Access settings here to adjust font size, high contrast mode, and other accessibility features.',
+        target: '.quest-card',
+        title: 'Quest Details 📋',
+        message: 'Each card shows difficulty, time estimate, and level requirement. Start with beginner quests and work your way up!',
+        position: 'right'
+      },
+      {
+        target: '#show-quest-list-btn',
+        title: 'Quest Views 🎯',
+        message: 'Toggle between list view and map view to see your quests in different ways.',
         position: 'bottom'
       },
       {
-        target: '#mobile-bottom-nav',
-        title: 'Quick Navigation (Mobile)',
-        message: 'Use the bottom navigation to quickly switch between quests, quiz, and your profile.',
-        position: 'top'
+        target: '#menu-toggle-btn',
+        title: 'Menu Options ⚙️',
+        message: 'Access dark mode, settings, and logout from this menu. Customize your learning experience!',
+        position: 'bottom'
+      },
+      {
+        target: '#daily-progress',
+        title: 'Track Your Progress 📊',
+        message: 'Your daily XP, current streak, and completed quests are shown here. Build your streak by practicing daily!',
+        position: 'bottom'
       }
     ];
 

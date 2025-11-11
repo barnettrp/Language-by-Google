@@ -1,8 +1,101 @@
-# Session Notes - Last Updated: 2025-11-10
+# Session Notes - Last Updated: 2025-11-11
 
 ## Current Status: PRODUCTION READY ✅
 
 The app has been successfully deployed to production on Vercel with all critical bugs fixed. Beta testers can now sign up and use the app.
+
+---
+
+## Session 5 Summary (2025-11-11) - Enhanced Onboarding Tour
+
+### What We Accomplished
+
+**🎯 Main Goal:** Enhance the onboarding tour to provide comprehensive guidance for new users.
+
+**✅ Onboarding Tour Enhancements Completed:**
+
+1. **Expanded Tour Steps**
+   - Updated from 4 basic steps to 6 comprehensive steps
+   - Step 1: Meet Santiago (your adventure guide)
+   - Step 2: Choose Your Quest (quest list container)
+   - Step 3: Quest Details (difficulty badges, time estimates, requirements)
+   - Step 4: Quest Views (list/map toggle)
+   - Step 5: Menu Options (dark mode, settings, logout access)
+   - Step 6: Track Your Progress (daily XP, streak, completed quests)
+
+2. **Tour Improvements**
+   - Updated target selectors to reference current UI elements
+   - Fixed references to old settings button (now in menu dropdown)
+   - Added more descriptive titles and messages with emojis
+   - Tour highlights key features new users need to know
+   - Gracefully skips steps if elements aren't visible
+
+3. **Manual Tour Restart**
+   - Added "Restart Tour" button (🎓) to menu dropdown
+   - Users can manually restart tour anytime from the menu
+   - Tour state properly resets when restarted
+   - Menu closes automatically when tour starts
+
+4. **HTML Updates**
+   - Added 6 progress dots (was 4) to match new tour step count
+   - Added restart-tour-menu-item button to dropdown
+   - Added dark mode styling for new menu item
+
+5. **Version Update**
+   - Updated to v2.1.11 across all files
+   - Updated VERSION_UPDATE.md with comprehensive changelog
+   - Updated SESSION-NOTES.md with session summary
+
+### Technical Changes
+
+**Files Modified:**
+- `public/app.js` (lines 3125-3162): Enhanced tour steps array
+- `public/app.js` (lines 120): Added restartTourMenuItem DOM reference
+- `public/app.js` (lines 2773-2781): Added restart tour event listener
+- `public/index.html` (lines 1651-1656): Added 6th progress dot
+- `public/index.html` (lines 1148-1151): Added restart tour menu item
+- `public/index.html` (lines 461-467): Added dark mode styling for restart tour
+- `package.json`: Version bump to 2.1.11
+- `VERSION_UPDATE.md`: Documented v2.1.11 changes
+- `SESSION-NOTES.md`: This file (session summary)
+
+### Tour Flow
+
+**New User Experience:**
+1. User completes placement test
+2. Tour automatically starts on quest selection screen
+3. Tour highlights 6 key areas in sequence:
+   - Santiago's welcome
+   - Quest browsing
+   - Quest card details
+   - View toggle options
+   - Menu dropdown
+   - Progress tracking
+4. User can skip tour or go through all steps
+5. Tour can be manually restarted from menu anytime
+
+**Tour Features:**
+- Spotlight effect on target elements
+- Tooltip with arrow pointing to element
+- Progress dots showing current step
+- Skip and Next buttons
+- "Finish" button on last step
+- Stores completion in localStorage
+- Smart skip for missing elements
+
+### User Impact
+
+**Before:** Basic 4-step tour with outdated element references
+**After:** Comprehensive 6-step tour covering all essential features with manual restart option
+
+New users now get:
+- ✅ Introduction to Santiago, their guide
+- ✅ Understanding of quest cards and how to choose
+- ✅ Knowledge of difficulty badges and requirements
+- ✅ Awareness of view toggle options
+- ✅ Location of menu with settings and dark mode
+- ✅ Understanding of progress tracking system
+- ✅ Ability to restart tour anytime
 
 ---
 
