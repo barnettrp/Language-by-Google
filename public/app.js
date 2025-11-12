@@ -456,8 +456,18 @@ export function initializeApp() {
       const target = event.target;
       const error = target?.error;
 
+      // Check if this is an expected error (empty src or page URL)
+      const currentSrc = persistentAudioElement.src || '';
+      const isEmptySrc = currentSrc === '' || currentSrc === window.location.href;
+
       // Log detailed error info
       if (error) {
+        // Skip logging for expected errors (empty src or clearing audio)
+        if (isEmptySrc && (error.code === 4 || error.code === 1)) {
+          console.log('[TTS] Expected audio cleanup error (ignored)');
+          return;
+        }
+
         const errorMessages = {
           1: 'MEDIA_ERR_ABORTED - Fetching process aborted by user',
           2: 'MEDIA_ERR_NETWORK - Network error while downloading',
@@ -466,9 +476,9 @@ export function initializeApp() {
         };
         const errorMsg = errorMessages[error.code] || 'Unknown error';
         console.warn(`[TTS] Audio error - Code ${error.code}: ${errorMsg}`);
-        console.warn(`[TTS] Audio src: ${persistentAudioElement.src || 'empty'}`);
+        console.warn(`[TTS] Audio src: ${currentSrc || 'empty'}`);
 
-        // Only log as error if it's not a simple abort (code 4 often happens on source change)
+        // Only log as error if it's serious (not abort or empty src issues)
         if (error.code !== 4 && error.code !== 1) {
           console.error(`[TTS] Serious audio error:`, error);
         }
