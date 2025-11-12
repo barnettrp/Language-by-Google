@@ -186,20 +186,21 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(2px);
+      background: transparent;
       z-index: 9998;
       animation: fadeIn 0.3s ease-out;
+      pointer-events: none;
     }
 
     #onboarding-spotlight {
       position: fixed;
       border: 3px solid #667eea;
       border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 20px rgba(102, 126, 234, 0.5);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.80), 0 0 30px rgba(102, 126, 234, 0.8), inset 0 0 0 3px rgba(102, 126, 234, 0.3);
       pointer-events: none;
       z-index: 9999;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: transparent;
     }
 
     #onboarding-tooltip {
@@ -290,6 +291,134 @@
       background: #a8b5ff;
     }
 
+    /* Version Display */
+    #version-display {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 10000;
+      font-family: monospace;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+      user-select: none;
+    }
+
+    body.dark-mode #version-display {
+      color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Debug Console */
+    #debug-console {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 350px;
+      max-height: 250px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid #4ade80;
+      border-radius: 8px;
+      z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+    }
+
+    #debug-console-header {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 7px 7px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    #debug-console-header button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    #debug-console-header button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    #debug-console-content {
+      padding: 8px;
+      overflow-y: auto;
+      flex: 1;
+      color: #a3e635;
+      line-height: 1.4;
+    }
+
+    #debug-console-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #debug-console-content::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    #debug-console-content::-webkit-scrollbar-thumb {
+      background: #4ade80;
+      border-radius: 3px;
+    }
+
+    .debug-log {
+      margin-bottom: 4px;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    .debug-log.error {
+      color: #fca5a5;
+      background: rgba(220, 38, 38, 0.2);
+    }
+
+    .debug-log.warn {
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.2);
+    }
+
+    .debug-log.info {
+      color: #93c5fd;
+      background: rgba(59, 130, 246, 0.2);
+    }
+
+    .debug-log.success {
+      color: #86efac;
+      background: rgba(34, 197, 94, 0.2);
+    }
+
+    #debug-console.minimized #debug-console-content {
+      display: none;
+    }
+
+    #debug-console.minimized {
+      max-height: 36px;
+    }
+
     /* Font Size Options */
     body.font-size-small {
       font-size: 14px;
@@ -352,6 +481,15 @@
 
     .animate-scale-in {
       animation: scale-in 0.4s ease-out;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .animate-fade-in {
+      animation: fade-in 0.3s ease-out;
     }
 
     /* XP Progress Bar Minimized State */
@@ -480,6 +618,36 @@
 
     body.dark-mode #menu-dropdown .text-gray-400 {
       color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    /* Settings modal dark mode */
+    body.dark-mode #settings-modal .modal-content {
+      background-color: rgba(30, 30, 46, 0.95);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode #settings-modal .border-b {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode #settings-modal input,
+    body.dark-mode #settings-modal select {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark-mode #settings-modal label {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    body.dark-mode #settings-modal .text-gray-600,
+    body.dark-mode #settings-modal .text-gray-700 {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    body.dark-mode #settings-modal .text-gray-500 {
+      color: rgba(255, 255, 255, 0.5) !important;
     }
 
     /* Improve readability of lighter text in dark mode */
@@ -783,6 +951,12 @@
     @keyframes slide-up { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
     .animate-slide-up { animation: slide-up 0.3s ease-out; }
 
+    /* Pulse animation for recording microphone */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
     /* Typing indicator animation */
     @keyframes typing-dot {
       0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -980,7 +1154,7 @@
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.11</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.13</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -1087,20 +1261,66 @@
 
     <!-- PLACEMENT VIEW -->
     <div id="placement-view" class="main-view flex-col h-full">
+      <!-- Header with Logout -->
+      <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl">📚</div>
+          <h1 class="text-xl font-semibold text-gray-800">Placement Test</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Menu Dropdown -->
+          <div class="relative">
+            <button id="placement-menu-toggle-btn" title="Menu" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+              </svg>
+            </button>
+            <!-- Dropdown Menu -->
+            <div id="placement-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+              <button id="placement-logout-menu-item" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
+                <span>⎋</span>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Placement Test Instructions Popup -->
+      <div id="placement-instructions-popup" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md mx-4 p-6 animate-scale-in">
+          <div class="text-center mb-4">
+            <div class="text-5xl mb-3">📚</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome to Your Placement Test</h2>
+          </div>
+          <div class="space-y-3 text-sm text-gray-700 mb-6">
+            <p class="flex items-start gap-2">
+              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>Answer questions to help us find your perfect starting level</span>
+            </p>
+            <p class="flex items-start gap-2">
+              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>Don't worry—there's no pass or fail, just finding where you are!</span>
+            </p>
+            <p class="flex items-start gap-2">
+              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>The test adapts to your answers and typically takes 8-12 questions</span>
+            </p>
+            <p class="flex items-start gap-2">
+              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>If you don't know an answer, select "I don't know"</span>
+            </p>
+          </div>
+          <button id="close-placement-instructions-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
+            Got it! Let's start
+          </button>
+        </div>
+      </div>
+
       <div id="placement-quiz-view" class="flex flex-col h-full p-6 overflow-y-auto">
         <div class="max-w-2xl mx-auto w-full">
-          <div class="text-center mb-4">
-            <div class="text-4xl mb-2">📚</div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-1">Let's Find Your Starting Point</h1>
-            <p class="text-gray-600 text-sm">Answer a few questions so we can start you at the right level. Don't worry—this isn't a test you can fail!</p>
-          </div>
-
           <!-- Progress Bar -->
           <div class="mb-6">
-            <div class="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Question <span id="current-question-num">1</span> of <span id="total-questions">15</span></span>
-              <span id="estimated-level" class="font-semibold text-blue-600"></span>
-            </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div id="placement-progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
@@ -1115,7 +1335,6 @@
           </div>
 
           <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next Question</button>
-          <button id="complete-placement-btn" class="w-full mt-3 bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition-colors">See My Results!</button>
         </div>
       </div>
     </div>
@@ -1128,14 +1347,19 @@
           <div class="flex items-center gap-3">
             <!-- Santiago Avatar -->
             <img src="/images/characters/santiago-welcome.png" alt="Santiago, your adventure guide" class="w-10 h-10 rounded-full border-2 border-blue-400 shadow-sm hover:scale-110 transition-transform cursor-pointer" title="¡Hola! I'm Santiago, your guide!" />
-            <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose Your Adventure</h1>
+            <h1 id="welcome-message" class="text-2xl font-semibold text-gray-800 tracking-tight" style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">Choose Your Adventure</h1>
           </div>
           <div class="flex items-center gap-3">
-            <!-- View Toggle -->
-            <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
-              <button id="show-quest-list-btn" class="px-3 py-1 rounded text-sm font-medium bg-white text-gray-800 shadow-sm transition-all">📋 Quests</button>
-              <button id="show-quest-map-btn" class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:text-gray-800 transition-all">🗺️ Map</button>
+            <!-- List/Map Toggle Buttons -->
+            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button id="show-quest-list-btn" title="List View" class="px-3 py-1 rounded-md text-sm font-medium transition-all bg-white text-gray-800 shadow-sm">
+                📋 List
+              </button>
+              <button id="show-quest-map-btn" title="Map View" class="px-3 py-1 rounded-md text-sm font-medium transition-all text-gray-600 hover:text-gray-800">
+                🗺️ Map
+              </button>
             </div>
+
             <!-- Menu Dropdown -->
             <div class="relative">
               <button id="menu-toggle-btn" title="Menu" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100">
@@ -1163,7 +1387,7 @@
                   <span>Logout</span>
                 </button>
                 <div class="px-4 py-2 text-xs text-gray-400 font-mono text-center border-t border-gray-100 mt-1">
-                  v2.1.11
+                  v2.2.0
                 </div>
               </div>
             </div>
@@ -1269,16 +1493,9 @@
             </div>
             <div class="flex flex-col">
               <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
-              <div id="objectives-progress" class="text-xs text-blue-600 font-medium mt-1 hidden cursor-pointer hover:underline" title="Click to view quest objective">
-                <span id="objectives-count">0/0</span> objectives completed
-              </div>
-              <p class="text-xs text-gray-500 mt-1">💡 Tip: Tap any word or select a phrase to translate it</p>
             </div>
           </div>
           <div class="flex gap-2 items-center">
-            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.11</span>
-            <button id="repeat-tts-btn" title="Repeat last audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
-            <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
             <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">← Back</button>
           </div>
         </header>
@@ -1449,16 +1666,19 @@
             <button id="send-reset-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors mt-4">Reset Password</button>
         </div>
     </div>
-    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
+    <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-md my-auto flex flex-col" style="max-height: calc(100vh - 2rem);">
+            <!-- Fixed Header -->
+            <div class="flex justify-between items-center p-6 pb-4 border-b flex-shrink-0">
               <div>
                 <h2 id="settings-title" class="text-2xl font-bold">Your Preferences</h2>
                 <p class="text-sm text-gray-600 mt-1">Make ConvoQuest yours!</p>
               </div>
               <button id="close-settings-btn" class="font-bold text-2xl" aria-label="Close settings">&times;</button>
             </div>
-            <div class="space-y-4">
+
+            <!-- Scrollable Content -->
+            <div class="space-y-4 overflow-y-auto p-6 pt-4 flex-1">
                 <!-- Avatar Display -->
                 <div class="text-center pb-4 border-b">
                     <p class="text-sm font-medium text-gray-700 mb-2">Your Avatar</p>
@@ -1476,62 +1696,6 @@
                 <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Spanish Style</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
                 <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Conversation Style</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
                 <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Quest Descriptions</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
-
-                <!-- Voice Settings Section -->
-                <div class="border-t pt-4 mt-4">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Voice Settings</h3>
-
-                    <!-- Voice Information -->
-                    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                        <p class="text-sm text-gray-700 mb-1"><strong>Automatic Voice Selection</strong></p>
-                        <p class="text-xs text-gray-600">Voices are automatically selected based on character. Using Cartesia Sonic 3 for best quality Spanish voices, with OpenAI and Google AI as fallbacks.</p>
-                    </div>
-
-                    <!-- Auto-play Setting -->
-                    <div class="flex items-center justify-between mb-3">
-                        <label for="autoplay-setting" class="text-sm font-medium text-gray-700">Auto-play Responses</label>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="autoplay-setting" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
-
-                    <!-- Voice Speed -->
-                    <div class="mb-3">
-                        <label for="voice-speed-slider" class="block text-sm font-medium text-gray-700 mb-1">Voice Speed: <span id="voice-speed-value">1.0x</span></label>
-                        <input type="range" id="voice-speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                        <div class="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>0.5x</span>
-                            <span>1.0x</span>
-                            <span>1.5x</span>
-                        </div>
-                    </div>
-
-                    <!-- Voice Pitch -->
-                    <div class="mb-3">
-                        <label for="voice-pitch-slider" class="block text-sm font-medium text-gray-700 mb-1">Voice Pitch: <span id="voice-pitch-value">Normal</span></label>
-                        <input type="range" id="voice-pitch-slider" min="-5" max="5" step="1" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                        <div class="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>Lower</span>
-                            <span>Normal</span>
-                            <span>Higher</span>
-                        </div>
-                    </div>
-
-                    <!-- Test Voice Button -->
-                    <button id="test-voice-btn" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">
-                        Test Voice
-                    </button>
-
-                    <!-- Debug Log Display -->
-                    <div id="voice-debug-log" class="mt-3 bg-gray-100 rounded-md text-xs font-mono hidden">
-                        <div class="flex items-center justify-between p-2 border-b border-gray-300 cursor-pointer" id="voice-debug-header">
-                            <div class="font-bold text-gray-700">Debug Log</div>
-                            <button id="voice-debug-toggle" class="text-gray-500 hover:text-gray-700 text-lg leading-none">−</button>
-                        </div>
-                        <div id="voice-debug-content" class="p-3 text-gray-600 space-y-1 max-h-40 overflow-y-auto"></div>
-                    </div>
-                </div>
 
                 <!-- Accessibility Settings Section -->
                 <div class="border-t pt-4 mt-4">
@@ -1559,6 +1723,44 @@
                             <option value="xlarge">Extra Large</option>
                         </select>
                         <p class="text-xs text-gray-500 mt-1">Adjust text size for easier reading</p>
+                    </div>
+
+                    <!-- Voice Settings Section -->
+                    <div class="border-t pt-4 mt-4">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-800">Voice Settings</h3>
+
+                        <!-- Voice Speed -->
+                        <div class="mb-4">
+                            <label for="voice-speed-slider" class="block text-sm font-medium text-gray-700 mb-1">
+                                Voice Speed: <span id="voice-speed-value" class="font-bold">1.0x</span>
+                            </label>
+                            <input type="range" id="voice-speed-slider" min="0.5" max="2.0" step="0.1" value="1.0"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0.5x</span>
+                                <span>1.0x</span>
+                                <span>2.0x</span>
+                            </div>
+                        </div>
+
+                        <!-- Voice Pitch -->
+                        <div class="mb-4">
+                            <label for="voice-pitch-slider" class="block text-sm font-medium text-gray-700 mb-1">
+                                Voice Pitch: <span id="voice-pitch-value" class="font-bold">Normal</span>
+                            </label>
+                            <input type="range" id="voice-pitch-slider" min="-3" max="3" step="1" value="0"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Lower</span>
+                                <span>Normal</span>
+                                <span>Higher</span>
+                            </div>
+                        </div>
+
+                        <!-- Test Voice Button -->
+                        <button id="test-voice-btn" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 px-4 rounded-lg font-semibold text-sm hover:from-purple-600 hover:to-blue-600 transition-all shadow-md">
+                            🔊 Test Voice
+                        </button>
                     </div>
                 </div>
 
@@ -1665,7 +1867,6 @@
         <div class="onboarding-dot"></div>
         <div class="onboarding-dot"></div>
         <div class="onboarding-dot"></div>
-        <div class="onboarding-dot"></div>
       </div>
       <div class="flex gap-2">
         <button id="onboarding-skip" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1">Skip</button>
@@ -1742,7 +1943,27 @@
     })();
   </script>
 
+  <!-- Version Display -->
+  <div id="version-display">v2.2.7</div>
+
+  <!-- Debug Console -->
+  <div id="debug-console">
+    <div id="debug-console-header">
+      <span>🐛 Debug Console</span>
+      <div style="display: flex; gap: 4px;">
+        <button id="debug-console-clear" title="Clear console">×</button>
+        <button id="debug-console-minimize" title="Minimize">−</button>
+      </div>
+    </div>
+    <div id="debug-console-content"></div>
+  </div>
+
   <!-- Main app logic (loaded as ES module) -->
-  <script type="module" src="/app.js"></script>
+  <script type="module">
+    // Cache-busting: Add version and timestamp to force reload on updates
+    const appVersion = '2.2.7';
+    const timestamp = Date.now();
+    import(`/app.js?v=${appVersion}&t=${timestamp}`);
+  </script>
 </body>
 </html>

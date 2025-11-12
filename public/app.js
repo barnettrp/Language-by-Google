@@ -22,6 +22,109 @@ import {
 } from 'firebase/firestore';
 console.log('ðŸŸ¢ Firebase firestore imports loaded');
 
+// Debug Console Setup
+(function initDebugConsole() {
+  const debugConsole = document.getElementById('debug-console');
+  const debugContent = document.getElementById('debug-console-content');
+  const clearBtn = document.getElementById('debug-console-clear');
+  const minimizeBtn = document.getElementById('debug-console-minimize');
+
+  if (!debugConsole || !debugContent) return;
+
+  // Store original console methods
+  const originalError = console.error;
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+
+  // Helper to add log to debug console
+  function addToDebugConsole(message, type = 'info') {
+    const logEntry = document.createElement('div');
+    logEntry.className = `debug-log ${type}`;
+
+    // Format the message
+    const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const formattedMsg = typeof message === 'object' ? JSON.stringify(message, null, 2) : String(message);
+    logEntry.textContent = `[${timestamp}] ${formattedMsg}`;
+
+    debugContent.appendChild(logEntry);
+
+    // Auto-scroll to bottom
+    debugContent.scrollTop = debugContent.scrollHeight;
+
+    // Limit to last 100 entries
+    while (debugContent.children.length > 100) {
+      debugContent.removeChild(debugContent.firstChild);
+    }
+  }
+
+  // Override console methods to also log to debug console
+  console.error = function(...args) {
+    originalError.apply(console, args);
+    args.forEach(arg => addToDebugConsole(arg, 'error'));
+  };
+
+  console.warn = function(...args) {
+    originalWarn.apply(console, args);
+    args.forEach(arg => addToDebugConsole(arg, 'warn'));
+  };
+
+  // Clear button
+  if (clearBtn) {
+    clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      debugContent.innerHTML = '';
+      addToDebugConsole('Console cleared', 'info');
+    });
+  }
+
+  // Minimize button
+  if (minimizeBtn) {
+    minimizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      debugConsole.classList.toggle('minimized');
+      minimizeBtn.textContent = debugConsole.classList.contains('minimized') ? '+' : '−';
+    });
+  }
+
+  // Make console draggable
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+
+  const header = document.getElementById('debug-console-header');
+
+  header.addEventListener('mousedown', (e) => {
+    // Don't drag if clicking buttons
+    if (e.target.tagName === 'BUTTON') return;
+
+    isDragging = true;
+    initialX = e.clientX - (parseInt(debugConsole.style.left) || 0);
+    initialY = e.clientY - (parseInt(debugConsole.style.top) || 0);
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    e.preventDefault();
+    currentX = e.clientX - initialX;
+    currentY = e.clientY - initialY;
+
+    debugConsole.style.left = currentX + 'px';
+    debugConsole.style.top = currentY + 'px';
+    debugConsole.style.right = 'auto';
+    debugConsole.style.bottom = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  // Add initial message
+  addToDebugConsole('Debug console initialized', 'success');
+})();
+
 // Debug logging helper
 // Logs to browser console (for debugging with F12 Developer Tools)
 function debugLog(msg) {
@@ -52,6 +155,15 @@ export function initializeApp() {
   const isDevMode = window.location.hostname === 'localhost' ||
                     window.location.hostname === '127.0.0.1';
 
+  // Log dev mode status immediately
+  if (isDevMode) {
+    console.log('%c🚀 DEV MODE ACTIVE', 'background: #4ade80; color: #000; font-weight: bold; padding: 4px 8px; border-radius: 4px');
+    console.log('%cAuth bypass enabled - going directly to quest page', 'color: #4ade80; font-weight: bold');
+  } else {
+    console.log('%c🔒 PRODUCTION MODE', 'background: #ef4444; color: #fff; font-weight: bold; padding: 4px 8px; border-radius: 4px');
+    console.log('%cFirebase authentication required', 'color: #ef4444; font-weight: bold');
+  }
+
   // Objective tracking variables
   let stageMessageCount = 0;
   let completedObjectives = new Set();
@@ -81,6 +193,12 @@ export function initializeApp() {
   let selectedAnswer = null;
   let placementAnswers = [];
   let placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+
+  // IRT-based adaptive testing state
+  let estimatedAbility = 0; // Theta (ability parameter), range: -3 to +3
+  let standardError = 2.0; // Standard error of ability estimate
+  let availableQuestions = []; // Pool of all available questions
+  let usedQuestionIndices = new Set(); // Track which questions have been used
 
   // DOM elements (defined early to ensure availability)
   debugLog('ðŸ” Looking up DOM elements...');
@@ -114,6 +232,11 @@ export function initializeApp() {
     logoutBtn: document.getElementById('logout-btn'),
     settingsBtn: document.getElementById('settings-btn'),
     menuToggleBtn: document.getElementById('menu-toggle-btn'),
+    placementMenuToggleBtn: document.getElementById('placement-menu-toggle-btn'),
+    placementMenuDropdown: document.getElementById('placement-menu-dropdown'),
+    placementLogoutMenuItem: document.getElementById('placement-logout-menu-item'),
+    placementInstructionsPopup: document.getElementById('placement-instructions-popup'),
+    closePlacementInstructionsBtn: document.getElementById('close-placement-instructions-btn'),
     menuDropdown: document.getElementById('menu-dropdown'),
     darkModeMenuItem: document.getElementById('dark-mode-menu-item'),
     settingsMenuItem: document.getElementById('settings-menu-item'),
@@ -142,6 +265,7 @@ export function initializeApp() {
     chatContainer: document.getElementById('chat-container'),
     chatInput: document.getElementById('chat-input'),
     sendBtn: document.getElementById('send-btn'),
+    micBtn: document.getElementById('mic-btn'),
     hintBtn: document.getElementById('hint-btn'),
     objectivesProgress: document.getElementById('objectives-progress'),
     objectivesCount: document.getElementById('objectives-count'),
@@ -163,7 +287,6 @@ export function initializeApp() {
     currentQuestionNum: document.getElementById('current-question-num'),
     totalQuestions: document.getElementById('total-questions'),
     placementProgressBar: document.getElementById('placement-progress-bar'),
-    estimatedLevel: document.getElementById('estimated-level'),
     placementChatView: document.getElementById('placement-chat-view'),
     placementChatContainer: document.getElementById('placement-chat-container'),
     characterIntroOverlay: document.getElementById('character-intro-overlay'),
@@ -335,7 +458,20 @@ export function initializeApp() {
 
       // Log detailed error info
       if (error) {
-        console.error(`[TTS] Audio error - Code: ${error.code}, Message: ${error.message || 'Unknown'}`);
+        const errorMessages = {
+          1: 'MEDIA_ERR_ABORTED - Fetching process aborted by user',
+          2: 'MEDIA_ERR_NETWORK - Network error while downloading',
+          3: 'MEDIA_ERR_DECODE - Error decoding media resource',
+          4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Media format not supported or source unavailable'
+        };
+        const errorMsg = errorMessages[error.code] || 'Unknown error';
+        console.warn(`[TTS] Audio error - Code ${error.code}: ${errorMsg}`);
+        console.warn(`[TTS] Audio src: ${persistentAudioElement.src || 'empty'}`);
+
+        // Only log as error if it's not a simple abort (code 4 often happens on source change)
+        if (error.code !== 4 && error.code !== 1) {
+          console.error(`[TTS] Serious audio error:`, error);
+        }
       } else {
         // This often happens when load() is called to abort - not a real error
         console.log('[TTS] Audio element error event (likely from abort/reset)');
@@ -841,6 +977,223 @@ export function initializeApp() {
     }
   };
 
+  // STT (Speech-to-Text) Manager for voice input
+  const STTManager = {
+    recognition: null,
+    isListening: false,
+    interimTranscript: '',
+    finalTranscript: '',
+
+    // Initialize Speech Recognition
+    init() {
+      // Check for browser support
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        console.warn('[STT] Speech Recognition not supported in this browser');
+        return false;
+      }
+
+      this.recognition = new SpeechRecognition();
+
+      // Get Spanish dialect from user settings (default to Spain Spanish)
+      const dialectMap = {
+        'Mexico': 'es-MX',
+        'Spain': 'es-ES',
+        'Argentina': 'es-AR',
+        'Colombia': 'es-CO',
+        'Chile': 'es-CL'
+      };
+      const dialect = userSettings.dialect || 'Spain';
+      this.recognition.lang = dialectMap[dialect] || 'es-ES';
+
+      // Configuration
+      this.recognition.continuous = false; // Stop after user finishes speaking
+      this.recognition.interimResults = true; // Show interim results while speaking
+      this.recognition.maxAlternatives = 1;
+
+      // Event handlers
+      this.recognition.onstart = () => {
+        console.log('[STT] Recognition started');
+        this.isListening = true;
+        this.interimTranscript = '';
+        this.finalTranscript = '';
+        this.updateMicButtonState(true);
+      };
+
+      this.recognition.onresult = (event) => {
+        let interim = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+
+          if (event.results[i].isFinal) {
+            this.finalTranscript += transcript + ' ';
+          } else {
+            interim += transcript;
+          }
+        }
+
+        this.interimTranscript = interim;
+
+        // Update chat input with interim results
+        if (dom.chatInput) {
+          dom.chatInput.value = (this.finalTranscript + interim).trim();
+          dom.chatInput.placeholder = interim ? 'Listening...' : 'Say something in Spanish...';
+        }
+
+        console.log('[STT] Interim:', interim);
+        console.log('[STT] Final so far:', this.finalTranscript);
+      };
+
+      this.recognition.onend = () => {
+        console.log('[STT] Recognition ended');
+        this.isListening = false;
+        this.updateMicButtonState(false);
+
+        // Restore placeholder
+        if (dom.chatInput) {
+          dom.chatInput.placeholder = 'Say something in Spanish...';
+        }
+
+        // If we have a final transcript, keep it in the input
+        if (this.finalTranscript.trim()) {
+          console.log('[STT] Final transcript:', this.finalTranscript);
+          if (dom.chatInput) {
+            dom.chatInput.value = this.finalTranscript.trim();
+          }
+        }
+      };
+
+      this.recognition.onerror = (event) => {
+        console.error('[STT] Recognition error:', event.error);
+        this.isListening = false;
+        this.updateMicButtonState(false);
+
+        // User-friendly error messages
+        let errorMessage = '';
+        switch (event.error) {
+          case 'no-speech':
+            errorMessage = 'No speech detected. Try again?';
+            break;
+          case 'audio-capture':
+            errorMessage = 'Microphone not found. Check your audio settings.';
+            break;
+          case 'not-allowed':
+            errorMessage = 'Microphone access denied. Please allow microphone access in your browser settings.';
+            break;
+          case 'network':
+            errorMessage = 'Network error. Check your internet connection.';
+            break;
+          case 'aborted':
+            // User stopped manually, no error needed
+            break;
+          default:
+            errorMessage = `Speech recognition error: ${event.error}`;
+        }
+
+        if (errorMessage && dom.chatInput) {
+          dom.chatInput.placeholder = errorMessage;
+          // Restore original placeholder after 3 seconds
+          setTimeout(() => {
+            if (dom.chatInput) {
+              dom.chatInput.placeholder = 'Say something in Spanish...';
+            }
+          }, 3000);
+        }
+      };
+
+      console.log('[STT] Speech Recognition initialized with language:', this.recognition.lang);
+      return true;
+    },
+
+    // Start listening
+    start() {
+      if (!this.recognition) {
+        if (!this.init()) {
+          alert('Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
+          return;
+        }
+      }
+
+      if (this.isListening) {
+        console.log('[STT] Already listening');
+        return;
+      }
+
+      // Clear previous transcript
+      this.interimTranscript = '';
+      this.finalTranscript = '';
+
+      try {
+        this.recognition.start();
+        console.log('[STT] Starting speech recognition...');
+      } catch (error) {
+        console.error('[STT] Error starting recognition:', error);
+
+        // If error is that it's already started, try stopping and restarting
+        if (error.message && error.message.includes('already started')) {
+          this.stop();
+          setTimeout(() => this.start(), 100);
+        }
+      }
+    },
+
+    // Stop listening
+    stop() {
+      if (this.recognition && this.isListening) {
+        this.recognition.stop();
+        console.log('[STT] Stopping speech recognition...');
+      }
+    },
+
+    // Toggle listening state
+    toggle() {
+      if (this.isListening) {
+        this.stop();
+      } else {
+        this.start();
+      }
+    },
+
+    // Update microphone button visual state
+    updateMicButtonState(isActive) {
+      if (!dom.micBtn) return;
+
+      if (isActive) {
+        // Active state - recording
+        dom.micBtn.classList.add('mic-active');
+        dom.micBtn.style.color = '#ef4444'; // Red color
+        dom.micBtn.style.animation = 'pulse 1.5s ease-in-out infinite';
+        dom.micBtn.title = 'Stop recording (click again)';
+        dom.micBtn.innerHTML = '🔴'; // Red dot to indicate recording
+      } else {
+        // Inactive state - not recording
+        dom.micBtn.classList.remove('mic-active');
+        dom.micBtn.style.color = '';
+        dom.micBtn.style.animation = '';
+        dom.micBtn.title = 'Use your voice';
+        dom.micBtn.innerHTML = '🎤'; // Microphone emoji
+      }
+    },
+
+    // Update language when user changes dialect
+    updateLanguage(dialect) {
+      if (!this.recognition) return;
+
+      const dialectMap = {
+        'Mexico': 'es-MX',
+        'Spain': 'es-ES',
+        'Argentina': 'es-AR',
+        'Colombia': 'es-CO',
+        'Chile': 'es-CL'
+      };
+
+      this.recognition.lang = dialectMap[dialect] || 'es-ES';
+      console.log('[STT] Language updated to:', this.recognition.lang);
+    }
+  };
+
   // Background Music Manager
   const BackgroundMusic = {
     async start(questId, difficulty) {
@@ -994,6 +1347,116 @@ export function initializeApp() {
     }
   };
 
+  // IRT (Item Response Theory) Helper Functions
+  // Difficulty parameters for each CEFR level (on theta scale: -3 to +3)
+  const LEVEL_DIFFICULTY = {
+    'A1': -2.0,
+    'A2': -1.0,
+    'B1': 0.0,
+    'B2': 1.0,
+    'C1': 2.0,
+    'C2': 3.0
+  };
+
+  // Discrimination parameter (how well questions differentiate ability)
+  const DISCRIMINATION = 1.0;
+
+  // Calculate probability of correct answer using 2PL IRT model
+  function irtProbability(theta, difficulty, discrimination = DISCRIMINATION) {
+    return 1 / (1 + Math.exp(-discrimination * (theta - difficulty)));
+  }
+
+  // Calculate Fisher Information at given ability level
+  function fisherInformation(theta, difficulty, discrimination = DISCRIMINATION) {
+    const p = irtProbability(theta, difficulty, discrimination);
+    return discrimination * discrimination * p * (1 - p);
+  }
+
+  // Estimate ability using Maximum Likelihood Estimation
+  function estimateAbilityMLE(answers) {
+    if (answers.length === 0) return 0;
+
+    let theta = 0; // Start with neutral ability
+    const maxIterations = 20;
+    const tolerance = 0.01;
+
+    for (let iter = 0; iter < maxIterations; iter++) {
+      let firstDerivative = 0;
+      let secondDerivative = 0;
+
+      answers.forEach(answer => {
+        const difficulty = LEVEL_DIFFICULTY[answer.level];
+        const p = irtProbability(theta, difficulty);
+        const w = fisherInformation(theta, difficulty);
+
+        // Calculate derivatives
+        if (answer.isCorrect) {
+          firstDerivative += DISCRIMINATION * (1 - p);
+          secondDerivative -= w;
+        } else {
+          firstDerivative -= DISCRIMINATION * p;
+          secondDerivative -= w;
+        }
+      });
+
+      // Newton-Raphson update
+      if (Math.abs(secondDerivative) < 0.0001) break;
+      const delta = firstDerivative / secondDerivative;
+      theta -= delta;
+
+      // Constrain theta to reasonable range
+      theta = Math.max(-3, Math.min(3, theta));
+
+      // Check for convergence
+      if (Math.abs(delta) < tolerance) break;
+    }
+
+    return theta;
+  }
+
+  // Calculate standard error of ability estimate
+  function calculateStandardError(answers, theta) {
+    if (answers.length === 0) return 2.0;
+
+    let totalInformation = 0;
+    answers.forEach(answer => {
+      const difficulty = LEVEL_DIFFICULTY[answer.level];
+      totalInformation += fisherInformation(theta, difficulty);
+    });
+
+    return totalInformation > 0 ? 1 / Math.sqrt(totalInformation) : 2.0;
+  }
+
+  // Select next question based on maximum information principle
+  function selectAdaptiveQuestion(theta, availableQuestions, usedIndices) {
+    let maxInformation = -1;
+    let bestQuestionIndex = -1;
+
+    availableQuestions.forEach((question, index) => {
+      if (usedIndices.has(index)) return; // Skip used questions
+
+      const difficulty = LEVEL_DIFFICULTY[question.level];
+      const info = fisherInformation(theta, difficulty);
+
+      if (info > maxInformation) {
+        maxInformation = info;
+        bestQuestionIndex = index;
+      }
+    });
+
+    return bestQuestionIndex;
+  }
+
+  // Convert theta to CEFR level
+  function thetaToLevel(theta) {
+    if (theta < -1.5) return 'A1';
+    if (theta < -0.5) return 'A2';
+    if (theta < 0.5) return 'B1';
+    if (theta < 1.5) return 'B2';
+    if (theta < 2.5) return 'C1';
+    return 'C2';
+  }
+
   // Placement Test Manager
   const PlacementTestManager = {
     // Initialize the placement test with adaptive questions
@@ -1011,18 +1474,79 @@ export function initializeApp() {
       placementAnswers = [];
       placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
 
-      // Start with A1 questions (3 questions per level)
-      this.selectQuestionsForLevel('A1', 3);
+      // Reset IRT state
+      estimatedAbility = 0; // Start with neutral ability (B1 level)
+      standardError = 2.0;
+      usedQuestionIndices = new Set();
+
+      // Build pool of all available questions with their levels
+      availableQuestions = [];
+      Object.keys(PLACEMENT_QUESTIONS).forEach(level => {
+        PLACEMENT_QUESTIONS[level].forEach(q => {
+          availableQuestions.push({ ...q, level });
+        });
+      });
+
+      console.log(`[PlacementTest] Loaded ${availableQuestions.length} questions`);
+
+      // Start with first question (will be adaptively selected)
+      this.selectAndDisplayNextQuestion();
 
       // Update UI
-      if (dom.totalQuestions) dom.totalQuestions.textContent = '15';
+      if (dom.totalQuestions) dom.totalQuestions.textContent = '12'; // Target 10-12 questions
       if (dom.currentQuestionNum) dom.currentQuestionNum.textContent = '1';
 
-      // Display first question
-      this.displayQuestion();
+      // Show instructions popup with countdown
+      this.showInstructionsPopup();
 
       debugLog('âœ… Placement test initialized');
       return true;
+    },
+
+    // Show instructions popup
+    showInstructionsPopup() {
+      if (!dom.placementInstructionsPopup) return;
+
+      // Show the popup
+      dom.placementInstructionsPopup.classList.remove('hidden');
+
+      // Handle close button click
+      if (dom.closePlacementInstructionsBtn) {
+        const closeHandler = () => {
+          this.hideInstructionsPopup();
+          dom.closePlacementInstructionsBtn.removeEventListener('click', closeHandler);
+        };
+        dom.closePlacementInstructionsBtn.addEventListener('click', closeHandler);
+      }
+    },
+
+    // Hide instructions popup
+    hideInstructionsPopup() {
+      if (dom.placementInstructionsPopup) {
+        dom.placementInstructionsPopup.classList.add('hidden');
+      }
+    },
+
+    // Select and display next question using IRT adaptive logic
+    selectAndDisplayNextQuestion() {
+      // Select next question based on current ability estimate
+      const questionIndex = selectAdaptiveQuestion(estimatedAbility, availableQuestions, usedQuestionIndices);
+
+      if (questionIndex === -1) {
+        console.error('[PlacementTest] No more questions available');
+        this.completeTest();
+        return;
+      }
+
+      // Mark question as used and add to test
+      usedQuestionIndices.add(questionIndex);
+      const selectedQuestion = availableQuestions[questionIndex];
+      placementQuestions.push(selectedQuestion);
+
+      console.log(`[PlacementTest] Selected ${selectedQuestion.level} question (theta: ${estimatedAbility.toFixed(2)}, SE: ${standardError.toFixed(2)})`);
+
+      // Display the question
+      this.displayQuestion();
     },
 
     // Select random questions from a specific level
@@ -1043,6 +1567,7 @@ export function initializeApp() {
         console.error('[PlacementTest] No question at index', currentQuestionIndex);
         return;
       }
+
 
       // Update question text
       if (dom.questionText) {
@@ -1075,7 +1600,7 @@ export function initializeApp() {
         // Add "I don't know" option
         const dontKnowBtn = document.createElement('button');
         dontKnowBtn.className = 'w-full text-left p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
-        dontKnowBtn.textContent = "No sÃ© (I don't know)";
+        dontKnowBtn.textContent = "I don't know";
         dontKnowBtn.addEventListener('click', () => this.selectOption(-1, dontKnowBtn));
         dom.quizOptions.appendChild(dontKnowBtn);
       }
@@ -1084,9 +1609,6 @@ export function initializeApp() {
       if (dom.submitQuizBtn) {
         dom.submitQuizBtn.disabled = true;
       }
-
-      // Update estimated level display
-      this.updateEstimatedLevel();
     },
 
     // Handle option selection
@@ -1129,7 +1651,7 @@ export function initializeApp() {
         level: question.level
       });
 
-      // Update score
+      // Update score (keep for backward compatibility)
       if (isCorrect) {
         placementScore[question.level]++;
       }
@@ -1137,61 +1659,58 @@ export function initializeApp() {
       // Move to next question
       currentQuestionIndex++;
 
-      // Adaptive logic: Add questions based on performance
-      if (currentQuestionIndex === 3 && isCorrect) {
-        // If doing well on A1, add A2 questions
-        this.selectQuestionsForLevel('A2', 3);
-      } else if (currentQuestionIndex === 6 && placementScore.A2 >= 2) {
-        // If doing well on A2, add B1 questions
-        this.selectQuestionsForLevel('B1', 3);
-      } else if (currentQuestionIndex === 9 && placementScore.B1 >= 2) {
-        // If doing well on B1, add B2 questions
-        this.selectQuestionsForLevel('B2', 3);
-      } else if (currentQuestionIndex === 12 && placementScore.B2 >= 2) {
-        // If doing well on B2, add C1 questions
-        this.selectQuestionsForLevel('C1', 3);
-      }
+      // IRT-based adaptive logic: Update ability estimate
+      estimatedAbility = estimateAbilityMLE(placementAnswers);
+      standardError = calculateStandardError(placementAnswers, estimatedAbility);
 
-      // Check if test is complete
-      if (currentQuestionIndex >= placementQuestions.length || currentQuestionIndex >= 15) {
-        this.completeTest();
-      } else {
-        this.displayQuestion();
-      }
-    },
+      const currentLevel = thetaToLevel(estimatedAbility);
+      console.log(`[PlacementTest] After Q${currentQuestionIndex}: θ=${estimatedAbility.toFixed(2)}, SE=${standardError.toFixed(2)}, level=${currentLevel}`);
 
-    // Update estimated level display
-    updateEstimatedLevel() {
-      if (!dom.estimatedLevel) return;
-
-      const level = this.calculateCurrentLevel();
-      dom.estimatedLevel.textContent = level ? `Estimated: ${level}` : '';
-    },
-
-    // Calculate current estimated level
-    calculateCurrentLevel() {
-      const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-      let estimatedLevel = 'A1';
-
-      for (const level of levels) {
-        const levelAnswers = placementAnswers.filter(a => a.level === level);
-        const correctCount = levelAnswers.filter(a => a.isCorrect).length;
-        const accuracy = levelAnswers.length > 0 ? correctCount / levelAnswers.length : 0;
-
-        if (accuracy >= 0.6) {
-          estimatedLevel = level;
-        } else {
-          break; // Stop if accuracy drops below 60%
+      // Early A1 placement: If first 5 questions are all wrong, place at A1
+      if (currentQuestionIndex >= 5) {
+        const first5Correct = placementAnswers.slice(0, 5).filter(a => a.isCorrect).length;
+        if (first5Correct === 0) {
+          console.log(`[PlacementTest] All first 5 questions wrong - auto-placing at A1`);
+          estimatedAbility = -2.5; // Set to low A1
+          this.completeTest();
+          return;
         }
       }
 
-      return estimatedLevel;
+      // Check stopping criteria
+      const minQuestions = 8;
+      const maxQuestions = 12;
+      const targetSE = 0.5; // Stop when standard error is low enough
+
+      const shouldStop = (
+        (currentQuestionIndex >= minQuestions && standardError < targetSE) ||
+        currentQuestionIndex >= maxQuestions
+      );
+
+      if (shouldStop) {
+        console.log(`[PlacementTest] Stopping: ${currentQuestionIndex} questions, SE=${standardError.toFixed(2)}`);
+        this.completeTest();
+      } else {
+        this.selectAndDisplayNextQuestion();
+      }
+    },
+
+    // Calculate current estimated level using IRT theta
+    calculateCurrentLevel() {
+      // Use IRT-based ability estimate if we have answers
+      if (placementAnswers.length > 0) {
+        return thetaToLevel(estimatedAbility);
+      }
+
+      // Fallback to neutral level if no answers yet
+      return 'B1';
     },
 
     // Complete the placement test
     async completeTest() {
       const finalLevel = this.calculateCurrentLevel();
       debugLog(`âœ… Placement test complete. Level: ${finalLevel}`);
+      console.log(`[PlacementTest] Final: Level=${finalLevel}, θ=${estimatedAbility.toFixed(2)}, SE=${standardError.toFixed(2)}, Questions=${currentQuestionIndex}`);
 
       // Save to Firebase (skip in dev mode)
       if (!isDevMode && currentUser && currentUser.uid) {
@@ -1202,7 +1721,11 @@ export function initializeApp() {
             placementCompleted: true,
             placementDate: serverTimestamp(),
             placementAnswers: placementAnswers.length,
-            placementScore: placementScore
+            placementScore: placementScore,
+            // IRT-specific data
+            irtAbility: estimatedAbility,
+            irtStandardError: standardError,
+            irtTestLength: currentQuestionIndex
           }, { merge: true });
 
           console.log('[PlacementTest] Results saved to Firebase');
@@ -1211,10 +1734,12 @@ export function initializeApp() {
         }
       } else if (isDevMode) {
         console.log('[DEV MODE] Skipping Firebase save for placement test');
+        console.log(`[DEV MODE] Final results: Level=${finalLevel}, Theta=${estimatedAbility.toFixed(2)}, SE=${standardError.toFixed(2)}, Questions=${currentQuestionIndex}`);
       }
 
-      // Show results
-      alert(`Placement Test Complete!\n\nYour Spanish level: ${finalLevel}\n\nLet's start your language adventure!`);
+      // Show results with more detail
+      const confidenceText = standardError < 1.0 ? 'high confidence' : standardError < 1.5 ? 'good confidence' : 'moderate confidence';
+      alert(`Placement Test Complete!\n\nYour Spanish level: ${finalLevel}\n(${confidenceText} - ${currentQuestionIndex} questions)\n\nLet's start your language adventure!`);
 
       // Hide placement view and start onboarding quest
       if (dom.placementView) dom.placementView.style.display = 'none';
@@ -1257,7 +1782,7 @@ export function initializeApp() {
   }
 
   const quests = getQuests();
-  debugLog(`ðŸ“š Quests object has ${Object.keys(quests).length} quests`);
+  debugLog(`Quests object has ${Object.keys(quests).length} quests`);
 
   // Utility functions
   // Show auth views (login, signup, email verification)
@@ -1561,6 +2086,9 @@ export function initializeApp() {
         isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:scale-105 hover:shadow-2xl'
       }`;
 
+      // Add data attribute to identify this quest
+      questEl.setAttribute('data-quest-key', questKey);
+
       questEl.innerHTML = `
         <!-- Card Background with Gradient Overlay -->
         <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10"></div>
@@ -1591,12 +2119,12 @@ export function initializeApp() {
             </span>
             ${quest.estimatedDuration ? `
               <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold">
-                â±ï¸ ${quest.estimatedDuration} min
+                ${quest.estimatedDuration} min
               </span>
             ` : ''}
             ${quest.requiredLevel ? `
               <span class="text-xs px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
-                ðŸ“š ${quest.requiredLevel}
+                ${quest.requiredLevel}
               </span>
             ` : ''}
           </div>
@@ -1625,8 +2153,15 @@ export function initializeApp() {
         </div>
       `;
 
+      // Add click handler to the entire card (event delegation will handle button clicks too)
       if (!isLocked) {
-        questEl.addEventListener('click', () => startQuest(questKey));
+        questEl.addEventListener('click', (e) => {
+          console.error(`🎯 [DEBUG] Quest card clicked for: ${questKey}`);
+          console.error(`[DEBUG] Click target:`, e.target.tagName, e.target.className);
+          console.error(`[DEBUG] Calling startQuest with: ${questKey}`);
+          debugLog(`🎯 Quest card/button clicked for: ${questKey}`);
+          startQuest(questKey);
+        });
       }
 
       return questEl;
@@ -1634,11 +2169,6 @@ export function initializeApp() {
 
     // Render Available Quests
     if (availableQuests.length > 0) {
-      const availableHeader = document.createElement('h2');
-      availableHeader.className = 'text-lg font-bold text-gray-800 mb-3 mt-2';
-      availableHeader.textContent = 'âœ¨ Ready for You';
-      dom.questList.appendChild(availableHeader);
-
       availableQuests.forEach(questData => {
         dom.questList.appendChild(createQuestCard(questData));
       });
@@ -1672,6 +2202,7 @@ export function initializeApp() {
   // Start a quest
   function startQuest(questKey) {
     debugLog(`ðŸ“ startQuest called with: ${questKey}`);
+    console.error(`🚀 [DEBUG] startQuest called with questKey: ${questKey}`);
     currentQuest = questKey;
     currentStage = "1";
     messages = [];
@@ -2653,6 +3184,14 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') sendChatMessage();
       });
     }
+
+    // Microphone button event listener
+    if (dom.micBtn) {
+      dom.micBtn.addEventListener('click', () => {
+        STTManager.toggle();
+      });
+    }
+
     debugLog('âœ… Chat event listeners set');
 
     // Character introduction card
@@ -2789,6 +3328,31 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       }
     }
 
+    // Placement menu dropdown toggle
+    if (dom.placementMenuToggleBtn && dom.placementMenuDropdown) {
+      dom.placementMenuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dom.placementMenuDropdown.classList.toggle('hidden');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (dom.placementMenuDropdown && !dom.placementMenuDropdown.classList.contains('hidden')) {
+          if (!dom.placementMenuToggleBtn.contains(e.target) && !dom.placementMenuDropdown.contains(e.target)) {
+            dom.placementMenuDropdown.classList.add('hidden');
+          }
+        }
+      });
+
+      // Placement menu item: Logout
+      if (dom.placementLogoutMenuItem) {
+        dom.placementLogoutMenuItem.addEventListener('click', () => {
+          handleLogout();
+          dom.placementMenuDropdown.classList.add('hidden');
+        });
+      }
+    }
+
     // Settings modal
     if (dom.settingsBtn) {
       dom.settingsBtn.addEventListener('click', () => {
@@ -2800,6 +3364,17 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       dom.closeSettingsBtn.addEventListener('click', () => {
         dom.settingsModal.classList.add('hidden');
       });
+    }
+
+    // Dialect select - update STT language when changed
+    if (dom.dialectSelect) {
+      dom.dialectSelect.addEventListener('change', (e) => {
+        const dialect = e.target.value;
+        userSettings.dialect = dialect;
+        STTManager.updateLanguage(dialect);
+        console.log('[Settings] Dialect changed to:', dialect);
+      });
+      debugLog('âœ… Dialect select listener set');
     }
 
     // Voice speed slider
@@ -2926,6 +3501,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           userSettings.formality = dom.formalitySelect.value;
           userSettings.voiceSpeed = parseFloat(dom.voiceSpeedSlider.value);
           userSettings.voicePitch = parseInt(dom.voicePitchSlider.value);
+
+          // Update STT language when dialect changes
+          STTManager.updateLanguage(userSettings.dialect);
 
           try {
             await setDoc(doc(db, 'users', currentUser.uid), {
@@ -3153,12 +3731,6 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         position: 'right'
       },
       {
-        target: '#show-quest-list-btn',
-        title: 'Quest Views 🎯',
-        message: 'Toggle between list view and map view to see your quests in different ways.',
-        position: 'bottom'
-      },
-      {
         target: '#menu-toggle-btn',
         title: 'Menu Options ⚙️',
         message: 'Access dark mode, settings, and logout from this menu. Customize your learning experience!',
@@ -3173,6 +3745,8 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     ];
 
     let currentTourStep = 0;
+    let highlightedElement = null;
+    let originalStyles = {};
 
     function positionTooltip(targetElement, position) {
       const targetRect = targetElement.getBoundingClientRect();
@@ -3232,6 +3806,27 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         return;
       }
 
+      // Restore previous element's styles
+      if (highlightedElement && originalStyles) {
+        highlightedElement.style.position = originalStyles.position || '';
+        highlightedElement.style.zIndex = originalStyles.zIndex || '';
+        highlightedElement.style.backgroundColor = originalStyles.backgroundColor || '';
+      }
+
+      // Save and elevate current element
+      highlightedElement = targetElement;
+      originalStyles = {
+        position: targetElement.style.position,
+        zIndex: targetElement.style.zIndex,
+        backgroundColor: targetElement.style.backgroundColor
+      };
+
+      // Elevate element above spotlight
+      if (!targetElement.style.position || targetElement.style.position === 'static') {
+        targetElement.style.position = 'relative';
+      }
+      targetElement.style.zIndex = '10000';
+
       const rect = targetElement.getBoundingClientRect();
 
       // Position spotlight
@@ -3271,12 +3866,21 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     }
 
     function endTour() {
+      // Restore highlighted element's styles
+      if (highlightedElement && originalStyles) {
+        highlightedElement.style.position = originalStyles.position || '';
+        highlightedElement.style.zIndex = originalStyles.zIndex || '';
+        highlightedElement.style.backgroundColor = originalStyles.backgroundColor || '';
+        highlightedElement = null;
+        originalStyles = {};
+      }
+
       onboardingOverlay.classList.add('hidden');
       onboardingSpotlight.classList.add('hidden');
       onboardingTooltip.classList.add('hidden');
       localStorage.setItem('onboardingCompleted', 'true');
       announceToScreenReader('Onboarding tour completed');
-      debugLog('âœ… Onboarding tour completed');
+      debugLog('✅ Onboarding tour completed');
     }
 
     function startOnboardingTour() {
@@ -3326,6 +3930,32 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
   // Use real Firebase Auth
   onAuthStateChanged(auth, async (user) => {
+      // Dev mode: Always show main quest page on localhost
+      if (isDevMode) {
+        debugLog('[DEV MODE] Bypassing auth - going directly to main quest page');
+
+        // Hide auth container
+        if (dom.authContainer) {
+          dom.authContainer.style.display = 'none';
+        }
+
+        // Set a mock user for dev purposes
+        currentUser = user || { displayName: 'Dev User', uid: 'dev-user-id' };
+
+        if (dom.userDisplayName) {
+          dom.userDisplayName.textContent = currentUser.displayName || 'Dev User';
+        }
+        if (dom.welcomeMessage) {
+          const firstName = (currentUser.displayName || 'Explorer').split(' ')[0];
+          dom.welcomeMessage.textContent = `Hey ${firstName}!`;
+        }
+
+        // Show main app view directly
+        showView('main-app-view');
+        return;
+      }
+
+      // Production mode: Normal auth flow
       if (user) {
         currentUser = user;
         if (dom.userDisplayName) {
@@ -3333,7 +3963,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         }
         if (dom.welcomeMessage) {
           const firstName = (user.displayName || 'Explorer').split(' ')[0];
-          dom.welcomeMessage.textContent = `Hey ${firstName}! ðŸ—ºï¸`;
+          dom.welcomeMessage.textContent = `Hey ${firstName}!`;
         }
 
         // Hide auth container and show main app
