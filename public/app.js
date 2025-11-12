@@ -3942,12 +3942,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   onAuthStateChanged(auth, async (user) => {
       // Dev mode: Always show main quest page on localhost
       if (isDevMode) {
-        debugLog('[DEV MODE] Bypassing auth - going directly to main quest page');
-
-        // Hide auth container
-        if (dom.authContainer) {
-          dom.authContainer.style.display = 'none';
-        }
+        debugLog('[DEV MODE] Bypassing auth - inline script already showed quest page');
 
         // Set a mock user for dev purposes
         currentUser = user || { displayName: 'Dev User', uid: 'dev-user-id' };
@@ -3955,13 +3950,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (dom.userDisplayName) {
           dom.userDisplayName.textContent = currentUser.displayName || 'Dev User';
         }
-        if (dom.welcomeMessage) {
-          const firstName = (currentUser.displayName || 'Explorer').split(' ')[0];
-          dom.welcomeMessage.textContent = `Hey ${firstName}!`;
-        }
 
-        // Show main app view directly
-        showView('main-app-view');
+        // Note: View management is handled by inline script in index.html
+        // No need to call showView here - inline script already set up the views
+        debugLog('[DEV MODE] Quest page already displayed by inline script');
         return;
       }
 
