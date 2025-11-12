@@ -552,7 +552,6 @@
     }
 
     /* Auth container dark mode styling */
-    body.dark-mode #login-view,
     body.dark-mode #signup-view,
     body.dark-mode #email-verification-view {
       background: rgba(30, 30, 46, 0.95);
@@ -1179,32 +1178,7 @@
           <button id="verification-logout-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline pt-2">Logout</button>
         </div>
       </div>
-      <div id="login-view">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">🗺️</div>
-          <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back!</h1>
-          <p class="text-gray-600 text-sm">Your adventure awaits</p>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label for="login-email-input" class="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
-            <input type="email" id="login-email-input" placeholder="your.email@example.com" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="login-password-input" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input type="password" id="login-password-input" placeholder="••••••••" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-        <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
-        <div class="mt-4 space-y-2">
-          <button id="login-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-md font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">Continue Adventure →</button>
-          <button id="forgot-password-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline">Forgot Password?</button>
-          <div class="pt-2 border-t border-gray-200">
-            <button id="show-signup-btn" class="w-full text-center text-sm text-gray-700">New here? <span class="text-blue-600 font-medium hover:underline">Start Your Journey</span></button>
-          </div>
-        </div>
-      </div>
-      <div id="signup-view" class="hidden">
+      <div id="signup-view">
         <div class="text-center mb-6">
           <div class="text-5xl mb-3">🗺️</div>
           <h1 class="text-3xl font-bold text-gray-800 mb-2">Start Your Adventure</h1>
@@ -1250,11 +1224,8 @@
           </div>
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
-        <div class="mt-4 space-y-2">
+        <div class="mt-4">
           <button id="signup-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-md font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">Begin Journey →</button>
-          <div class="pt-2 border-t border-gray-200">
-            <button id="show-login-btn" class="w-full text-center text-sm text-gray-700">Been here before? <span class="text-blue-600 font-medium hover:underline">Welcome Back</span></button>
-          </div>
         </div>
       </div>
     </div>
@@ -1960,7 +1931,7 @@
   </script>
 
   <!-- Version Display -->
-  <div id="version-display">v2.2.9</div>
+  <div id="version-display">v2.2.10</div>
 
   <!-- Debug Console -->
   <div id="debug-console">
@@ -1977,7 +1948,7 @@
   <!-- Main app logic (loaded as ES module) -->
   <script type="module">
     // Cache-busting: Add version and timestamp to force reload on updates
-    const appVersion = '2.2.9';
+    const appVersion = '2.2.10';
     const timestamp = Date.now();
     import(`/app.js?v=${appVersion}&t=${timestamp}`);
   </script>

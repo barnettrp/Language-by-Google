@@ -26,6 +26,32 @@ The project includes preconfigured workspace settings (`.vscode/settings.json`) 
 - ESLint validation for JavaScript and HTML
 - Tailwind CSS IntelliSense enhancements
 
+### Localhost Authentication Bypass
+
+**Login Page Removed for Local Development**
+
+When running the application on localhost (127.0.0.1 or localhost), the authentication flow is automatically bypassed:
+
+- **No Login Page**: The login HTML is completely hidden via inline JavaScript
+- **Direct Access**: Page opens directly to the main quest view
+- **Dev User**: App creates a temporary dev user (`Dev User`, ID: `dev-user-id`)
+- **Visual Indicators**: Console displays green "DEV MODE ACTIVE" messages
+
+**Technical Implementation:**
+- Inline script in `index.html` (lines 1262-1276) detects localhost hostname
+- Sets `auth-container` display to `none` immediately on page load
+- Auth bypass logic in `app.js` handles authentication state
+- Production remains unaffected (normal login flow preserved)
+
+**Production Behavior:**
+- Login page displays normally on production URL
+- Full Firebase authentication required
+- Email verification enforced
+
+**Files Modified:**
+- `public/index.html`: Login view HTML removed, localhost detection script added
+- `public/app.js`: Dev mode auth bypass logic (lines 155-165, 3924-3947)
+
 ### Development Options
 
 #### Option 1: Vite Development Server (Recommended)
@@ -36,7 +62,7 @@ npm install
 # Start development server
 npm run dev
 
-The application will be available at `http://localhostI :5173`
+The application will be available at `http://localhostI :5173`2
 #### Option 2: Live Server (Alternative)
 
 1. Open your project folder in VS Code
