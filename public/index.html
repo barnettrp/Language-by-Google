@@ -1236,8 +1236,10 @@
         const isLocalhost = window.location.hostname === 'localhost' ||
                            window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
-          // Mark placement test as completed
+          // Mark placement test as completed and dismiss overlays
           localStorage.setItem('placementCompleted', 'true');
+          localStorage.setItem('santiagoWelcomeCardDismissed', 'true');
+          localStorage.setItem('onboardingCompleted', 'true');
 
           // Hide auth container
           const authContainer = document.getElementById('auth-container');
@@ -1260,11 +1262,32 @@
             mainAppView.style.display = 'flex';
           }
 
-          // Show quest view
+          // Show quest view (the main quest list page)
           const questView = document.getElementById('quest-view');
           if (questView) {
             questView.style.display = 'flex';
           }
+
+          // Hide chat view (ensure we're on quest list, not in a conversation)
+          const chatView = document.getElementById('chat-view');
+          if (chatView) {
+            chatView.classList.add('hidden');
+            chatView.style.display = 'none';
+          }
+
+          // Hide Santiago welcome card
+          const santiagoCard = document.getElementById('santiago-welcome-card');
+          if (santiagoCard) {
+            santiagoCard.style.display = 'none';
+          }
+
+          // Hide onboarding overlays
+          const onboardingOverlay = document.getElementById('onboarding-overlay');
+          const onboardingSpotlight = document.getElementById('onboarding-spotlight');
+          const onboardingTooltip = document.getElementById('onboarding-tooltip');
+          if (onboardingOverlay) onboardingOverlay.classList.add('hidden');
+          if (onboardingSpotlight) onboardingSpotlight.classList.add('hidden');
+          if (onboardingTooltip) onboardingTooltip.classList.add('hidden');
 
           // Set welcome message
           const welcomeMessage = document.getElementById('welcome-message');
@@ -1272,10 +1295,11 @@
             welcomeMessage.textContent = 'Hey Dev!';
           }
 
-          console.log('%c🚀 LOCALHOST - QUEST PAGE READY', 'background: #4ade80; color: #000; font-weight: bold; padding: 4px 8px; border-radius: 4px');
-          console.log('%c✓ Placement completed', 'color: #4ade80');
+          console.log('%c🚀 LOCALHOST - MAIN QUEST PAGE READY', 'background: #4ade80; color: #000; font-weight: bold; padding: 4px 8px; border-radius: 4px');
+          console.log('%c✓ Placement bypassed', 'color: #4ade80');
           console.log('%c✓ Auth bypassed', 'color: #4ade80');
-          console.log('%c✓ Main quest page loaded', 'color: #4ade80; font-weight: bold');
+          console.log('%c✓ Onboarding disabled', 'color: #4ade80');
+          console.log('%c✓ Main quest list displayed', 'color: #4ade80; font-weight: bold');
         }
       })();
     </script>
@@ -1965,7 +1989,7 @@
   </script>
 
   <!-- Version Display -->
-  <div id="version-display">v2.2.12</div>
+  <div id="version-display">v2.2.13</div>
 
   <!-- Debug Console -->
   <div id="debug-console">
@@ -1982,7 +2006,7 @@
   <!-- Main app logic (loaded as ES module) -->
   <script type="module">
     // Cache-busting: Add version and timestamp to force reload on updates
-    const appVersion = '2.2.12';
+    const appVersion = '2.2.13';
     const timestamp = Date.now();
     import(`/app.js?v=${appVersion}&t=${timestamp}`);
   </script>
