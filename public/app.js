@@ -151,18 +151,8 @@ export function initializeApp() {
   let messages = [];
   let placementMessages = [];
 
-  // Dev mode detection (set once, used throughout)
-  const isDevMode = window.location.hostname === 'localhost' ||
-                    window.location.hostname === '127.0.0.1';
-
-  // Log dev mode status immediately
-  if (isDevMode) {
-    console.log('%c🚀 DEV MODE ACTIVE', 'background: #4ade80; color: #000; font-weight: bold; padding: 4px 8px; border-radius: 4px');
-    console.log('%cAuth bypass enabled - going directly to quest page', 'color: #4ade80; font-weight: bold');
-  } else {
-    console.log('%c🔒 PRODUCTION MODE', 'background: #ef4444; color: #fff; font-weight: bold; padding: 4px 8px; border-radius: 4px');
-    console.log('%cFirebase authentication required', 'color: #ef4444; font-weight: bold');
-  }
+  // Dev mode disabled - localhost now matches production
+  const isDevMode = false;
 
   // Objective tracking variables
   let stageMessageCount = 0;
@@ -3940,24 +3930,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
   // Use real Firebase Auth
   onAuthStateChanged(auth, async (user) => {
-      // Dev mode: Always show main quest page on localhost
-      if (isDevMode) {
-        debugLog('[DEV MODE] Bypassing auth - inline script already showed quest page');
-
-        // Set a mock user for dev purposes
-        currentUser = user || { displayName: 'Dev User', uid: 'dev-user-id' };
-
-        if (dom.userDisplayName) {
-          dom.userDisplayName.textContent = currentUser.displayName || 'Dev User';
-        }
-
-        // Note: View management is handled by inline script in index.html
-        // No need to call showView here - inline script already set up the views
-        debugLog('[DEV MODE] Quest page already displayed by inline script');
-        return;
-      }
-
-      // Production mode: Normal auth flow
+      // Normal auth flow (same for localhost and production)
       if (user) {
         currentUser = user;
         if (dom.userDisplayName) {

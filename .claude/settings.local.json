@@ -57,7 +57,13 @@
       "WebSearch",
       "Bash(node test-mood-detection.js:*)",
       "Bash(sed:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "WebFetch(domain:language-by-google-gcoi5kcq7-richard-barnetts-projects.vercel.app)",
+      "Bash(python3:*)",
+      "Bash(git restore:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(node test-irt.js:*)",
+      "Bash(PORT=5174 npm run dev:*)"
     ],
     "deny": [],
     "ask": []
