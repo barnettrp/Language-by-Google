@@ -186,21 +186,20 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: transparent;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(2px);
       z-index: 9998;
       animation: fadeIn 0.3s ease-out;
-      pointer-events: none;
     }
 
     #onboarding-spotlight {
       position: fixed;
       border: 3px solid #667eea;
       border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.80), 0 0 30px rgba(102, 126, 234, 0.8), inset 0 0 0 3px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 20px rgba(102, 126, 234, 0.5);
       pointer-events: none;
       z-index: 9999;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      background: transparent;
     }
 
     #onboarding-tooltip {
@@ -291,134 +290,6 @@
       background: #a8b5ff;
     }
 
-    /* Version Display */
-    #version-display {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.5);
-      background: rgba(0, 0, 0, 0.3);
-      padding: 4px 8px;
-      border-radius: 4px;
-      z-index: 10000;
-      font-family: monospace;
-      pointer-events: none;
-      backdrop-filter: blur(4px);
-      user-select: none;
-    }
-
-    body.dark-mode #version-display {
-      color: rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    /* Debug Console */
-    #debug-console {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      width: 350px;
-      max-height: 250px;
-      background: rgba(0, 0, 0, 0.95);
-      border: 1px solid #4ade80;
-      border-radius: 8px;
-      z-index: 9998;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-    }
-
-    #debug-console-header {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      padding: 6px 10px;
-      border-radius: 7px 7px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: move;
-      font-weight: bold;
-      font-size: 12px;
-    }
-
-    #debug-console-header button {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      line-height: 1;
-    }
-
-    #debug-console-header button:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    #debug-console-content {
-      padding: 8px;
-      overflow-y: auto;
-      flex: 1;
-      color: #a3e635;
-      line-height: 1.4;
-    }
-
-    #debug-console-content::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #debug-console-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    #debug-console-content::-webkit-scrollbar-thumb {
-      background: #4ade80;
-      border-radius: 3px;
-    }
-
-    .debug-log {
-      margin-bottom: 4px;
-      padding: 2px 4px;
-      border-radius: 3px;
-    }
-
-    .debug-log.error {
-      color: #fca5a5;
-      background: rgba(220, 38, 38, 0.2);
-    }
-
-    .debug-log.warn {
-      color: #fcd34d;
-      background: rgba(245, 158, 11, 0.2);
-    }
-
-    .debug-log.info {
-      color: #93c5fd;
-      background: rgba(59, 130, 246, 0.2);
-    }
-
-    .debug-log.success {
-      color: #86efac;
-      background: rgba(34, 197, 94, 0.2);
-    }
-
-    #debug-console.minimized #debug-console-content {
-      display: none;
-    }
-
-    #debug-console.minimized {
-      max-height: 36px;
-    }
-
     /* Font Size Options */
     body.font-size-small {
       font-size: 14px;
@@ -483,15 +354,6 @@
       animation: scale-in 0.4s ease-out;
     }
 
-    @keyframes fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .animate-fade-in {
-      animation: fade-in 0.3s ease-out;
-    }
-
     /* XP Progress Bar Minimized State */
     #xp-progress-bar {
       transition: all 0.5s ease-out;
@@ -552,6 +414,7 @@
     }
 
     /* Auth container dark mode styling */
+    body.dark-mode #login-view,
     body.dark-mode #signup-view,
     body.dark-mode #email-verification-view {
       background: rgba(30, 30, 46, 0.95);
@@ -595,14 +458,6 @@
       background-color: rgba(255, 255, 255, 0.1);
     }
 
-    body.dark-mode #restart-tour-menu-item {
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    body.dark-mode #restart-tour-menu-item:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-
     body.dark-mode #logout-menu-item {
       color: #ff6b6b !important;
     }
@@ -619,34 +474,23 @@
       color: rgba(255, 255, 255, 0.4) !important;
     }
 
-    /* Settings modal dark mode */
-    body.dark-mode #settings-modal .modal-content {
-      background-color: rgba(30, 30, 46, 0.95);
-      border-color: rgba(255, 255, 255, 0.1);
+    /* Santiago avatar hover effect */
+    img[alt*="Santiago"] {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    img[alt*="Santiago"]:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
 
-    body.dark-mode #settings-modal .border-b {
-      border-color: rgba(255, 255, 255, 0.1);
+    /* Dark mode for Santiago welcome card */
+    body.dark-mode #santiago-welcome-card {
+      background: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(14, 165, 233, 0.1), rgba(20, 184, 166, 0.1));
+      border-color: rgba(59, 130, 246, 0.3);
     }
-
-    body.dark-mode #settings-modal input,
-    body.dark-mode #settings-modal select {
-      background-color: rgba(255, 255, 255, 0.1);
+    body.dark-mode #santiago-welcome-card h3,
+    body.dark-mode #santiago-welcome-card p {
       color: var(--text-primary);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    body.dark-mode #settings-modal label {
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    body.dark-mode #settings-modal .text-gray-600,
-    body.dark-mode #settings-modal .text-gray-700 {
-      color: rgba(255, 255, 255, 0.7) !important;
-    }
-
-    body.dark-mode #settings-modal .text-gray-500 {
-      color: rgba(255, 255, 255, 0.5) !important;
     }
 
     /* Improve readability of lighter text in dark mode */
@@ -950,12 +794,6 @@
     @keyframes slide-up { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
     .animate-slide-up { animation: slide-up 0.3s ease-out; }
 
-    /* Pulse animation for recording microphone */
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.1); opacity: 0.8; }
-    }
-
     /* Typing indicator animation */
     @keyframes typing-dot {
       0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -1079,49 +917,6 @@
       color: inherit;
     }
 
-    /* Santiago avatar hover effect */
-    img[alt*="Santiago"] {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    img[alt*="Santiago"]:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    /* Chat avatar styling */
-    .message-wrapper img[src*="santiago-welcome"] {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .message-wrapper img[src*="santiago-welcome"]:hover {
-      transform: scale(1.1);
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
-    }
-
-    /* Profile silhouette icon in chat header */
-    #chat-view header svg {
-      transition: transform 0.2s ease, color 0.2s ease;
-    }
-    #chat-view header svg:hover {
-      transform: scale(1.05);
-      color: #4b5563;
-    }
-    body.dark-mode #chat-view header svg {
-      color: #9ca3af;
-    }
-    body.dark-mode #chat-view header svg:hover {
-      color: #d1d5db;
-    }
-
-    /* Dark mode for Santiago welcome card */
-    body.dark-mode #santiago-welcome-card {
-      background: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(14, 165, 233, 0.1), rgba(20, 184, 166, 0.1));
-      border-color: rgba(59, 130, 246, 0.3);
-    }
-    body.dark-mode #santiago-welcome-card h3,
-    body.dark-mode #santiago-welcome-card p {
-      color: var(--text-primary);
-    }
-
     /* App container sizing */
     #app-container {
       width: 100%;
@@ -1149,11 +944,24 @@
 
   <!-- UI FIX: Removed mt-10 from this container -->
   <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden relative">
+    <!-- Debug Console -->
+    <div id="debug-console-wrapper" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;">
+      <div style="background: black; opacity: 0.95; border-top: 2px solid lime;">
+        <div id="debug-console-header" style="color: yellow; font-weight: bold; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: monospace; font-size: 12px; user-select: none;">
+          <span>🐛 DEBUG CONSOLE (TTS Troubleshooting)</span>
+          <button id="debug-console-toggle" style="background: lime; color: black; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 11px;">−</button>
+        </div>
+        <div id="debug-console" style="background: black; color: lime; padding: 10px; max-height: 200px; overflow-y: auto; font-size: 11px; font-family: monospace; display: block;">
+          <div style="color: cyan; margin-bottom: 5px;">Waiting for logs...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- AUTH VIEW -->
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.13</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.1</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -1178,32 +986,41 @@
           <button id="verification-logout-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline pt-2">Logout</button>
         </div>
       </div>
-      <div id="signup-view">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">🗺️</div>
-          <h1 class="text-3xl font-bold text-gray-800 mb-2">Start Your Adventure</h1>
-          <p class="text-gray-600 text-sm">"Hey! I'm Maya, and I'll be your guide to Spanish conversations."</p>
+      <div id="login-view">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
+        <!-- Dev Mode Auto-Login Indicator -->
+        <div id="dev-mode-indicator" class="hidden mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 rounded-lg text-center">
+          <div class="flex items-center justify-center gap-3 mb-2">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+            <p class="text-green-700 font-bold text-lg">🔧 Dev Mode Active</p>
+          </div>
+          <p class="text-green-600 text-sm">Auto-login in progress...</p>
+          <p class="text-gray-500 text-xs mt-2">Email: dev@convoquest.local</p>
         </div>
+        <div id="login-form-container" class="space-y-4">
+          <input type="email" id="login-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="login-password-input" placeholder="Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+        <div class="mt-4 space-y-2">
+          <button id="login-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Login</button>
+          <button id="forgot-password-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline">Forgot Password?</button>
+          <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+        </div>
+      </div>
+      <div id="signup-view" class="hidden">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
         <div class="space-y-4">
           <!-- Avatar Selection -->
-          <div class="flex flex-col items-center mb-2">
+          <div class="flex flex-col items-center mb-4">
             <button type="button" id="select-avatar-btn" class="flex flex-col items-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
               <div id="selected-avatar-display" class="text-5xl">👤</div>
-              <span class="text-sm text-gray-600">Choose your avatar</span>
+              <span class="text-sm text-gray-600">Click to choose avatar</span>
             </button>
           </div>
-          <div>
-            <label for="signup-name-input" class="block text-sm font-medium text-gray-700 mb-1">What should we call you?</label>
-            <input type="text" id="signup-name-input" placeholder="Your name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="signup-email-input" class="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
-            <input type="email" id="signup-email-input" placeholder="your.email@example.com" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="signup-password-input" class="block text-sm font-medium text-gray-700 mb-1">Create a Password</label>
-            <input type="password" id="signup-password-input" placeholder="At least 8 characters" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
+          <input type="text" id="signup-name-input" placeholder="Name" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="email" id="signup-email-input" placeholder="Email" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="signup-password-input" placeholder="Password (min. 8 characters)" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <div class="text-xs space-y-1">
             <p class="text-gray-600 font-medium">Password must contain:</p>
             <ul class="space-y-1 pl-2">
@@ -1218,80 +1035,29 @@
               </li>
             </ul>
           </div>
-          <div>
-            <label for="signup-password-confirm-input" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-            <input type="password" id="signup-password-confirm-input" placeholder="Type it again" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
+          <input type="password" id="signup-password-confirm-input" placeholder="Confirm Password" class="auth-input w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
-        <div class="mt-4">
-          <button id="signup-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-md font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">Begin Journey →</button>
+        <div class="mt-4 space-y-2">
+          <button id="signup-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Sign Up</button>
+          <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Login</button>
         </div>
       </div>
     </div>
 
     <!-- PLACEMENT VIEW -->
     <div id="placement-view" class="main-view flex-col h-full">
-      <!-- Header with Logout -->
-      <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="text-2xl">📚</div>
-          <h1 class="text-xl font-semibold text-gray-800">Placement Test</h1>
-        </div>
-        <div class="flex items-center gap-3">
-          <!-- Menu Dropdown -->
-          <div class="relative">
-            <button id="placement-menu-toggle-btn" title="Menu" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-              </svg>
-            </button>
-            <!-- Dropdown Menu -->
-            <div id="placement-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
-              <button id="placement-logout-menu-item" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
-                <span>⎋</span>
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- Placement Test Instructions Popup -->
-      <div id="placement-instructions-popup" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md mx-4 p-6 animate-scale-in">
-          <div class="text-center mb-4">
-            <div class="text-5xl mb-3">📚</div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome to Your Placement Test</h2>
-          </div>
-          <div class="space-y-3 text-sm text-gray-700 mb-6">
-            <p class="flex items-start gap-2">
-              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
-              <span>Answer questions to help us find your perfect starting level</span>
-            </p>
-            <p class="flex items-start gap-2">
-              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
-              <span>Don't worry—there's no pass or fail, just finding where you are!</span>
-            </p>
-            <p class="flex items-start gap-2">
-              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
-              <span>The test adapts to your answers and typically takes 8-12 questions</span>
-            </p>
-            <p class="flex items-start gap-2">
-              <span class="text-blue-500 font-bold flex-shrink-0">•</span>
-              <span>If you don't know an answer, select "I don't know"</span>
-            </p>
-          </div>
-          <button id="close-placement-instructions-btn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
-            Got it! Let's start
-          </button>
-        </div>
-      </div>
-
       <div id="placement-quiz-view" class="flex flex-col h-full p-6 overflow-y-auto">
         <div class="max-w-2xl mx-auto w-full">
+          <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">Placement Test</h1>
+          <p class="text-gray-600 text-center mb-4">Answer 10-15 questions to determine your level.</p>
+
           <!-- Progress Bar -->
           <div class="mb-6">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Question <span id="current-question-num">1</span> of <span id="total-questions">15</span></span>
+              <span id="estimated-level" class="font-semibold text-blue-600"></span>
+            </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div id="placement-progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
@@ -1306,6 +1072,7 @@
           </div>
 
           <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next Question</button>
+          <button id="complete-placement-btn" class="w-full mt-3 bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition-colors">Complete Placement Test</button>
         </div>
       </div>
     </div>
@@ -1318,19 +1085,9 @@
           <div class="flex items-center gap-3">
             <!-- Santiago Avatar -->
             <img src="/images/characters/santiago-welcome.png" alt="Santiago, your adventure guide" class="w-10 h-10 rounded-full border-2 border-blue-400 shadow-sm hover:scale-110 transition-transform cursor-pointer" title="¡Hola! I'm Santiago, your guide!" />
-            <h1 id="welcome-message" class="text-2xl font-semibold text-gray-800 tracking-tight" style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">Choose Your Adventure</h1>
+            <h1 id="welcome-message" class="text-xl font-bold text-gray-800">Choose a Quest</h1>
           </div>
           <div class="flex items-center gap-3">
-            <!-- List/Map Toggle Buttons -->
-            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button id="show-quest-list-btn" title="List View" class="px-3 py-1 rounded-md text-sm font-medium transition-all bg-white text-gray-800 shadow-sm">
-                📋 List
-              </button>
-              <button id="show-quest-map-btn" title="Map View" class="px-3 py-1 rounded-md text-sm font-medium transition-all text-gray-600 hover:text-gray-800">
-                🗺️ Map
-              </button>
-            </div>
-
             <!-- Menu Dropdown -->
             <div class="relative">
               <button id="menu-toggle-btn" title="Menu" class="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100">
@@ -1340,17 +1097,21 @@
               </button>
               <!-- Dropdown Menu -->
               <div id="menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
-                <button id="dark-mode-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
-                  <span class="dark-mode-icon">🌙</span>
-                  <span>Dark Mode</span>
+                <button id="relationships-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                  <span>💚</span>
+                  <span>Friendships</span>
                 </button>
-                <button id="settings-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                <button id="preferences-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
                   <span>⚙️</span>
-                  <span>Settings</span>
+                  <span>Preferences</span>
                 </button>
-                <button id="restart-tour-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
-                  <span>🎓</span>
-                  <span>Restart Tour</span>
+                <button id="voice-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                  <span>🔊</span>
+                  <span>Voice</span>
+                </button>
+                <button id="accessibility-menu-item" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                  <span>♿</span>
+                  <span>Accessibility</span>
                 </button>
                 <hr class="my-1 border-gray-200">
                 <button id="logout-menu-item" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
@@ -1358,7 +1119,7 @@
                   <span>Logout</span>
                 </button>
                 <div class="px-4 py-2 text-xs text-gray-400 font-mono text-center border-t border-gray-100 mt-1">
-                  v2.2.0
+                  v2.1.1
                 </div>
               </div>
             </div>
@@ -1413,61 +1174,20 @@
 
         <!-- Quest List View (default) -->
         <div id="quest-list-container" class="flex-1 p-4 space-y-3 overflow-y-auto" style="min-height: 0;" role="list" aria-label="Available quests"></div>
-
-        <!-- Quest Map View (hidden by default) -->
-        <div id="quest-map-container" class="hidden flex-1 overflow-hidden relative">
-          <div class="absolute inset-0 bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
-            <!-- Map SVG Container -->
-            <svg id="map-svg" class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-              <!-- Breadcrumb trails (SVG paths) -->
-              <g id="map-trails"></g>
-              <!-- Location pins -->
-              <g id="map-locations"></g>
-            </svg>
-
-            <!-- Location Info Panel (shown on location click) -->
-            <div id="location-info-panel" class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-2xl p-4 max-w-md w-11/12 z-10 animate-slide-up">
-              <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-3">
-                  <span id="location-icon" class="text-4xl"></span>
-                  <div>
-                    <h3 id="location-name" class="text-lg font-bold text-gray-800"></h3>
-                    <p id="location-description" class="text-sm text-gray-600"></p>
-                  </div>
-                </div>
-                <button id="close-location-panel" class="text-gray-400 hover:text-gray-600 transition-colors">✕</button>
-              </div>
-
-              <!-- Quest Cards in this location -->
-              <div id="location-quests" class="space-y-2 mt-3">
-                <!-- Quests will be inserted here -->
-              </div>
-
-              <!-- Locked message -->
-              <div id="location-locked-message" class="hidden text-center py-4">
-                <div class="text-4xl mb-2">🔒</div>
-                <p class="text-sm font-medium text-gray-700">Location Locked</p>
-                <p id="unlock-requirement" class="text-xs text-gray-500 mt-1"></p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       <div id="chat-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
-          <div class="flex items-center gap-3">
-            <!-- Profile Silhouette Icon -->
-            <div class="flex-shrink-0">
-              <svg class="w-10 h-10 text-gray-600" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-              </svg>
-            </div>
-            <div class="flex flex-col">
-              <h1 id="chat-title" class="text-xl font-bold text-gray-800"></h1>
+          <div class="flex flex-col flex-1 min-w-0">
+            <h1 id="chat-title" class="text-base font-bold text-gray-800 whitespace-nowrap"></h1>
+            <div id="objectives-progress" class="text-xs text-blue-600 font-medium mt-1 hidden cursor-pointer hover:underline" title="Click to view quest objective">
+              <span id="objectives-count">0/0</span> objectives completed
             </div>
           </div>
           <div class="flex gap-2 items-center">
-            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">← Back</button>
+            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.1</span>
+            <button id="repeat-tts-btn" title="Repeat last TTS audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
+            <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
+            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
           </div>
         </header>
 
@@ -1507,8 +1227,8 @@
               <div class="flex items-center gap-3">
                 <span id="character-emoji-mini" class="text-2xl">🎭</span>
                 <div>
-                  <p class="text-xs font-semibold text-gray-700"><span id="character-name-mini"></span></p>
-                  <p class="text-xs text-gray-600"><span id="quest-objective-mini"></span></p>
+                  <p class="text-xs font-semibold text-gray-700 whitespace-nowrap"><span id="character-name-mini"></span></p>
+                  <p class="text-xs text-gray-600 whitespace-nowrap"><span id="quest-objective-mini"></span></p>
                 </div>
               </div>
               <button class="text-blue-600 text-sm font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-white/50">
@@ -1528,7 +1248,7 @@
                 <div id="character-avatar-expanded" class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-3xl shadow-lg"></div>
               </div>
               <div class="flex-1">
-                <h2 id="quest-title" class="text-base font-bold text-gray-800 mb-1"></h2>
+                <h2 id="quest-title" class="text-base font-bold text-gray-800 mb-1 whitespace-nowrap"></h2>
                 <p id="character-name-display" class="text-sm text-purple-600 font-semibold mb-2"></p>
                 <div class="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
                   <p id="quest-objective-display" class="text-xs text-blue-800"></p>
@@ -1545,10 +1265,177 @@
 
         <div class="p-2 border-t bg-white/50 flex-shrink-0">
           <div class="flex items-center space-x-2">
-            <button id="hint-btn" title="Need help? Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
-            <input type="text" id="chat-input" placeholder="Say something in Spanish..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="mic-btn" title="Use your voice" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
+            <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
+            <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="mic-btn" title="Use microphone" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
             <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RELATIONSHIPS VIEW -->
+      <div id="relationships-view" class="hidden flex-col h-full" style="min-height: 0;">
+        <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold text-gray-800">💚 Amistades</h1>
+            <span class="text-sm text-gray-500">(Friendships)</span>
+          </div>
+          <button id="close-relationships-btn" class="text-gray-600 hover:text-gray-800 px-3 py-1 rounded-md text-sm transition-colors">
+            Back to Quests
+          </button>
+        </header>
+
+        <!-- Relationships Container -->
+        <div class="flex-1 p-4 overflow-y-auto" style="min-height: 0;">
+          <!-- Search Bar -->
+          <div class="mb-4">
+            <input
+              type="text"
+              id="character-search"
+              placeholder="Search characters..."
+              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- Character List by Relationship Level -->
+          <div id="characters-container" class="space-y-6">
+            <!-- Confidantes Section -->
+            <div id="confidant-section" class="hidden">
+              <h2 class="text-lg font-bold text-purple-600 mb-3 flex items-center gap-2">
+                <span>💙</span>
+                <span>Confidentes</span>
+                <span class="text-sm text-gray-500">(91-100)</span>
+              </h2>
+              <div id="confidant-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- Close Friends Section -->
+            <div id="close-friend-section" class="hidden">
+              <h2 class="text-lg font-bold text-orange-600 mb-3 flex items-center gap-2">
+                <span>🤗</span>
+                <span>Buenos Amigos</span>
+                <span class="text-sm text-gray-500">(76-90)</span>
+              </h2>
+              <div id="close-friend-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- Friends Section -->
+            <div id="friend-section" class="hidden">
+              <h2 class="text-lg font-bold text-green-600 mb-3 flex items-center gap-2">
+                <span>😊</span>
+                <span>Amigos</span>
+                <span class="text-sm text-gray-500">(51-75)</span>
+              </h2>
+              <div id="friend-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- Acquaintances Section -->
+            <div id="acquaintance-section" class="hidden">
+              <h2 class="text-lg font-bold text-blue-600 mb-3 flex items-center gap-2">
+                <span>🙂</span>
+                <span>Conocidos</span>
+                <span class="text-sm text-gray-500">(21-50)</span>
+              </h2>
+              <div id="acquaintance-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- Strangers Section -->
+            <div id="stranger-section" class="hidden">
+              <h2 class="text-lg font-bold text-gray-600 mb-3 flex items-center gap-2">
+                <span>👋</span>
+                <span>Desconocidos</span>
+                <span class="text-sm text-gray-500">(0-20)</span>
+              </h2>
+              <div id="stranger-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="no-characters-message" class="hidden text-center py-12">
+              <p class="text-gray-500 text-lg">Complete quests to meet characters!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARACTER DETAIL MODAL -->
+      <div id="character-detail-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10">
+            <h2 id="modal-character-name" class="text-xl font-bold text-gray-800"></h2>
+            <button id="close-character-modal" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="p-6">
+            <!-- Character Header -->
+            <div class="flex items-start gap-4 mb-6">
+              <div id="modal-character-avatar" class="text-6xl"></div>
+              <div class="flex-1">
+                <h3 id="modal-character-full-name" class="text-2xl font-bold text-gray-800"></h3>
+                <p id="modal-character-role" class="text-gray-600 mb-2"></p>
+                <p id="modal-character-location" class="text-sm text-blue-600"></p>
+              </div>
+            </div>
+
+            <!-- Affinity Progress -->
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-2">
+                <span id="modal-relationship-level" class="text-lg font-semibold"></span>
+                <span id="modal-affinity-score" class="text-sm text-gray-600"></span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div id="modal-affinity-bar" class="h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-600">Conversations</p>
+                <p id="modal-conversation-count" class="text-xl font-bold text-gray-800">0</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-600">Quests Together</p>
+                <p id="modal-quests-count" class="text-xl font-bold text-gray-800">0</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-600">Gifts Given</p>
+                <p id="modal-gifts-count" class="text-xl font-bold text-gray-800">0</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-600">Last Contact</p>
+                <p id="modal-last-contact" class="text-sm font-semibold text-gray-800">Never</p>
+              </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="mb-6">
+              <h4 class="text-lg font-bold text-gray-800 mb-3">📖 About</h4>
+              <div id="modal-backstory-container" class="space-y-2"></div>
+            </div>
+
+            <!-- Favorites -->
+            <div class="mb-6">
+              <h4 class="text-lg font-bold text-gray-800 mb-3">⭐ Favorites</h4>
+              <div id="modal-favorites-container" class="grid grid-cols-2 gap-2 text-sm"></div>
+            </div>
+
+            <!-- Exclusive Quests -->
+            <div id="modal-quests-section" class="hidden mb-6">
+              <h4 class="text-lg font-bold text-gray-800 mb-3">🎯 Exclusive Quests</h4>
+              <div id="modal-exclusive-quests" class="space-y-2"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3">
+              <button id="modal-chat-btn" class="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                💬 Chat
+              </button>
+              <button id="modal-gift-btn" class="flex-1 bg-purple-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                🎁 Gift
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1638,23 +1525,18 @@
         </div>
     </div>
     <div id="settings-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-md my-auto flex flex-col" style="max-height: calc(100vh - 2rem);">
-            <!-- Fixed Header -->
-            <div class="flex justify-between items-center p-6 pb-4 border-b flex-shrink-0">
-              <div>
-                <h2 id="settings-title" class="text-2xl font-bold">Your Preferences</h2>
-                <p class="text-sm text-gray-600 mt-1">Make ConvoQuest yours!</p>
-              </div>
-              <button id="close-settings-btn" class="font-bold text-2xl" aria-label="Close settings">&times;</button>
-            </div>
-
-            <!-- Scrollable Content -->
-            <div class="space-y-4 overflow-y-auto p-6 pt-4 flex-1">
-                <!-- Avatar Display -->
-                <div class="text-center pb-4 border-b">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Your Avatar</p>
-                    <div id="settings-avatar-display" class="text-6xl mb-2">👤</div>
-                    <button id="change-avatar-btn" class="text-sm text-blue-600 hover:underline">Change Avatar</button>
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto my-auto">
+            <div class="flex justify-between items-center mb-4"><h2 id="settings-title" class="text-2xl font-bold">Preferences</h2><button id="close-settings-btn" class="font-bold text-2xl" aria-label="Close preferences">&times;</button></div>
+            <div class="space-y-4">
+                <!-- Dark Mode Setting -->
+                <div class="pb-4 border-b">
+                    <label for="dark-mode-setting" class="block text-sm font-medium text-gray-700 mb-1">Theme</label>
+                    <select id="dark-mode-setting" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Automatic (Follow System)</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Choose your preferred theme or sync with your device</p>
                 </div>
 
                 <!-- Daily Goal Setting -->
@@ -1664,14 +1546,78 @@
                     <p class="text-xs text-gray-500 mt-1">Set how many minutes you want to practice each day</p>
                 </div>
 
-                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Spanish Style</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
-                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Conversation Style</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
-                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Quest Descriptions</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+                <div><label for="dialect-select" class="block text-sm font-medium text-gray-700">Dialect</label><select id="dialect-select" class="mt-1 block w-full p-2 border rounded-md"><option>Mexico</option><option>Spain</option><option>Argentina</option></select></div>
+                <div><label for="formality-select" class="block text-sm font-medium text-gray-700">Formality</label><select id="formality-select" class="mt-1 block w-full p-2 border rounded-md"><option>Casual</option><option>Formal</option></select></div>
+                <div><label for="vignette-lang-select" class="block text-sm font-medium text-gray-700">Vignette Language</label><select id="vignette-lang-select" class="mt-1 block w-full p-2 border rounded-md"><option>English</option><option>Spanish</option></select></div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Accessibility Settings Section -->
-                <div class="border-t pt-4 mt-4">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Accessibility</h3>
+    <!-- Voice Modal -->
+    <div id="voice-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="voice-title">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto my-auto">
+            <div class="flex justify-between items-center mb-4"><h2 id="voice-title" class="text-2xl font-bold">Voice Settings</h2><button id="close-voice-btn" class="font-bold text-2xl" aria-label="Close voice settings">&times;</button></div>
+            <div class="space-y-4">
 
+                    <!-- Voice Information -->
+                    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p class="text-sm text-gray-700 mb-1"><strong>Automatic Voice Selection</strong></p>
+                        <p class="text-xs text-gray-600">Voices are automatically selected based on character. Using Cartesia Sonic 3 for best quality Spanish voices, with OpenAI and Google AI as fallbacks.</p>
+                    </div>
+
+                    <!-- Auto-play Setting -->
+                    <div class="flex items-center justify-between mb-3">
+                        <label for="autoplay-setting" class="text-sm font-medium text-gray-700">Auto-play Responses</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoplay-setting" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Voice Speed -->
+                    <div class="mb-3">
+                        <label for="voice-speed-slider" class="block text-sm font-medium text-gray-700 mb-1">Voice Speed: <span id="voice-speed-value">1.0x</span></label>
+                        <input type="range" id="voice-speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0.5x</span>
+                            <span>1.0x</span>
+                            <span>1.5x</span>
+                        </div>
+                    </div>
+
+                    <!-- Voice Pitch -->
+                    <div class="mb-3">
+                        <label for="voice-pitch-slider" class="block text-sm font-medium text-gray-700 mb-1">Voice Pitch: <span id="voice-pitch-value">Normal</span></label>
+                        <input type="range" id="voice-pitch-slider" min="-5" max="5" step="1" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Lower</span>
+                            <span>Normal</span>
+                            <span>Higher</span>
+                        </div>
+                    </div>
+
+                    <!-- Test Voice Button -->
+                    <button id="test-voice-btn" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">
+                        Test Voice
+                    </button>
+
+                    <!-- Debug Log Display -->
+                    <div id="voice-debug-log" class="mt-3 bg-gray-100 rounded-md text-xs font-mono hidden">
+                        <div class="flex items-center justify-between p-2 border-b border-gray-300 cursor-pointer" id="voice-debug-header">
+                            <div class="font-bold text-gray-700">Debug Log</div>
+                            <button id="voice-debug-toggle" class="text-gray-500 hover:text-gray-700 text-lg leading-none">−</button>
+                        </div>
+                        <div id="voice-debug-content" class="p-3 text-gray-600 space-y-1 max-h-40 overflow-y-auto"></div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessibility Modal -->
+    <div id="accessibility-modal" class="hidden absolute inset-0 modal-bg flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="accessibility-title">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto my-auto">
+            <div class="flex justify-between items-center mb-4"><h2 id="accessibility-title" class="text-2xl font-bold">Accessibility</h2><button id="close-accessibility-btn" class="font-bold text-2xl" aria-label="Close accessibility settings">&times;</button></div>
+            <div class="space-y-4">
                     <!-- High Contrast Mode -->
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex-1">
@@ -1695,47 +1641,6 @@
                         </select>
                         <p class="text-xs text-gray-500 mt-1">Adjust text size for easier reading</p>
                     </div>
-
-                    <!-- Voice Settings Section -->
-                    <div class="border-t pt-4 mt-4">
-                        <h3 class="text-lg font-semibold mb-3 text-gray-800">Voice Settings</h3>
-
-                        <!-- Voice Speed -->
-                        <div class="mb-4">
-                            <label for="voice-speed-slider" class="block text-sm font-medium text-gray-700 mb-1">
-                                Voice Speed: <span id="voice-speed-value" class="font-bold">1.0x</span>
-                            </label>
-                            <input type="range" id="voice-speed-slider" min="0.5" max="2.0" step="0.1" value="1.0"
-                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                            <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>0.5x</span>
-                                <span>1.0x</span>
-                                <span>2.0x</span>
-                            </div>
-                        </div>
-
-                        <!-- Voice Pitch -->
-                        <div class="mb-4">
-                            <label for="voice-pitch-slider" class="block text-sm font-medium text-gray-700 mb-1">
-                                Voice Pitch: <span id="voice-pitch-value" class="font-bold">Normal</span>
-                            </label>
-                            <input type="range" id="voice-pitch-slider" min="-3" max="3" step="1" value="0"
-                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                            <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>Lower</span>
-                                <span>Normal</span>
-                                <span>Higher</span>
-                            </div>
-                        </div>
-
-                        <!-- Test Voice Button -->
-                        <button id="test-voice-btn" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 px-4 rounded-lg font-semibold text-sm hover:from-purple-600 hover:to-blue-600 transition-all shadow-md">
-                            🔊 Test Voice
-                        </button>
-                    </div>
-                </div>
-
-                <button id="retake-placement-btn" class="w-full text-center text-sm text-blue-600 hover:underline pt-2">Retake Placement Test</button>
             </div>
         </div>
     </div>
@@ -1812,14 +1717,8 @@
   <!-- Quest Images (must load before quest-data) -->
   <script src="/quest-images.js"></script>
 
-  <!-- Map Locations -->
-  <script src="/map-locations.js"></script>
-
   <!-- Quest Data -->
   <script src="/quest-data.js"></script>
-
-  <!-- Quest Map UI -->
-  <script src="/quest-map.js"></script>
 
   <!-- ARIA Live Region for screen reader announcements -->
   <div id="sr-announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -1833,7 +1732,6 @@
     <p id="onboarding-message" class="text-sm text-gray-600 mb-4"></p>
     <div class="flex items-center justify-between">
       <div class="flex gap-1">
-        <div class="onboarding-dot"></div>
         <div class="onboarding-dot"></div>
         <div class="onboarding-dot"></div>
         <div class="onboarding-dot"></div>
@@ -1890,6 +1788,71 @@
       }
     }
 
+    // Early debug logging
+    const debugConsole = document.getElementById('debug-console');
+    const debugConsoleToggle = document.getElementById('debug-console-toggle');
+    const debugConsoleHeader = document.getElementById('debug-console-header');
+
+    if (debugConsole) {
+      const timestamp = new Date().toLocaleTimeString();
+      debugConsole.innerHTML = ''; // Clear initial message
+      debugConsole.innerHTML += `[${timestamp}] 🟢 HTML loaded, Firebase config set<br>`;
+      debugConsole.innerHTML += `[${timestamp}] 🟢 About to load app.js module...<br>`;
+
+      // Toggle functionality
+      let isMinimized = false;
+      const toggleConsole = () => {
+        isMinimized = !isMinimized;
+        debugConsole.style.display = isMinimized ? 'none' : 'block';
+        debugConsoleToggle.textContent = isMinimized ? '+' : '−';
+      };
+
+      debugConsoleToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleConsole();
+      });
+
+      debugConsoleHeader.addEventListener('click', toggleConsole);
+
+      // Intercept console.log to show in debug panel
+      const originalLog = console.log;
+      console.log = function(...args) {
+        originalLog.apply(console, args);
+        const msg = args.join(' ');
+        const time = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${time}] ${msg}<br>`;
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      };
+
+      // Intercept console.error too
+      const originalError = console.error;
+      console.error = function(...args) {
+        originalError.apply(console, args);
+        const msg = args.join(' ');
+        const time = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${time}] ❌ ${msg}<br>`;
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      };
+
+      // Intercept console.warn too
+      const originalWarn = console.warn;
+      console.warn = function(...args) {
+        originalWarn.apply(console, args);
+        const msg = args.join(' ');
+        const time = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${time}] ⚠️ ${msg}<br>`;
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      };
+    }
+
+    // Catch module loading errors
+    window.addEventListener('error', (e) => {
+      if (debugConsole && e.filename && e.filename.includes('.js')) {
+        const timestamp = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${timestamp}] ❌ ERROR: ${e.message}<br>`;
+        debugConsole.innerHTML += `[${timestamp}] ❌ File: ${e.filename}<br>`;
+      }
+    });
   </script>
 
   <!-- Santiago Welcome Card - Dismiss Functionality -->
@@ -1914,27 +1877,10 @@
     })();
   </script>
 
-  <!-- Version Display -->
-  <div id="version-display">v2.3.0</div>
-
-  <!-- Debug Console -->
-  <div id="debug-console">
-    <div id="debug-console-header">
-      <span>🐛 Debug Console</span>
-      <div style="display: flex; gap: 4px;">
-        <button id="debug-console-clear" title="Clear console">×</button>
-        <button id="debug-console-minimize" title="Minimize">−</button>
-      </div>
-    </div>
-    <div id="debug-console-content"></div>
-  </div>
+  <!-- Character Database (loaded first) -->
+  <script type="module" src="/character-database.js"></script>
 
   <!-- Main app logic (loaded as ES module) -->
-  <script type="module">
-    // Cache-busting: Add version and timestamp to force reload on updates
-    const appVersion = '2.3.0';
-    const timestamp = Date.now();
-    import(`/app.js?v=${appVersion}&t=${timestamp}`);
-  </script>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>

@@ -1,18 +1,17 @@
 // app.js - Main application logic
-console.log('ðŸŸ¢ app.js module loading...');
+console.log('🟢 app.js module loading...');
 
 import { auth, db, isFirebaseConfigured } from './firebase.js';
-console.log('ðŸŸ¢ Firebase imports loaded');
+console.log('🟢 Firebase imports loaded');
 
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  updateProfile,
-  sendPasswordResetEmail
+  updateProfile
 } from 'firebase/auth';
-console.log('ðŸŸ¢ Firebase auth imports loaded');
+console.log('🟢 Firebase auth imports loaded');
 
 import {
   doc,
@@ -20,110 +19,13 @@ import {
   getDoc,
   serverTimestamp
 } from 'firebase/firestore';
-console.log('ðŸŸ¢ Firebase firestore imports loaded');
+console.log('🟢 Firebase firestore imports loaded');
 
-// Debug Console Setup
-(function initDebugConsole() {
-  const debugConsole = document.getElementById('debug-console');
-  const debugContent = document.getElementById('debug-console-content');
-  const clearBtn = document.getElementById('debug-console-clear');
-  const minimizeBtn = document.getElementById('debug-console-minimize');
-
-  if (!debugConsole || !debugContent) return;
-
-  // Store original console methods
-  const originalError = console.error;
-  const originalLog = console.log;
-  const originalWarn = console.warn;
-
-  // Helper to add log to debug console
-  function addToDebugConsole(message, type = 'info') {
-    const logEntry = document.createElement('div');
-    logEntry.className = `debug-log ${type}`;
-
-    // Format the message
-    const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-    const formattedMsg = typeof message === 'object' ? JSON.stringify(message, null, 2) : String(message);
-    logEntry.textContent = `[${timestamp}] ${formattedMsg}`;
-
-    debugContent.appendChild(logEntry);
-
-    // Auto-scroll to bottom
-    debugContent.scrollTop = debugContent.scrollHeight;
-
-    // Limit to last 100 entries
-    while (debugContent.children.length > 100) {
-      debugContent.removeChild(debugContent.firstChild);
-    }
-  }
-
-  // Override console methods to also log to debug console
-  console.error = function(...args) {
-    originalError.apply(console, args);
-    args.forEach(arg => addToDebugConsole(arg, 'error'));
-  };
-
-  console.warn = function(...args) {
-    originalWarn.apply(console, args);
-    args.forEach(arg => addToDebugConsole(arg, 'warn'));
-  };
-
-  // Clear button
-  if (clearBtn) {
-    clearBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      debugContent.innerHTML = '';
-      addToDebugConsole('Console cleared', 'info');
-    });
-  }
-
-  // Minimize button
-  if (minimizeBtn) {
-    minimizeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      debugConsole.classList.toggle('minimized');
-      minimizeBtn.textContent = debugConsole.classList.contains('minimized') ? '+' : '−';
-    });
-  }
-
-  // Make console draggable
-  let isDragging = false;
-  let currentX;
-  let currentY;
-  let initialX;
-  let initialY;
-
-  const header = document.getElementById('debug-console-header');
-
-  header.addEventListener('mousedown', (e) => {
-    // Don't drag if clicking buttons
-    if (e.target.tagName === 'BUTTON') return;
-
-    isDragging = true;
-    initialX = e.clientX - (parseInt(debugConsole.style.left) || 0);
-    initialY = e.clientY - (parseInt(debugConsole.style.top) || 0);
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-
-    e.preventDefault();
-    currentX = e.clientX - initialX;
-    currentY = e.clientY - initialY;
-
-    debugConsole.style.left = currentX + 'px';
-    debugConsole.style.top = currentY + 'px';
-    debugConsole.style.right = 'auto';
-    debugConsole.style.bottom = 'auto';
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-  });
-
-  // Add initial message
-  addToDebugConsole('Debug console initialized', 'success');
-})();
+// Import character relationship system
+import { CHARACTER_DATABASE, getRelationshipLevel, getRelationshipLevelData } from './character-database.js';
+import * as RelationshipSystem from './relationships.js';
+import { showRelationshipsView, hideRelationshipsView, initializeCharacterSearch, showAffinityNotification } from './relationships-ui.js';
+console.log('🟢 Relationship system imports loaded');
 
 // Debug logging helper
 // Logs to browser console (for debugging with F12 Developer Tools)
@@ -133,7 +35,7 @@ function debugLog(msg) {
 
 // Initialize the application
 export function initializeApp() {
-  debugLog('ðŸš€ initializeApp started.');
+  debugLog('🚀 initializeApp started.');
   if (!isFirebaseConfigured()) {
     console.error('[ConvoQuest] Firebase is not configured properly.');
     // Display a user-friendly error message
@@ -151,8 +53,15 @@ export function initializeApp() {
   let messages = [];
   let placementMessages = [];
 
-  // Dev mode disabled - localhost now matches production
-  const isDevMode = false;
+  // Dev mode detection (set once, used throughout)
+  const isDevMode = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1';
+
+  // Hide auth container immediately on localhost
+  if (isDevMode && dom.authContainer) {
+    dom.authContainer.style.display = 'none';
+    console.log('🔧 DEV MODE: Auth container hidden on page load');
+  }
 
   // Objective tracking variables
   let stageMessageCount = 0;
@@ -171,12 +80,6 @@ export function initializeApp() {
   let isSpeaking = false; // Prevent concurrent speak() calls
   let lastTTSBlob = null; // Store last TTS audio for repeat functionality
 
-  // Background music state
-  let backgroundMusicElement = null; // Separate audio element for background music
-  let backgroundMusicBlobUrl = null; // Track background music blob URL
-  let isBackgroundMusicPlaying = false; // Track if background music is playing
-  let backgroundMusicEnabled = true; // Allow users to toggle background music
-
   // Placement test state
   let placementQuestions = [];
   let currentQuestionIndex = 0;
@@ -184,14 +87,8 @@ export function initializeApp() {
   let placementAnswers = [];
   let placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
 
-  // IRT-based adaptive testing state
-  let estimatedAbility = 0; // Theta (ability parameter), range: -3 to +3
-  let standardError = 2.0; // Standard error of ability estimate
-  let availableQuestions = []; // Pool of all available questions
-  let usedQuestionIndices = new Set(); // Track which questions have been used
-
   // DOM elements (defined early to ensure availability)
-  debugLog('ðŸ” Looking up DOM elements...');
+  debugLog('🔍 Looking up DOM elements...');
   const dom = {
     authContainer: document.getElementById('auth-container'),
     mainAppView: document.getElementById('main-app-view'),
@@ -201,39 +98,30 @@ export function initializeApp() {
     loginEmailInput: document.getElementById('login-email-input'),
     loginPasswordInput: document.getElementById('login-password-input'),
     loginBtn: document.getElementById('login-btn'),
-    loginError: document.getElementById('login-error'),
     signupEmailInput: document.getElementById('signup-email-input'),
     signupPasswordInput: document.getElementById('signup-password-input'),
-    signupPasswordConfirmInput: document.getElementById('signup-password-confirm-input'),
-    signupDisplayNameInput: document.getElementById('signup-name-input'),
+    signupDisplayNameInput: document.getElementById('signup-display-name-input'),
     signupBtn: document.getElementById('signup-btn'),
-    signupError: document.getElementById('signup-error'),
     showSignupBtn: document.getElementById('show-signup-btn'),
     showLoginBtn: document.getElementById('show-login-btn'),
-    forgotPasswordBtn: document.getElementById('forgot-password-btn'),
-    forgotPasswordModal: document.getElementById('forgot-password-modal'),
-    closeForgotPasswordBtn: document.getElementById('close-forgot-password-btn'),
-    resetEmailInput: document.getElementById('reset-email-input'),
-    sendResetBtn: document.getElementById('send-reset-btn'),
-    resetError: document.getElementById('reset-error'),
-    resetSuccess: document.getElementById('reset-success'),
     userDisplayName: document.getElementById('user-display-name'),
     welcomeMessage: document.getElementById('welcome-message'),
     logoutBtn: document.getElementById('logout-btn'),
     settingsBtn: document.getElementById('settings-btn'),
     menuToggleBtn: document.getElementById('menu-toggle-btn'),
-    placementMenuToggleBtn: document.getElementById('placement-menu-toggle-btn'),
-    placementMenuDropdown: document.getElementById('placement-menu-dropdown'),
-    placementLogoutMenuItem: document.getElementById('placement-logout-menu-item'),
-    placementInstructionsPopup: document.getElementById('placement-instructions-popup'),
-    closePlacementInstructionsBtn: document.getElementById('close-placement-instructions-btn'),
     menuDropdown: document.getElementById('menu-dropdown'),
-    darkModeMenuItem: document.getElementById('dark-mode-menu-item'),
-    settingsMenuItem: document.getElementById('settings-menu-item'),
-    restartTourMenuItem: document.getElementById('restart-tour-menu-item'),
+    relationshipsMenuItem: document.getElementById('relationships-menu-item'),
+    preferencesMenuItem: document.getElementById('preferences-menu-item'),
+    voiceMenuItem: document.getElementById('voice-menu-item'),
+    accessibilityMenuItem: document.getElementById('accessibility-menu-item'),
     logoutMenuItem: document.getElementById('logout-menu-item'),
     settingsModal: document.getElementById('settings-modal'),
+    voiceModal: document.getElementById('voice-modal'),
+    accessibilityModal: document.getElementById('accessibility-modal'),
+    darkModeSetting: document.getElementById('dark-mode-setting'),
     closeSettingsBtn: document.getElementById('close-settings-btn'),
+    closeVoiceBtn: document.getElementById('close-voice-btn'),
+    closeAccessibilityBtn: document.getElementById('close-accessibility-btn'),
     dialectSelect: document.getElementById('dialect-select'),
     formalitySelect: document.getElementById('formality-select'),
     voiceSpeedSlider: document.getElementById('voice-speed-slider'),
@@ -255,7 +143,6 @@ export function initializeApp() {
     chatContainer: document.getElementById('chat-container'),
     chatInput: document.getElementById('chat-input'),
     sendBtn: document.getElementById('send-btn'),
-    micBtn: document.getElementById('mic-btn'),
     hintBtn: document.getElementById('hint-btn'),
     objectivesProgress: document.getElementById('objectives-progress'),
     objectivesCount: document.getElementById('objectives-count'),
@@ -277,6 +164,7 @@ export function initializeApp() {
     currentQuestionNum: document.getElementById('current-question-num'),
     totalQuestions: document.getElementById('total-questions'),
     placementProgressBar: document.getElementById('placement-progress-bar'),
+    estimatedLevel: document.getElementById('estimated-level'),
     placementChatView: document.getElementById('placement-chat-view'),
     placementChatContainer: document.getElementById('placement-chat-container'),
     characterIntroOverlay: document.getElementById('character-intro-overlay'),
@@ -295,9 +183,9 @@ export function initializeApp() {
   const criticalElements = ['authContainer', 'mainAppView', 'loginView', 'chatView'];
   const missingElements = criticalElements.filter(key => !dom[key]);
   if (missingElements.length > 0) {
-    debugLog(`âŒ Missing critical elements: ${missingElements.join(', ')}`);
+    debugLog(`❌ Missing critical elements: ${missingElements.join(', ')}`);
   } else {
-    debugLog('âœ… All critical DOM elements found');
+    debugLog('✅ All critical DOM elements found');
   }
 
   // Content Moderation System
@@ -345,9 +233,9 @@ export function initializeApp() {
     // Get user-friendly warning message
     getWarningMessage(reason) {
       const messages = {
-        'inappropriate-language': 'âš ï¸ Please keep your language respectful and appropriate. ConvoQuest is a friendly learning environment for all ages.',
-        'excessive-caps': 'âš ï¸ Please avoid using excessive capital letters. Let\'s keep our conversation calm and respectful.',
-        'default': 'âš ï¸ Please keep your messages respectful and appropriate. Let\'s focus on learning Spanish together!'
+        'inappropriate-language': '⚠️ Please keep your language respectful and appropriate. ConvoQuest is a friendly learning environment for all ages.',
+        'excessive-caps': '⚠️ Please avoid using excessive capital letters. Let\'s keep our conversation calm and respectful.',
+        'default': '⚠️ Please keep your messages respectful and appropriate. Let\'s focus on learning Spanish together!'
       };
       return messages[reason] || messages['default'];
     }
@@ -441,54 +329,16 @@ export function initializeApp() {
       console.log('[TTS] Lock released (playback ended), isSpeaking = false');
     };
 
-    persistentAudioElement.onerror = (event) => {
-      // Get detailed error information
-      const target = event.target;
-      const error = target?.error;
-
-      // Check if this is an expected error (empty src or page URL)
-      const currentSrc = persistentAudioElement.src || '';
-      const isEmptySrc = currentSrc === '' || currentSrc === window.location.href;
-
-      // Log detailed error info
-      if (error) {
-        // Skip logging for expected errors (empty src or clearing audio)
-        if (isEmptySrc && (error.code === 4 || error.code === 1)) {
-          console.log('[TTS] Expected audio cleanup error (ignored)');
-          return;
-        }
-
-        const errorMessages = {
-          1: 'MEDIA_ERR_ABORTED - Fetching process aborted by user',
-          2: 'MEDIA_ERR_NETWORK - Network error while downloading',
-          3: 'MEDIA_ERR_DECODE - Error decoding media resource',
-          4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Media format not supported or source unavailable'
-        };
-        const errorMsg = errorMessages[error.code] || 'Unknown error';
-        console.warn(`[TTS] Audio error - Code ${error.code}: ${errorMsg}`);
-        console.warn(`[TTS] Audio src: ${currentSrc || 'empty'}`);
-
-        // Only log as error if it's serious (not abort or empty src issues)
-        if (error.code !== 4 && error.code !== 1) {
-          console.error(`[TTS] Serious audio error:`, error);
-        }
-      } else {
-        // This often happens when load() is called to abort - not a real error
-        console.log('[TTS] Audio element error event (likely from abort/reset)');
+    persistentAudioElement.onerror = (err) => {
+      console.error('[TTS] Audio error:', err);
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
       }
-
-      // Only clean up and release lock if this is a real playback error
-      // (not just an abort from load() call)
-      if (error && error.code !== error.MEDIA_ERR_ABORTED) {
-        if (currentBlobUrl) {
-          URL.revokeObjectURL(currentBlobUrl);
-          currentBlobUrl = null;
-        }
-        currentAudio = null;
-        // CRITICAL: Release the lock on error
-        isSpeaking = false;
-        console.log('[TTS] Lock released (real error), isSpeaking = false');
-      }
+      currentAudio = null;
+      // CRITICAL: Release the lock on error
+      isSpeaking = false;
+      console.log('[TTS] Lock released (error), isSpeaking = false');
     };
 
     console.log('[TTS] Persistent audio element initialized');
@@ -544,31 +394,31 @@ export function initializeApp() {
       cleaned = cleaned.replace(/\.{2,}/g, '.');
 
       // Handle Spanish inverted exclamation marks
-      // Add a subtle pause before them: "Â¡Rick!" becomes ". Â¡Rick!"
+      // Add a subtle pause before them: "¡Rick!" becomes ". ¡Rick!"
       // This helps TTS engines separate the exclamation from preceding text
-      cleaned = cleaned.replace(/\s*Â¡/g, '. Â¡');
+      cleaned = cleaned.replace(/\s*¡/g, '. ¡');
 
       // Emphasize questions for better intonation
-      // Add a subtle pause before Spanish question marks: "Â¿quiÃ©n eres?" becomes ", Â¿quiÃ©n eres?"
-      cleaned = cleaned.replace(/\s*Â¿/g, ', Â¿');
+      // Add a subtle pause before Spanish question marks: "¿quién eres?" becomes ", ¿quién eres?"
+      cleaned = cleaned.replace(/\s*¿/g, ', ¿');
 
       // Double question marks help TTS recognize question intonation
-      // "Â¿quiÃ©n eres?" becomes "Â¿quiÃ©n eres??"
+      // "¿quién eres?" becomes "¿quién eres??"
       cleaned = cleaned.replace(/\?(?!\?)/g, '??');
 
       // Double exclamation marks for emphasis
-      // "Â¡Rick!" becomes "Â¡Rick!!"
+      // "¡Rick!" becomes "¡Rick!!"
       cleaned = cleaned.replace(/!(?!!)/g, '!!');
 
       // Ensure proper spacing after punctuation
       cleaned = cleaned.replace(/([.!?,;:])\s*/g, '$1 ');
 
-      // Clean up multiple periods in a row (caused by our Â¡ handling)
+      // Clean up multiple periods in a row (caused by our ¡ handling)
       cleaned = cleaned.replace(/\.{2,}/g, '.');
 
       // Clean up extra spaces and leading punctuation
       cleaned = cleaned.replace(/\s+/g, ' ').trim();
-      cleaned = cleaned.replace(/^[,.\s]+/, ''); // Remove leading comma/period if text starts with Â¡ or Â¿
+      cleaned = cleaned.replace(/^[,.\s]+/, ''); // Remove leading comma/period if text starts with ¡ or ¿
 
       return cleaned;
     },
@@ -581,22 +431,22 @@ export function initializeApp() {
       if (lowerText.includes('!') && (lowerText.match(/!/g) || []).length >= 2) {
         return 'excited';
       }
-      if (/\b(genial|increÃ­ble|fantÃ¡stico|maravilloso|excelente|perfecto|feliz|alegr|content)\b/.test(lowerText)) {
+      if (/\b(genial|increíble|fantástico|maravilloso|excelente|perfecto|feliz|alegr|content)\b/.test(lowerText)) {
         return 'happy';
       }
 
       // Urgent/Hurried indicators
-      if (/\b(rÃ¡pid|prisa|urgent|ahora|ya|inmediatamente|corre|deprisa)\b/.test(lowerText)) {
+      if (/\b(rápid|prisa|urgent|ahora|ya|inmediatamente|corre|deprisa)\b/.test(lowerText)) {
         return 'urgent';
       }
 
       // Sad/Disappointed indicators
-      if (/\b(triste|lament|perdÃ³n|disculp|lo siento|desafortunad|pena)\b/.test(lowerText)) {
+      if (/\b(triste|lament|perdón|disculp|lo siento|desafortunad|pena)\b/.test(lowerText)) {
         return 'sad';
       }
 
       // Angry/Frustrated indicators
-      if (/\b(molest|enfadad|furioso|inaceptable|terrible|ridÃ­cul)\b/.test(lowerText)) {
+      if (/\b(molest|enfadad|furioso|inaceptable|terrible|ridícul)\b/.test(lowerText)) {
         return 'angry';
       }
 
@@ -611,7 +461,7 @@ export function initializeApp() {
       }
 
       // Question/Curious indicators
-      if (lowerText.includes('?') || /\b(pregunt|curiosidad|interesante|por quÃ©|cÃ³mo|quÃ©|cuÃ¡l)\b/.test(lowerText)) {
+      if (lowerText.includes('?') || /\b(pregunt|curiosidad|interesante|por qué|cómo|qué|cuál)\b/.test(lowerText)) {
         return 'curious';
       }
 
@@ -644,7 +494,7 @@ export function initializeApp() {
 
       // CRITICAL: If already speaking, abort immediately and wait
       if (isSpeaking) {
-        console.log('[TTS] âš ï¸ Already speaking! Aborting previous and waiting...');
+        console.log('[TTS] ⚠️ Already speaking! Aborting previous and waiting...');
         this.stop();
         // Wait briefly for audio to fully stop and cleanup
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -676,40 +526,31 @@ export function initializeApp() {
         const moodAdjustments = this._getMoodAdjustments(mood);
         console.log(`[TTS] Detected mood: ${mood} (speed: ${moodAdjustments.speedMult}x, pitch: ${moodAdjustments.pitchAdj > 0 ? '+' : ''}${moodAdjustments.pitchAdj})`);
 
-        // Always use ElevenLabs -> Cartesia -> OpenAI -> Google fallback order for best quality
+        // Always use Cartesia -> OpenAI -> Google fallback order for best quality
         let data = null;
 
-        // Try ElevenLabs first (high quality multilingual voices)
-        data = await this._tryElevenLabs(cleanedText, characterName, characterGender, moodAdjustments);
+        // Try Cartesia first (best quality native Spanish voices)
+        data = await this._tryCartesia(cleanedText, characterName, characterGender, moodAdjustments);
 
         if (data) {
-          console.log('[TTS] âœ" ElevenLabs succeeded');
-        }
-
-        // Fallback to Cartesia if ElevenLabs fails
-        if (!data) {
-          console.log('[TTS] âœ— ElevenLabs failed, falling back to Cartesia');
-          data = await this._tryCartesia(cleanedText, characterName, characterGender, moodAdjustments);
-          if (data) {
-            console.log('[TTS] âœ" Cartesia succeeded');
-          }
+          console.log('[TTS] ✓ Cartesia succeeded');
         }
 
         // Fallback to OpenAI if Cartesia fails
         if (!data) {
-          console.log('[TTS] âœ— Cartesia failed, falling back to OpenAI');
+          console.log('[TTS] ✗ Cartesia failed, falling back to OpenAI');
           data = await this._tryOpenAI(cleanedText, characterName, characterGender, moodAdjustments);
           if (data) {
-            console.log('[TTS] âœ" OpenAI succeeded');
+            console.log('[TTS] ✓ OpenAI succeeded');
           }
         }
 
-        // Final fallback to Google if all others fail
+        // Final fallback to Google if both Cartesia and OpenAI fail
         if (!data) {
-          console.log('[TTS] âœ— OpenAI failed, falling back to Google');
+          console.log('[TTS] ✗ OpenAI failed, falling back to Google');
           data = await this._tryGoogle(cleanedText, characterName, characterGender, moodAdjustments);
           if (data) {
-            console.log('[TTS] âœ" Google succeeded');
+            console.log('[TTS] ✓ Google succeeded');
           }
         }
 
@@ -720,20 +561,21 @@ export function initializeApp() {
 
           // CRITICAL: Completely destroy and recreate audio element to prevent overlap
           if (persistentAudioElement) {
-            console.log('[TTS] Cleaning up previous audio...');
+            console.log('[TTS] Destroying previous audio element...');
             persistentAudioElement.pause();
             persistentAudioElement.currentTime = 0;
-
-            // Clean up old blob URL before clearing src
-            if (currentBlobUrl) {
-              URL.revokeObjectURL(currentBlobUrl);
-              currentBlobUrl = null;
-            }
-
-            // Setting src to empty string will trigger an error event, but that's expected
             persistentAudioElement.src = '';
-            // Note: We don't call load() here as it's not necessary and triggers error events
+            persistentAudioElement.load(); // Force abort of any loading
           }
+
+          // Clean up old blob URL
+          if (currentBlobUrl) {
+            URL.revokeObjectURL(currentBlobUrl);
+            currentBlobUrl = null;
+          }
+
+          // Brief wait for cleanup (load() already aborted any loading)
+          await new Promise(resolve => setTimeout(resolve, 50));
 
           try {
             console.log('[TTS] Loading new audio...');
@@ -767,7 +609,7 @@ export function initializeApp() {
 
             if (playPromise !== undefined) {
               await playPromise.then(() => {
-                console.log(`[TTS] âœ“ Successfully playing audio from ${data.provider || 'unknown'} provider`);
+                console.log(`[TTS] ✓ Successfully playing audio from ${data.provider || 'unknown'} provider`);
               }).catch(err => {
                 console.error('[TTS] Playback error:', err);
                 if (err.name === 'NotAllowedError') {
@@ -855,38 +697,6 @@ export function initializeApp() {
       }
     },
 
-    async _tryElevenLabs(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0 }) {
-      try {
-        // Apply mood-based speed adjustment on top of user preference
-        const finalSpeed = (userSettings.voiceSpeed || 1.0) * moodAdjustments.speedMult;
-
-        console.log('[TTS] Calling ElevenLabs API');
-        const response = await fetch('/api/elevenlabs-tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text,
-            characterName: characterName || 'Unknown',
-            characterGender: characterGender || 'unknown',
-            speedMultiplier: finalSpeed
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.warn('[TTS] ElevenLabs API error:', response.status, errorData);
-          return null;
-        }
-
-        const data = await response.json();
-        console.log('[TTS] ElevenLabs response received:', data.provider, `(${data.audioContent ? data.audioContent.length : 0} bytes)`);
-        return data;
-      } catch (error) {
-        console.warn('[TTS] ElevenLabs error:', error);
-        return null;
-      }
-    },
-
     async _tryCartesia(text, characterName, characterGender, moodAdjustments = { speedMult: 1.0, pitchAdj: 0, cartesiaEmotion: [] }) {
       try {
         // Apply mood-based speed adjustment on top of user preference
@@ -926,19 +736,18 @@ export function initializeApp() {
       if (persistentAudioElement) {
         persistentAudioElement.pause();
         persistentAudioElement.currentTime = 0;
-
-        // Clean up blob URL before clearing src
-        if (currentBlobUrl) {
-          URL.revokeObjectURL(currentBlobUrl);
-          currentBlobUrl = null;
-        }
-
         persistentAudioElement.src = ''; // Clear source completely
-        // Note: We don't call load() as it's unnecessary and triggers error events
+        persistentAudioElement.load(); // Abort any ongoing loading
+      }
+
+      // Clean up blob URL
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
       }
 
       currentAudio = null;
-      console.log('[TTS] Audio stopped and cleared');
+      console.log('[TTS] Audio stopped, cleared, and loading aborted');
     },
 
     repeat() {
@@ -970,492 +779,12 @@ export function initializeApp() {
 
       // Play the audio
       persistentAudioElement.play().then(() => {
-        console.log('[TTS] âœ" Repeat playback started');
+        console.log('[TTS] ✓ Repeat playback started');
       }).catch(err => {
         console.error('[TTS] Repeat playback error:', err);
       });
     }
   };
-
-  // STT (Speech-to-Text) Manager for voice input
-  const STTManager = {
-    recognition: null,
-    isListening: false,
-    interimTranscript: '',
-    finalTranscript: '',
-
-    // Initialize Speech Recognition
-    init() {
-      // Check for browser support
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        console.warn('[STT] Speech Recognition not supported in this browser');
-        return false;
-      }
-
-      this.recognition = new SpeechRecognition();
-
-      // Get Spanish dialect from user settings (default to Spain Spanish)
-      const dialectMap = {
-        'Mexico': 'es-MX',
-        'Spain': 'es-ES',
-        'Argentina': 'es-AR',
-        'Colombia': 'es-CO',
-        'Chile': 'es-CL'
-      };
-      const dialect = userSettings.dialect || 'Spain';
-      this.recognition.lang = dialectMap[dialect] || 'es-ES';
-
-      // Configuration
-      this.recognition.continuous = false; // Stop after user finishes speaking
-      this.recognition.interimResults = true; // Show interim results while speaking
-      this.recognition.maxAlternatives = 1;
-
-      // Event handlers
-      this.recognition.onstart = () => {
-        console.log('[STT] Recognition started');
-        this.isListening = true;
-        this.interimTranscript = '';
-        this.finalTranscript = '';
-        this.updateMicButtonState(true);
-      };
-
-      this.recognition.onresult = (event) => {
-        let interim = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-
-          if (event.results[i].isFinal) {
-            this.finalTranscript += transcript + ' ';
-          } else {
-            interim += transcript;
-          }
-        }
-
-        this.interimTranscript = interim;
-
-        // Update chat input with interim results
-        if (dom.chatInput) {
-          dom.chatInput.value = (this.finalTranscript + interim).trim();
-          dom.chatInput.placeholder = interim ? 'Listening...' : 'Say something in Spanish...';
-        }
-
-        console.log('[STT] Interim:', interim);
-        console.log('[STT] Final so far:', this.finalTranscript);
-      };
-
-      this.recognition.onend = () => {
-        console.log('[STT] Recognition ended');
-        this.isListening = false;
-        this.updateMicButtonState(false);
-
-        // Restore placeholder
-        if (dom.chatInput) {
-          dom.chatInput.placeholder = 'Say something in Spanish...';
-        }
-
-        // If we have a final transcript, keep it in the input
-        if (this.finalTranscript.trim()) {
-          console.log('[STT] Final transcript:', this.finalTranscript);
-          if (dom.chatInput) {
-            dom.chatInput.value = this.finalTranscript.trim();
-          }
-        }
-      };
-
-      this.recognition.onerror = (event) => {
-        console.error('[STT] Recognition error:', event.error);
-        this.isListening = false;
-        this.updateMicButtonState(false);
-
-        // User-friendly error messages
-        let errorMessage = '';
-        switch (event.error) {
-          case 'no-speech':
-            errorMessage = 'No speech detected. Try again?';
-            break;
-          case 'audio-capture':
-            errorMessage = 'Microphone not found. Check your audio settings.';
-            break;
-          case 'not-allowed':
-            errorMessage = 'Microphone access denied. Please allow microphone access in your browser settings.';
-            break;
-          case 'network':
-            errorMessage = 'Network error. Check your internet connection.';
-            break;
-          case 'aborted':
-            // User stopped manually, no error needed
-            break;
-          default:
-            errorMessage = `Speech recognition error: ${event.error}`;
-        }
-
-        if (errorMessage && dom.chatInput) {
-          dom.chatInput.placeholder = errorMessage;
-          // Restore original placeholder after 3 seconds
-          setTimeout(() => {
-            if (dom.chatInput) {
-              dom.chatInput.placeholder = 'Say something in Spanish...';
-            }
-          }, 3000);
-        }
-      };
-
-      console.log('[STT] Speech Recognition initialized with language:', this.recognition.lang);
-      return true;
-    },
-
-    // Start listening
-    start() {
-      if (!this.recognition) {
-        if (!this.init()) {
-          alert('Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
-          return;
-        }
-      }
-
-      if (this.isListening) {
-        console.log('[STT] Already listening');
-        return;
-      }
-
-      // Clear previous transcript
-      this.interimTranscript = '';
-      this.finalTranscript = '';
-
-      try {
-        this.recognition.start();
-        console.log('[STT] Starting speech recognition...');
-      } catch (error) {
-        console.error('[STT] Error starting recognition:', error);
-
-        // If error is that it's already started, try stopping and restarting
-        if (error.message && error.message.includes('already started')) {
-          this.stop();
-          setTimeout(() => this.start(), 100);
-        }
-      }
-    },
-
-    // Stop listening
-    stop() {
-      if (this.recognition && this.isListening) {
-        this.recognition.stop();
-        console.log('[STT] Stopping speech recognition...');
-      }
-    },
-
-    // Toggle listening state
-    toggle() {
-      if (this.isListening) {
-        this.stop();
-      } else {
-        this.start();
-      }
-    },
-
-    // Update microphone button visual state
-    updateMicButtonState(isActive) {
-      if (!dom.micBtn) return;
-
-      if (isActive) {
-        // Active state - recording
-        dom.micBtn.classList.add('mic-active');
-        dom.micBtn.style.color = '#ef4444'; // Red color
-        dom.micBtn.style.animation = 'pulse 1.5s ease-in-out infinite';
-        dom.micBtn.title = 'Stop recording (click again)';
-        dom.micBtn.innerHTML = '🔴'; // Red dot to indicate recording
-      } else {
-        // Inactive state - not recording
-        dom.micBtn.classList.remove('mic-active');
-        dom.micBtn.style.color = '';
-        dom.micBtn.style.animation = '';
-        dom.micBtn.title = 'Use your voice';
-        dom.micBtn.innerHTML = '🎤'; // Microphone emoji
-      }
-    },
-
-    // Update language when user changes dialect
-    updateLanguage(dialect) {
-      if (!this.recognition) return;
-
-      const dialectMap = {
-        'Mexico': 'es-MX',
-        'Spain': 'es-ES',
-        'Argentina': 'es-AR',
-        'Colombia': 'es-CO',
-        'Chile': 'es-CL'
-      };
-
-      this.recognition.lang = dialectMap[dialect] || 'es-ES';
-      console.log('[STT] Language updated to:', this.recognition.lang);
-    }
-  };
-
-  // Background Music Manager
-  const BackgroundMusic = {
-    async start(questId, difficulty) {
-      if (!backgroundMusicEnabled) {
-        console.log('[Music] Background music is disabled');
-        return;
-      }
-
-      if (isBackgroundMusicPlaying) {
-        console.log('[Music] Music already playing, stopping current...');
-        this.stop();
-      }
-
-      console.log(`[Music] Starting background music for quest: ${questId}`);
-
-      try {
-        // Generate music from ElevenLabs
-        const response = await fetch('/api/elevenlabs-music', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            questId: questId,
-            difficulty: difficulty
-          })
-        });
-
-        if (!response.ok) {
-          console.warn('[Music] Failed to generate music:', response.status);
-          return;
-        }
-
-        const data = await response.json();
-
-        if (!data.audioContent) {
-          console.warn('[Music] No audio content received');
-          return;
-        }
-
-        // Initialize background music element if needed
-        if (!backgroundMusicElement) {
-          backgroundMusicElement = new Audio();
-          backgroundMusicElement.loop = true; // Loop the music
-          backgroundMusicElement.volume = 0.3; // Lower volume for background
-        }
-
-        // Convert base64 to blob
-        const byteCharacters = atob(data.audioContent);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'audio/mp3' });
-
-        // Clean up old blob URL
-        if (backgroundMusicBlobUrl) {
-          URL.revokeObjectURL(backgroundMusicBlobUrl);
-          backgroundMusicBlobUrl = null;
-        }
-
-        // Create new blob URL and play
-        backgroundMusicBlobUrl = URL.createObjectURL(blob);
-        backgroundMusicElement.src = backgroundMusicBlobUrl;
-        backgroundMusicElement.load();
-
-        // Play with fade-in effect
-        backgroundMusicElement.volume = 0;
-        const playPromise = backgroundMusicElement.play();
-
-        if (playPromise !== undefined) {
-          await playPromise.then(() => {
-            console.log('[Music] âœ" Background music started');
-            isBackgroundMusicPlaying = true;
-
-            // Fade in over 2 seconds
-            let volume = 0;
-            const fadeInterval = setInterval(() => {
-              if (volume < 0.3) {
-                volume += 0.01;
-                if (backgroundMusicElement) {
-                  backgroundMusicElement.volume = Math.min(volume, 0.3);
-                }
-              } else {
-                clearInterval(fadeInterval);
-              }
-            }, 40);
-          }).catch(err => {
-            console.warn('[Music] Playback error:', err);
-            if (err.name === 'NotAllowedError') {
-              console.warn('[Music] Autoplay blocked. User interaction required.');
-            }
-          });
-        }
-
-      } catch (error) {
-        console.error('[Music] Error starting background music:', error);
-      }
-    },
-
-    stop() {
-      if (backgroundMusicElement) {
-        console.log('[Music] Stopping background music');
-
-        // Fade out over 1 second
-        let volume = backgroundMusicElement.volume;
-        const fadeInterval = setInterval(() => {
-          if (volume > 0.01) {
-            volume -= 0.03;
-            if (backgroundMusicElement) {
-              backgroundMusicElement.volume = Math.max(volume, 0);
-            }
-          } else {
-            clearInterval(fadeInterval);
-            if (backgroundMusicElement) {
-              backgroundMusicElement.pause();
-              backgroundMusicElement.currentTime = 0;
-              backgroundMusicElement.src = '';
-            }
-
-            // Clean up blob URL
-            if (backgroundMusicBlobUrl) {
-              URL.revokeObjectURL(backgroundMusicBlobUrl);
-              backgroundMusicBlobUrl = null;
-            }
-
-            isBackgroundMusicPlaying = false;
-            console.log('[Music] Background music stopped');
-          }
-        }, 40);
-      }
-    },
-
-    toggle() {
-      backgroundMusicEnabled = !backgroundMusicEnabled;
-      console.log(`[Music] Background music ${backgroundMusicEnabled ? 'enabled' : 'disabled'}`);
-
-      if (!backgroundMusicEnabled && isBackgroundMusicPlaying) {
-        this.stop();
-      }
-
-      return backgroundMusicEnabled;
-    },
-
-    setVolume(volume) {
-      if (backgroundMusicElement && isBackgroundMusicPlaying) {
-        // Clamp volume between 0 and 0.5 (background should be quieter than voice)
-        const clampedVolume = Math.max(0, Math.min(0.5, volume));
-        backgroundMusicElement.volume = clampedVolume;
-        console.log(`[Music] Volume set to ${clampedVolume}`);
-      }
-    }
-  };
-
-  // IRT (Item Response Theory) Helper Functions
-  // Difficulty parameters for each CEFR level (on theta scale: -3 to +3)
-  const LEVEL_DIFFICULTY = {
-    'A1': -2.0,
-    'A2': -1.0,
-    'B1': 0.0,
-    'B2': 1.0,
-    'C1': 2.0,
-    'C2': 3.0
-  };
-
-  // Discrimination parameter (how well questions differentiate ability)
-  const DISCRIMINATION = 1.0;
-
-  // Calculate probability of correct answer using 2PL IRT model
-  function irtProbability(theta, difficulty, discrimination = DISCRIMINATION) {
-    return 1 / (1 + Math.exp(-discrimination * (theta - difficulty)));
-  }
-
-  // Calculate Fisher Information at given ability level
-  function fisherInformation(theta, difficulty, discrimination = DISCRIMINATION) {
-    const p = irtProbability(theta, difficulty, discrimination);
-    return discrimination * discrimination * p * (1 - p);
-  }
-
-  // Estimate ability using Maximum Likelihood Estimation
-  function estimateAbilityMLE(answers) {
-    if (answers.length === 0) return 0;
-
-    let theta = 0; // Start with neutral ability
-    const maxIterations = 20;
-    const tolerance = 0.01;
-
-    for (let iter = 0; iter < maxIterations; iter++) {
-      let firstDerivative = 0;
-      let secondDerivative = 0;
-
-      answers.forEach(answer => {
-        const difficulty = LEVEL_DIFFICULTY[answer.level];
-        const p = irtProbability(theta, difficulty);
-        const w = fisherInformation(theta, difficulty);
-
-        // Calculate derivatives
-        if (answer.isCorrect) {
-          firstDerivative += DISCRIMINATION * (1 - p);
-          secondDerivative -= w;
-        } else {
-          firstDerivative -= DISCRIMINATION * p;
-          secondDerivative -= w;
-        }
-      });
-
-      // Newton-Raphson update
-      if (Math.abs(secondDerivative) < 0.0001) break;
-      const delta = firstDerivative / secondDerivative;
-      theta -= delta;
-
-      // Constrain theta to reasonable range
-      theta = Math.max(-3, Math.min(3, theta));
-
-      // Check for convergence
-      if (Math.abs(delta) < tolerance) break;
-    }
-
-    return theta;
-  }
-
-  // Calculate standard error of ability estimate
-  function calculateStandardError(answers, theta) {
-    if (answers.length === 0) return 2.0;
-
-    let totalInformation = 0;
-    answers.forEach(answer => {
-      const difficulty = LEVEL_DIFFICULTY[answer.level];
-      totalInformation += fisherInformation(theta, difficulty);
-    });
-
-    return totalInformation > 0 ? 1 / Math.sqrt(totalInformation) : 2.0;
-  }
-
-  // Select next question based on maximum information principle
-  function selectAdaptiveQuestion(theta, availableQuestions, usedIndices) {
-    let maxInformation = -1;
-    let bestQuestionIndex = -1;
-
-    availableQuestions.forEach((question, index) => {
-      if (usedIndices.has(index)) return; // Skip used questions
-
-      const difficulty = LEVEL_DIFFICULTY[question.level];
-      const info = fisherInformation(theta, difficulty);
-
-      if (info > maxInformation) {
-        maxInformation = info;
-        bestQuestionIndex = index;
-      }
-    });
-
-    return bestQuestionIndex;
-  }
-
-  // Convert theta to CEFR level
-  function thetaToLevel(theta) {
-    if (theta < -1.5) return 'A1';
-    if (theta < -0.5) return 'A2';
-    if (theta < 0.5) return 'B1';
-    if (theta < 1.5) return 'B2';
-    if (theta < 2.5) return 'C1';
-    return 'C2';
-  }
 
   // Placement Test Manager
   const PlacementTestManager = {
@@ -1463,7 +792,7 @@ export function initializeApp() {
     init() {
       if (typeof PLACEMENT_QUESTIONS === 'undefined') {
         console.error('[PlacementTest] PLACEMENT_QUESTIONS not loaded!');
-        debugLog('âŒ PLACEMENT_QUESTIONS not loaded');
+        debugLog('❌ PLACEMENT_QUESTIONS not loaded');
         return false;
       }
 
@@ -1474,79 +803,18 @@ export function initializeApp() {
       placementAnswers = [];
       placementScore = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
 
-      // Reset IRT state
-      estimatedAbility = 0; // Start with neutral ability (B1 level)
-      standardError = 2.0;
-      usedQuestionIndices = new Set();
-
-      // Build pool of all available questions with their levels
-      availableQuestions = [];
-      Object.keys(PLACEMENT_QUESTIONS).forEach(level => {
-        PLACEMENT_QUESTIONS[level].forEach(q => {
-          availableQuestions.push({ ...q, level });
-        });
-      });
-
-      console.log(`[PlacementTest] Loaded ${availableQuestions.length} questions`);
-
-      // Start with first question (will be adaptively selected)
-      this.selectAndDisplayNextQuestion();
+      // Start with A1 questions (3 questions per level)
+      this.selectQuestionsForLevel('A1', 3);
 
       // Update UI
-      if (dom.totalQuestions) dom.totalQuestions.textContent = '12'; // Target 10-12 questions
+      if (dom.totalQuestions) dom.totalQuestions.textContent = '15';
       if (dom.currentQuestionNum) dom.currentQuestionNum.textContent = '1';
 
-      // Show instructions popup with countdown
-      this.showInstructionsPopup();
-
-      debugLog('âœ… Placement test initialized');
-      return true;
-    },
-
-    // Show instructions popup
-    showInstructionsPopup() {
-      if (!dom.placementInstructionsPopup) return;
-
-      // Show the popup
-      dom.placementInstructionsPopup.classList.remove('hidden');
-
-      // Handle close button click
-      if (dom.closePlacementInstructionsBtn) {
-        const closeHandler = () => {
-          this.hideInstructionsPopup();
-          dom.closePlacementInstructionsBtn.removeEventListener('click', closeHandler);
-        };
-        dom.closePlacementInstructionsBtn.addEventListener('click', closeHandler);
-      }
-    },
-
-    // Hide instructions popup
-    hideInstructionsPopup() {
-      if (dom.placementInstructionsPopup) {
-        dom.placementInstructionsPopup.classList.add('hidden');
-      }
-    },
-
-    // Select and display next question using IRT adaptive logic
-    selectAndDisplayNextQuestion() {
-      // Select next question based on current ability estimate
-      const questionIndex = selectAdaptiveQuestion(estimatedAbility, availableQuestions, usedQuestionIndices);
-
-      if (questionIndex === -1) {
-        console.error('[PlacementTest] No more questions available');
-        this.completeTest();
-        return;
-      }
-
-      // Mark question as used and add to test
-      usedQuestionIndices.add(questionIndex);
-      const selectedQuestion = availableQuestions[questionIndex];
-      placementQuestions.push(selectedQuestion);
-
-      console.log(`[PlacementTest] Selected ${selectedQuestion.level} question (theta: ${estimatedAbility.toFixed(2)}, SE: ${standardError.toFixed(2)})`);
-
-      // Display the question
+      // Display first question
       this.displayQuestion();
+
+      debugLog('✅ Placement test initialized');
+      return true;
     },
 
     // Select random questions from a specific level
@@ -1567,7 +835,6 @@ export function initializeApp() {
         console.error('[PlacementTest] No question at index', currentQuestionIndex);
         return;
       }
-
 
       // Update question text
       if (dom.questionText) {
@@ -1600,7 +867,7 @@ export function initializeApp() {
         // Add "I don't know" option
         const dontKnowBtn = document.createElement('button');
         dontKnowBtn.className = 'w-full text-left p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
-        dontKnowBtn.textContent = "I don't know";
+        dontKnowBtn.textContent = "No sé (I don't know)";
         dontKnowBtn.addEventListener('click', () => this.selectOption(-1, dontKnowBtn));
         dom.quizOptions.appendChild(dontKnowBtn);
       }
@@ -1609,6 +876,9 @@ export function initializeApp() {
       if (dom.submitQuizBtn) {
         dom.submitQuizBtn.disabled = true;
       }
+
+      // Update estimated level display
+      this.updateEstimatedLevel();
     },
 
     // Handle option selection
@@ -1651,7 +921,7 @@ export function initializeApp() {
         level: question.level
       });
 
-      // Update score (keep for backward compatibility)
+      // Update score
       if (isCorrect) {
         placementScore[question.level]++;
       }
@@ -1659,58 +929,61 @@ export function initializeApp() {
       // Move to next question
       currentQuestionIndex++;
 
-      // IRT-based adaptive logic: Update ability estimate
-      estimatedAbility = estimateAbilityMLE(placementAnswers);
-      standardError = calculateStandardError(placementAnswers, estimatedAbility);
-
-      const currentLevel = thetaToLevel(estimatedAbility);
-      console.log(`[PlacementTest] After Q${currentQuestionIndex}: θ=${estimatedAbility.toFixed(2)}, SE=${standardError.toFixed(2)}, level=${currentLevel}`);
-
-      // Early A1 placement: If first 5 questions are all wrong, place at A1
-      if (currentQuestionIndex >= 5) {
-        const first5Correct = placementAnswers.slice(0, 5).filter(a => a.isCorrect).length;
-        if (first5Correct === 0) {
-          console.log(`[PlacementTest] All first 5 questions wrong - auto-placing at A1`);
-          estimatedAbility = -2.5; // Set to low A1
-          this.completeTest();
-          return;
-        }
+      // Adaptive logic: Add questions based on performance
+      if (currentQuestionIndex === 3 && isCorrect) {
+        // If doing well on A1, add A2 questions
+        this.selectQuestionsForLevel('A2', 3);
+      } else if (currentQuestionIndex === 6 && placementScore.A2 >= 2) {
+        // If doing well on A2, add B1 questions
+        this.selectQuestionsForLevel('B1', 3);
+      } else if (currentQuestionIndex === 9 && placementScore.B1 >= 2) {
+        // If doing well on B1, add B2 questions
+        this.selectQuestionsForLevel('B2', 3);
+      } else if (currentQuestionIndex === 12 && placementScore.B2 >= 2) {
+        // If doing well on B2, add C1 questions
+        this.selectQuestionsForLevel('C1', 3);
       }
 
-      // Check stopping criteria
-      const minQuestions = 8;
-      const maxQuestions = 12;
-      const targetSE = 0.5; // Stop when standard error is low enough
-
-      const shouldStop = (
-        (currentQuestionIndex >= minQuestions && standardError < targetSE) ||
-        currentQuestionIndex >= maxQuestions
-      );
-
-      if (shouldStop) {
-        console.log(`[PlacementTest] Stopping: ${currentQuestionIndex} questions, SE=${standardError.toFixed(2)}`);
+      // Check if test is complete
+      if (currentQuestionIndex >= placementQuestions.length || currentQuestionIndex >= 15) {
         this.completeTest();
       } else {
-        this.selectAndDisplayNextQuestion();
+        this.displayQuestion();
       }
     },
 
-    // Calculate current estimated level using IRT theta
+    // Update estimated level display
+    updateEstimatedLevel() {
+      if (!dom.estimatedLevel) return;
+
+      const level = this.calculateCurrentLevel();
+      dom.estimatedLevel.textContent = level ? `Estimated: ${level}` : '';
+    },
+
+    // Calculate current estimated level
     calculateCurrentLevel() {
-      // Use IRT-based ability estimate if we have answers
-      if (placementAnswers.length > 0) {
-        return thetaToLevel(estimatedAbility);
+      const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      let estimatedLevel = 'A1';
+
+      for (const level of levels) {
+        const levelAnswers = placementAnswers.filter(a => a.level === level);
+        const correctCount = levelAnswers.filter(a => a.isCorrect).length;
+        const accuracy = levelAnswers.length > 0 ? correctCount / levelAnswers.length : 0;
+
+        if (accuracy >= 0.6) {
+          estimatedLevel = level;
+        } else {
+          break; // Stop if accuracy drops below 60%
+        }
       }
 
-      // Fallback to neutral level if no answers yet
-      return 'B1';
+      return estimatedLevel;
     },
 
     // Complete the placement test
     async completeTest() {
       const finalLevel = this.calculateCurrentLevel();
-      debugLog(`âœ… Placement test complete. Level: ${finalLevel}`);
-      console.log(`[PlacementTest] Final: Level=${finalLevel}, θ=${estimatedAbility.toFixed(2)}, SE=${standardError.toFixed(2)}, Questions=${currentQuestionIndex}`);
+      debugLog(`✅ Placement test complete. Level: ${finalLevel}`);
 
       // Save to Firebase (skip in dev mode)
       if (!isDevMode && currentUser && currentUser.uid) {
@@ -1721,11 +994,7 @@ export function initializeApp() {
             placementCompleted: true,
             placementDate: serverTimestamp(),
             placementAnswers: placementAnswers.length,
-            placementScore: placementScore,
-            // IRT-specific data
-            irtAbility: estimatedAbility,
-            irtStandardError: standardError,
-            irtTestLength: currentQuestionIndex
+            placementScore: placementScore
           }, { merge: true });
 
           console.log('[PlacementTest] Results saved to Firebase');
@@ -1734,12 +1003,10 @@ export function initializeApp() {
         }
       } else if (isDevMode) {
         console.log('[DEV MODE] Skipping Firebase save for placement test');
-        console.log(`[DEV MODE] Final results: Level=${finalLevel}, Theta=${estimatedAbility.toFixed(2)}, SE=${standardError.toFixed(2)}, Questions=${currentQuestionIndex}`);
       }
 
-      // Show results with more detail
-      const confidenceText = standardError < 1.0 ? 'high confidence' : standardError < 1.5 ? 'good confidence' : 'moderate confidence';
-      alert(`Placement Test Complete!\n\nYour Spanish level: ${finalLevel}\n(${confidenceText} - ${currentQuestionIndex} questions)\n\nLet's start your language adventure!`);
+      // Show results
+      alert(`Placement Test Complete!\n\nYour Spanish level: ${finalLevel}\n\nLet's start your language adventure!`);
 
       // Hide placement view and start onboarding quest
       if (dom.placementView) dom.placementView.style.display = 'none';
@@ -1754,11 +1021,11 @@ export function initializeApp() {
   // Load quests from QUEST_DATABASE
   function getQuests() {
     if (typeof QUEST_DATABASE !== 'undefined' && QUEST_DATABASE.quests) {
-      debugLog(`âœ… QUEST_DATABASE loaded with ${Object.keys(QUEST_DATABASE.quests).length} quests`);
+      debugLog(`✅ QUEST_DATABASE loaded with ${Object.keys(QUEST_DATABASE.quests).length} quests`);
       return QUEST_DATABASE.quests;
     }
     // Fallback to inline quest if QUEST_DATABASE not loaded
-    debugLog('âš ï¸ QUEST_DATABASE not found, using fallback quest');
+    debugLog('⚠️ QUEST_DATABASE not found, using fallback quest');
     return {
       "missing-guitar": {
         id: "missing-guitar",
@@ -1769,7 +1036,7 @@ export function initializeApp() {
           "1": {
             characterName: "Mateo, the Concierge",
             vignette: { en: "You're in a hotel lobby. Your goal: Find out who the musician is and where he was last seen." },
-            systemPrompt: "You are Mateo, a professional but worried hotel concierge in BogotÃ¡.",
+            systemPrompt: "You are Mateo, a professional but worried hotel concierge in Bogotá.",
             objectives: [],
             completionCriteria: { minMessages: 3, objectivesRequired: 0 },
             reward: { clue: "Musician 'Carlos' was last seen at the plaza.", xp: 50 },
@@ -1782,12 +1049,12 @@ export function initializeApp() {
   }
 
   const quests = getQuests();
-  debugLog(`Quests object has ${Object.keys(quests).length} quests`);
+  debugLog(`📚 Quests object has ${Object.keys(quests).length} quests`);
 
   // Utility functions
   // Show auth views (login, signup, email verification)
   function showAuthView(viewId) {
-    debugLog(`ðŸ”„ showAuthView called with: ${viewId}`);
+    debugLog(`🔄 showAuthView called with: ${viewId}`);
 
     // Hide all auth views
     if (dom.loginView) dom.loginView.style.display = 'none';
@@ -1799,12 +1066,12 @@ export function initializeApp() {
     const viewElement = document.getElementById(viewId);
     if (viewElement) {
       viewElement.style.display = 'block';
-      debugLog(`âœ… Showing auth view: ${viewId}`);
+      debugLog(`✅ Showing auth view: ${viewId}`);
     }
   }
 
   function showView(viewId) {
-    debugLog(`ðŸ”„ showView called with: ${viewId}`);
+    debugLog(`🔄 showView called with: ${viewId}`);
 
     // If it's an auth view, use showAuthView instead
     if (viewId === 'login-view' || viewId === 'signup-view' || viewId === 'email-verification-view') {
@@ -1816,7 +1083,7 @@ export function initializeApp() {
       if (view.id === viewId) {
         view.style.display = 'flex';
         view.classList.add('active');
-        debugLog(`âœ… Showing view: ${viewId}`);
+        debugLog(`✅ Showing view: ${viewId}`);
       } else {
         view.style.display = 'none';
         view.classList.remove('active');
@@ -1832,42 +1099,28 @@ export function initializeApp() {
   }
 
   // Authentication functions
-  debugLog('ðŸ“ Setting up authentication functions...');
+  debugLog('📝 Setting up authentication functions...');
   async function handleLogin() {
     const email = dom.loginEmailInput.value.trim();
     const password = dom.loginPasswordInput.value;
 
     if (!email || !password) {
-      dom.loginError.textContent = 'Please fill in both fields!';
+      alert('Please fill in all fields');
       return;
     }
 
     try {
       dom.loginBtn.disabled = true;
-      dom.loginBtn.innerHTML = 'Logging in... â³';
-      dom.loginError.textContent = '';
+      dom.loginBtn.textContent = 'Signing In...';
       
       await signInWithEmailAndPassword(auth, email, password);
       // onAuthStateChanged will handle the UI update
     } catch (error) {
       console.error('Login error:', error);
-      
-      // Friendly error messages
-      let friendlyMessage = '';
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-        friendlyMessage = "Hmm, that didn't work. Check your email and password?";
-      } else if (error.code === 'auth/too-many-requests') {
-        friendlyMessage = "Too many attempts. Take a breather and try again in a few minutes!";
-      } else if (error.code === 'auth/network-request-failed') {
-        friendlyMessage = "Connection issue. Check your internet?";
-      } else {
-        friendlyMessage = "Oops, something went wrong. Try again?";
-      }
-      
-      dom.loginError.textContent = friendlyMessage;
+      alert('Login failed: ' + error.message);
     } finally {
       dom.loginBtn.disabled = false;
-      dom.loginBtn.innerHTML = 'Continue Adventure â†’';
+      dom.loginBtn.textContent = 'Login';
     }
   }
 
@@ -1877,14 +1130,13 @@ export function initializeApp() {
     const displayName = dom.signupDisplayNameInput.value.trim();
 
     if (!email || !password || !displayName) {
-      dom.signupError.textContent = 'Please fill in all fields!';
+      alert('Please fill in all fields');
       return;
     }
 
     try {
       dom.signupBtn.disabled = true;
-      dom.signupBtn.innerHTML = 'Creating your account... â³';
-      dom.signupError.textContent = '';
+      dom.signupBtn.textContent = 'Creating Account...';
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
@@ -1908,25 +1160,10 @@ export function initializeApp() {
       // onAuthStateChanged will handle the UI update
     } catch (error) {
       console.error('Signup error:', error);
-      
-      // Friendly error messages
-      let friendlyMessage = '';
-      if (error.code === 'auth/email-already-in-use') {
-        friendlyMessage = "Looks like you already have an account! Try logging in instead.";
-      } else if (error.code === 'auth/weak-password') {
-        friendlyMessage = "That password needs to be stronger. Add some numbers or symbols!";
-      } else if (error.code === 'auth/invalid-email') {
-        friendlyMessage = "That email doesn't look quite right. Check for typos?";
-      } else if (error.code === 'auth/network-request-failed') {
-        friendlyMessage = "Connection issue. Check your internet?";
-      } else {
-        friendlyMessage = "Oops, something went wrong. Try again?";
-      }
-      
-      dom.signupError.textContent = friendlyMessage;
+      alert('Signup failed: ' + error.message);
     } finally {
       dom.signupBtn.disabled = false;
-      dom.signupBtn.innerHTML = 'Begin Journey â†’';
+      dom.signupBtn.textContent = 'Sign Up';
     }
   }
 
@@ -1937,53 +1174,6 @@ export function initializeApp() {
     } catch (error) {
       console.error('Logout error:', error);
       alert('Logout failed: ' + error.message);
-    }
-  }
-
-  async function handleForgotPassword() {
-    const email = dom.resetEmailInput.value.trim();
-
-    if (!email) {
-      dom.resetError.textContent = 'Please enter your email address';
-      return;
-    }
-
-    try {
-      dom.sendResetBtn.disabled = true;
-      dom.sendResetBtn.textContent = 'Sending...';
-      dom.resetError.textContent = '';
-      dom.resetSuccess.textContent = '';
-
-      await sendPasswordResetEmail(auth, email);
-
-      dom.resetSuccess.textContent = 'Password reset email sent! Check your inbox.';
-      dom.resetEmailInput.value = '';
-
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        if (dom.forgotPasswordModal) {
-          dom.forgotPasswordModal.classList.add('hidden');
-        }
-      }, 2000);
-
-    } catch (error) {
-      console.error('Password reset error:', error);
-
-      let friendlyMessage = '';
-      if (error.code === 'auth/user-not-found') {
-        friendlyMessage = "No account found with that email. Check for typos?";
-      } else if (error.code === 'auth/invalid-email') {
-        friendlyMessage = "That email doesn't look quite right. Check for typos?";
-      } else if (error.code === 'auth/network-request-failed') {
-        friendlyMessage = "Connection issue. Check your internet?";
-      } else {
-        friendlyMessage = "Oops, something went wrong. Try again?";
-      }
-
-      dom.resetError.textContent = friendlyMessage;
-    } finally {
-      dom.sendResetBtn.disabled = false;
-      dom.sendResetBtn.textContent = 'Reset Password';
     }
   }
 
@@ -2046,31 +1236,6 @@ export function initializeApp() {
       }
     });
 
-    // Check for empty state (no available quests)
-    if (availableQuests.length === 0 && lockedQuests.length === 0 && completedQuestsArray.length === 0) {
-      const emptyState = document.createElement('div');
-      emptyState.className = 'text-center py-12';
-      emptyState.innerHTML = `
-        <div class="text-6xl mb-4">ðŸ—ºï¸</div>
-        <h3 class="text-xl font-bold text-gray-800 mb-2">Your Adventure Awaits!</h3>
-        <p class="text-gray-600 mb-4">Quests will appear here once you complete your placement test.</p>
-      `;
-      dom.questList.appendChild(emptyState);
-      return;
-    }
-
-    // Empty state for when all quests are locked (shouldn't happen often)
-    if (availableQuests.length === 0 && completedQuestsArray.length === 0 && lockedQuests.length > 0) {
-      const noAvailableState = document.createElement('div');
-      noAvailableState.className = 'text-center py-8 mb-6';
-      noAvailableState.innerHTML = `
-        <div class="text-5xl mb-3">ðŸ”“</div>
-        <h3 class="text-lg font-bold text-gray-800 mb-2">Keep Going!</h3>
-        <p class="text-gray-600 text-sm">Complete more quests below to unlock new adventures!</p>
-      `;
-      dom.questList.appendChild(noAvailableState);
-    }
-
     // Helper function to create quest card
     const createQuestCard = ({ questKey, quest, isLocked, isCompleted, prerequisites }) => {
       // Get difficulty badge styling
@@ -2086,9 +1251,6 @@ export function initializeApp() {
         isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:scale-105 hover:shadow-2xl'
       }`;
 
-      // Add data attribute to identify this quest
-      questEl.setAttribute('data-quest-key', questKey);
-
       questEl.innerHTML = `
         <!-- Card Background with Gradient Overlay -->
         <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10"></div>
@@ -2098,8 +1260,8 @@ export function initializeApp() {
           <div class="relative h-32 overflow-hidden">
             <img src="${quest.thumbnailImage}" alt="${quest.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            ${isCompleted ? '<div class="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"><span>âœ“</span> Completed</div>' : ''}
-            ${isLocked ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><span class="text-5xl">ðŸ”’</span></div>' : ''}
+            ${isCompleted ? '<div class="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"><span>✓</span> Completed</div>' : ''}
+            ${isLocked ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><span class="text-5xl">🔒</span></div>' : ''}
           </div>
         ` : ''}
 
@@ -2119,12 +1281,12 @@ export function initializeApp() {
             </span>
             ${quest.estimatedDuration ? `
               <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold">
-                ${quest.estimatedDuration} min
+                ⏱️ ${quest.estimatedDuration} min
               </span>
             ` : ''}
             ${quest.requiredLevel ? `
               <span class="text-xs px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
-                ${quest.requiredLevel}
+                📚 ${quest.requiredLevel}
               </span>
             ` : ''}
           </div>
@@ -2134,34 +1296,27 @@ export function initializeApp() {
 
           <!-- Lock Message -->
           ${isLocked ? `
-            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-              <p class="text-xs text-blue-700 font-medium">Complete ${prerequisites.join(', ')} first!</p>
+            <div class="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+              <p class="text-xs text-red-600 font-medium">🔒 Requires: ${prerequisites.join(', ')}</p>
             </div>
           ` : ''}
 
           <!-- CTA Button (only for unlocked quests) -->
           ${!isLocked && !isCompleted ? `
             <button class="mt-3 w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 rounded-lg font-semibold text-sm hover:from-purple-600 hover:to-blue-600 transition-all transform group-hover:scale-105 shadow-md">
-              Start Quest â†’
+              Start Quest →
             </button>
           ` : ''}
           ${!isLocked && isCompleted ? `
             <button class="mt-3 w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-2 rounded-lg font-semibold text-sm hover:from-green-600 hover:to-teal-600 transition-all">
-              â†º Replay Quest
+              ↺ Replay Quest
             </button>
           ` : ''}
         </div>
       `;
 
-      // Add click handler to the entire card (event delegation will handle button clicks too)
       if (!isLocked) {
-        questEl.addEventListener('click', (e) => {
-          console.error(`🎯 [DEBUG] Quest card clicked for: ${questKey}`);
-          console.error(`[DEBUG] Click target:`, e.target.tagName, e.target.className);
-          console.error(`[DEBUG] Calling startQuest with: ${questKey}`);
-          debugLog(`🎯 Quest card/button clicked for: ${questKey}`);
-          startQuest(questKey);
-        });
+        questEl.addEventListener('click', () => startQuest(questKey));
       }
 
       return questEl;
@@ -2169,6 +1324,11 @@ export function initializeApp() {
 
     // Render Available Quests
     if (availableQuests.length > 0) {
+      const availableHeader = document.createElement('h2');
+      availableHeader.className = 'text-lg font-bold text-gray-800 mb-3 mt-2';
+      availableHeader.textContent = '✨ Available Quests';
+      dom.questList.appendChild(availableHeader);
+
       availableQuests.forEach(questData => {
         dom.questList.appendChild(createQuestCard(questData));
       });
@@ -2178,7 +1338,7 @@ export function initializeApp() {
     if (lockedQuests.length > 0) {
       const lockedHeader = document.createElement('h2');
       lockedHeader.className = 'text-lg font-bold text-gray-500 mb-3 mt-6';
-      lockedHeader.textContent = 'ðŸ”’ Coming Soon';
+      lockedHeader.textContent = '🔒 Locked Quests';
       dom.questList.appendChild(lockedHeader);
 
       lockedQuests.forEach(questData => {
@@ -2190,7 +1350,7 @@ export function initializeApp() {
     if (completedQuestsArray.length > 0) {
       const completedHeader = document.createElement('h2');
       completedHeader.className = 'text-lg font-bold text-green-600 mb-3 mt-6';
-      completedHeader.textContent = 'âœ“ Completed';
+      completedHeader.textContent = '✓ Completed Quests';
       dom.questList.appendChild(completedHeader);
 
       completedQuestsArray.forEach(questData => {
@@ -2201,8 +1361,7 @@ export function initializeApp() {
 
   // Start a quest
   function startQuest(questKey) {
-    debugLog(`ðŸ“ startQuest called with: ${questKey}`);
-    console.error(`🚀 [DEBUG] startQuest called with questKey: ${questKey}`);
+    debugLog(`📍 startQuest called with: ${questKey}`);
     currentQuest = questKey;
     currentStage = "1";
     messages = [];
@@ -2219,18 +1378,18 @@ export function initializeApp() {
     const quest = quests[currentQuest];
     if (!quest) {
       console.error(`Quest not found: ${questKey}`);
-      debugLog(`âŒ Quest not found: ${questKey}`);
+      debugLog(`❌ Quest not found: ${questKey}`);
       return;
     }
 
     const stage = quest.stages[currentStage];
     if (!stage) {
       console.error(`Stage not found: ${currentStage} for quest ${questKey}`);
-      debugLog(`âŒ Stage not found: ${currentStage}`);
+      debugLog(`❌ Stage not found: ${currentStage}`);
       return;
     }
 
-    debugLog(`âœ… Starting quest: ${quest.title}, Stage: ${currentStage}`);
+    debugLog(`✅ Starting quest: ${quest.title}, Stage: ${currentStage}`);
 
     // Set all quest information (with null checks)
     if (dom.chatTitle) dom.chatTitle.textContent = quest.title;
@@ -2245,10 +1404,10 @@ export function initializeApp() {
     const questObjectiveMini = document.getElementById('quest-objective-mini');
     const characterAvatarExpanded = document.getElementById('character-avatar-expanded');
 
-    if (characterEmojiMini) characterEmojiMini.textContent = stage.characterAvatar || 'ðŸŽ­';
+    if (characterEmojiMini) characterEmojiMini.textContent = stage.characterAvatar || '🎭';
     if (characterNameMini) characterNameMini.textContent = stage.characterName || 'Character';
     if (questObjectiveMini) questObjectiveMini.textContent = quest.objective || '';
-    if (characterAvatarExpanded) characterAvatarExpanded.textContent = stage.characterAvatar || 'ðŸŽ­';
+    if (characterAvatarExpanded) characterAvatarExpanded.textContent = stage.characterAvatar || '🎭';
 
     // Handle vignette (support both old and new format)
     const vignetteText = stage.vignette?.en || stage.vignette_en || '';
@@ -2297,10 +1456,7 @@ export function initializeApp() {
       }, 5000);
     }
 
-    // Start background music for this quest
-    BackgroundMusic.start(questKey, quest.difficulty);
-
-    debugLog(`âœ… Quest started successfully: ${quest.title}`);
+    debugLog(`✅ Quest started successfully: ${quest.title}`);
   }
 
   // Dark Mode functions
@@ -2323,12 +1479,12 @@ export function initializeApp() {
     // Update main app icon
     const icon = document.querySelector('.dark-mode-icon');
     if (icon) {
-      icon.textContent = isDarkMode ? 'â˜€ï¸' : 'ðŸŒ™';
+      icon.textContent = isDarkMode ? '☀️' : '🌙';
     }
     // Update auth screen icon
     const authIcon = document.querySelector('.auth-dark-mode-icon');
     if (authIcon) {
-      authIcon.textContent = isDarkMode ? 'â˜€ï¸' : 'ðŸŒ™';
+      authIcon.textContent = isDarkMode ? '☀️' : '🌙';
     }
   }
 
@@ -2337,7 +1493,7 @@ export function initializeApp() {
     if (!dom.characterIntroOverlay) return;
 
     // Set character avatar
-    dom.characterIntroAvatar.textContent = stage.characterAvatar || 'ðŸŽ­';
+    dom.characterIntroAvatar.textContent = stage.characterAvatar || '🎭';
 
     // Set character name
     dom.characterIntroName.textContent = stage.characterName || 'Character';
@@ -2366,12 +1522,12 @@ export function initializeApp() {
     if (!dom.chatContainer || typingIndicatorElement) return;
 
     // Get character info for avatar
-    let avatar = 'ðŸŽ­';
+    let avatar = '🎭';
     let characterName = 'NPC';
     if (currentQuest && currentStage) {
       const quest = quests[currentQuest];
       const stage = quest?.stages?.[currentStage];
-      avatar = stage?.characterAvatar || 'ðŸŽ­';
+      avatar = stage?.characterAvatar || '🎭';
       characterName = stage?.characterName || 'NPC';
     }
 
@@ -2494,7 +1650,7 @@ export function initializeApp() {
   // Add message to chat
   function addMessage(sender, text) {
     if (!dom.chatContainer) {
-      debugLog('âš ï¸ chatContainer not found, cannot add message');
+      debugLog('⚠️ chatContainer not found, cannot add message');
       return;
     }
 
@@ -2512,7 +1668,7 @@ export function initializeApp() {
     if (sender === 'npc' && currentQuest && currentStage) {
       const quest = quests[currentQuest];
       const stage = quest?.stages?.[currentStage];
-      avatar = stage?.characterAvatar || 'ðŸŽ­';
+      avatar = stage?.characterAvatar || '🎭';
       characterName = stage?.characterName || 'NPC';
     }
 
@@ -2522,10 +1678,9 @@ export function initializeApp() {
 
     // Add avatar for NPC messages
     if (sender === 'npc' && avatar) {
-      const avatarEl = document.createElement('img');
-      avatarEl.src = '/images/characters/santiago-welcome.png';
-      avatarEl.alt = characterName || 'Santiago';
-      avatarEl.className = 'flex-shrink-0 w-10 h-10 rounded-full border-2 border-blue-400 shadow-md object-cover';
+      const avatarEl = document.createElement('div');
+      avatarEl.className = 'flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-lg shadow-md';
+      avatarEl.textContent = avatar;
       avatarEl.title = characterName;
       messageWrapper.appendChild(avatarEl);
     }
@@ -2554,7 +1709,7 @@ export function initializeApp() {
     if (sender === 'user') {
       const userAvatarEl = document.createElement('div');
       userAvatarEl.className = 'flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md';
-      userAvatarEl.textContent = 'ðŸ‘¤';
+      userAvatarEl.textContent = '👤';
       messageWrapper.appendChild(userAvatarEl);
     }
 
@@ -2598,7 +1753,7 @@ export function initializeApp() {
     addMessage('user', message);
     dom.chatInput.value = '';
     dom.sendBtn.disabled = true;
-    dom.sendBtn.textContent = 'â³';
+    dom.sendBtn.textContent = 'Sending...';
 
     // Increment message count
     stageMessageCount++;
@@ -2632,19 +1787,19 @@ export function initializeApp() {
 
       // If stage is complete and farewell hasn't been sent, ask AI to send farewell
       if (stageCompleted && !farewellSent) {
-        objectivesContext += `\n\nðŸŽ‰ QUEST COMPLETE - TIME TO CELEBRATE AND WRAP UP! ðŸŽ‰
+        objectivesContext += `\n\n🎉 QUEST COMPLETE - TIME TO CELEBRATE AND WRAP UP! 🎉
 ALL OBJECTIVES ACHIEVED! The user has successfully completed this quest.
 
 YOUR NEXT RESPONSE SHOULD:
 1. Warmly congratulate them on completing the mission (1 sentence with Spanish)
-2. Include "Â¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
-3. Ask how they feel about completing their primera misiÃ³n (first mission)
+2. Include "¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!)"
+3. Ask how they feel about completing their primera misión (first mission)
 4. END with a friendly question to invite their response
 
-âœ… PERFECT Example:
-"Â¡IncreÃ­ble trabajo! (Amazing work!) You successfully completed your primera misiÃ³n (first mission)! Â¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!) How do you feel about helping abuela? Â¿Feliz? (Happy?)"
+✅ PERFECT Example:
+"¡Increíble trabajo! (Amazing work!) You successfully completed your primera misión (first mission)! ¡Bienvenido a ConvoQuest! (Welcome to ConvoQuest!) How do you feel about helping abuela? ¿Feliz? (Happy?)"
 
-After they respond to your question (especially if they say goodbye/thanks/adiÃ³s), you can bid them farewell warmly.
+After they respond to your question (especially if they say goodbye/thanks/adiós), you can bid them farewell warmly.
 
 REMEMBER: Always end responses with a question mark (?) to keep conversation flowing naturally.`;
       }
@@ -2669,13 +1824,13 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       console.log(`[Farewell Check] After AI response: stageCompleted=${stageCompleted}, farewellSent=${farewellSent}, messages=${stageMessageCount}, objectives=${completedObjectives.size}`);
 
       if (stageCompleted && !farewellSent) {
-        console.log('ðŸŽŠ [Farewell] QUEST COMPLETE - Disabling chat and scheduling completion notification');
+        console.log('🎊 [Farewell] QUEST COMPLETE - Disabling chat and scheduling completion notification');
         console.log(`[Farewell] Criteria met - Messages: ${stageMessageCount}, Objectives: ${completedObjectives.size}/${stage.objectives?.length || 0}`);
         farewellSent = true;
 
         // Disable chat input to prevent further messages
         dom.chatInput.disabled = true;
-        dom.chatInput.placeholder = "Quest complete! Great work! ðŸŽ‰";
+        dom.chatInput.placeholder = "Quest completing...";
         dom.sendBtn.disabled = true;
 
         // Show completion notification after a delay to let user read farewell
@@ -2736,10 +1891,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
       if (hasMatch) {
         completedObjectives.add(objective.id);
-        debugLog(`ðŸŽ¯ðŸŽ¯ðŸŽ¯ OBJECTIVE COMPLETED ðŸŽ¯ðŸŽ¯ðŸŽ¯`);
-        debugLog(`   âœ… ${objective.description}`);
-        debugLog(`   ðŸ“Š Progress: ${completedObjectives.size}/${stage.objectives.length} objectives`);
-        debugLog(`   ðŸ“ Messages: ${stageMessageCount} sent`);
+        debugLog(`🎯🎯🎯 OBJECTIVE COMPLETED 🎯🎯🎯`);
+        debugLog(`   ✅ ${objective.description}`);
+        debugLog(`   📊 Progress: ${completedObjectives.size}/${stage.objectives.length} objectives`);
+        debugLog(`   📝 Messages: ${stageMessageCount} sent`);
       }
     });
   }
@@ -2787,11 +1942,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     });
 
     if (minMessagesMet && objectivesMet && minDurationMet && !stageCompleted) {
-      debugLog('ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ QUEST CRITERIA MET! ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ');
-      debugLog(`   âœ… Messages: ${stageMessageCount}/${criteria.minMessages}`);
-      debugLog(`   âœ… Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}`);
-      debugLog(`   âœ… Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
-      debugLog(`   â³ Waiting for AI farewell message...`);
+      debugLog('🎊🎊🎊🎊🎊 QUEST CRITERIA MET! 🎊🎊🎊🎊🎊');
+      debugLog(`   ✅ Messages: ${stageMessageCount}/${criteria.minMessages}`);
+      debugLog(`   ✅ Objectives: ${completedObjectives.size}/${criteria.objectivesRequired}`);
+      debugLog(`   ✅ Time: ${Math.floor(elapsedTimeSeconds)}s/${criteria.minDuration}s`);
+      debugLog(`   ⏳ Waiting for AI farewell message...`);
       stageCompleted = true;
       // Don't show notification yet - let the AI send a farewell message first
     }
@@ -2840,7 +1995,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   function triggerSparkles() {
-    const sparkleEmojis = ['âœ¨', 'â­', 'ðŸŒŸ', 'ðŸ’«', 'âš¡'];
+    const sparkleEmojis = ['✨', '⭐', '🌟', '💫', '⚡'];
 
     for (let i = 0; i < 8; i++) {
       setTimeout(() => {
@@ -2860,9 +2015,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   function showStageCompletionNotification() {
-    debugLog('ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ');
-    debugLog('ðŸŽ‰ SHOWING COMPLETION BANNER NOW!');
-    debugLog('ðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠðŸŽŠ');
+    debugLog('🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
+    debugLog('🎉 SHOWING COMPLETION BANNER NOW!');
+    debugLog('🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
 
     // Trigger celebration effects
     triggerCelebration();
@@ -2886,22 +2041,21 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     notification.style.zIndex = '100';
     notification.innerHTML = `
       <div class="text-center">
-        <div class="text-5xl mb-3">ðŸŽ‰</div>
+        <div class="text-5xl mb-3">🎉</div>
         <div class="text-xl font-bold mb-2">Quest Complete!</div>
-        <div class="text-sm mb-2">You just held a real conversation in Spanish. That's amazing!</div>
+        <div class="text-sm mb-3">You've completed all objectives for this quest.</div>
         ${stage.reward?.clue ? `<div class="text-sm mt-2 italic bg-white/50 p-3 rounded-lg">"${stage.reward.clue}"</div>` : ''}
-        ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP â­</div>` : ''}
-        <div class="text-xs mt-3 text-green-700 italic">"Every conversation makes you stronger!" - Maya</div>
-        <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-md">
-          Back to Adventures â†’
+        ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP earned! ⭐</div>` : ''}
+        <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
+          Return to Quests
         </button>
       </div>
     `;
 
-    console.log('ðŸ“ [showStageCompletionNotification] Notification created, appending to chat...');
+    console.log('📝 [showStageCompletionNotification] Notification created, appending to chat...');
     dom.chatContainer.appendChild(notification);
     dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
-    console.log('âœ… [showStageCompletionNotification] Notification appended and scrolled to');
+    console.log('✅ [showStageCompletionNotification] Notification appended and scrolled to');
 
     // Function to return to quest view
     const returnToQuests = () => {
@@ -3015,7 +2169,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     const hintEl = document.createElement('div');
     hintEl.className = 'p-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg mb-2';
     hintEl.innerHTML = `
-      <div class="font-semibold text-sm">ðŸ’¡ Maya's Tip</div>
+      <div class="font-semibold text-sm">💡 Hint</div>
       <div class="text-sm mt-1">${hintText}</div>
     `;
 
@@ -3058,87 +2212,20 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   }
 
   // Event listeners
-  debugLog('ðŸŽ¯ Setting up event listeners...');
+  debugLog('🎯 Setting up event listeners...');
   try {
     if (dom.showSignupBtn) dom.showSignupBtn.addEventListener('click', () => showView('signup-view'));
     if (dom.showLoginBtn) dom.showLoginBtn.addEventListener('click', () => showView('login-view'));
     if (dom.loginBtn) dom.loginBtn.addEventListener('click', handleLogin);
     if (dom.signupBtn) dom.signupBtn.addEventListener('click', handleSignup);
     if (dom.logoutBtn) dom.logoutBtn.addEventListener('click', handleLogout);
-
-    // Forgot password modal event listeners
-    if (dom.forgotPasswordBtn) {
-      dom.forgotPasswordBtn.addEventListener('click', () => {
-        if (dom.forgotPasswordModal) {
-          dom.forgotPasswordModal.classList.remove('hidden');
-          dom.resetError.textContent = '';
-          dom.resetSuccess.textContent = '';
-        }
-      });
-    }
-    if (dom.closeForgotPasswordBtn) {
-      dom.closeForgotPasswordBtn.addEventListener('click', () => {
-        if (dom.forgotPasswordModal) {
-          dom.forgotPasswordModal.classList.add('hidden');
-          dom.resetEmailInput.value = '';
-          dom.resetError.textContent = '';
-          dom.resetSuccess.textContent = '';
-        }
-      });
-    }
-    if (dom.sendResetBtn) {
-      dom.sendResetBtn.addEventListener('click', handleForgotPassword);
-    }
-
-    // Enter key support for login form
-    if (dom.loginEmailInput) {
-      dom.loginEmailInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-      });
-    }
-    if (dom.loginPasswordInput) {
-      dom.loginPasswordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-      });
-    }
-
-    // Enter key support for signup form
-    if (dom.signupEmailInput) {
-      dom.signupEmailInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSignup();
-      });
-    }
-    if (dom.signupPasswordInput) {
-      dom.signupPasswordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSignup();
-      });
-    }
-    if (dom.signupPasswordConfirmInput) {
-      dom.signupPasswordConfirmInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSignup();
-      });
-    }
-    if (dom.signupDisplayNameInput) {
-      dom.signupDisplayNameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSignup();
-      });
-    }
-
-    // Enter key support for forgot password
-    if (dom.resetEmailInput) {
-      dom.resetEmailInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleForgotPassword();
-      });
-    }
-
-    debugLog('âœ… Auth event listeners set');
+    debugLog('✅ Auth event listeners set');
 
     if (dom.backToQuestsBtn) {
       dom.backToQuestsBtn.addEventListener('click', () => {
         dom.chatView.style.display = 'none';
         dom.questView.style.display = 'flex';
         TTSManager.stop(); // Stop any playing audio when leaving chat
-        BackgroundMusic.stop(); // Stop background music when leaving quest
       });
     }
 
@@ -3155,7 +2242,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     if (autoplayToggleBtn) {
       // Update button text based on initial state
       const updateAutoplayButton = () => {
-        autoplayToggleBtn.textContent = autoplayEnabled ? 'ðŸ”Š Auto-play' : 'ðŸ”‡ Auto-play';
+        autoplayToggleBtn.textContent = autoplayEnabled ? '🔊 Auto-play' : '🔇 Auto-play';
         autoplayToggleBtn.className = autoplayEnabled
           ? 'text-blue-600 hover:text-blue-700 px-3 py-1 rounded-md text-sm transition-colors font-medium'
           : 'text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors';
@@ -3184,15 +2271,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') sendChatMessage();
       });
     }
-
-    // Microphone button event listener
-    if (dom.micBtn) {
-      dom.micBtn.addEventListener('click', () => {
-        STTManager.toggle();
-      });
-    }
-
-    debugLog('âœ… Chat event listeners set');
+    debugLog('✅ Chat event listeners set');
 
     // Character introduction card
     if (dom.characterIntroContinueBtn) {
@@ -3273,7 +2352,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
-    debugLog('âœ… Placement event listeners set');
+    debugLog('✅ Placement event listeners set');
 
     // Menu dropdown toggle
     if (dom.menuToggleBtn && dom.menuDropdown) {
@@ -3291,31 +2370,42 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         }
       });
 
-      // Menu item: Dark Mode
-      if (dom.darkModeMenuItem) {
-        dom.darkModeMenuItem.addEventListener('click', () => {
-          document.body.classList.toggle('dark-mode');
-          const isDark = document.body.classList.contains('dark-mode');
-          localStorage.setItem('darkMode', isDark);
-          dom.menuDropdown.classList.add('hidden');
+      // Menu item: Relationships/Friendships
+      if (dom.relationshipsMenuItem) {
+        dom.relationshipsMenuItem.addEventListener('click', async () => {
+          if (currentUser) {
+            dom.menuDropdown.classList.add('hidden');
+            await showRelationshipsView(currentUser, CHARACTER_DATABASE, {
+              getUserRelationships: RelationshipSystem.getUserRelationships,
+              getRelationshipLevelData: RelationshipSystem.getRelationshipLevelData,
+              getDaysSinceLastContact: RelationshipSystem.getDaysSinceLastContact
+            });
+            initializeCharacterSearch();
+          }
         });
       }
 
-      // Menu item: Settings
-      if (dom.settingsMenuItem) {
-        dom.settingsMenuItem.addEventListener('click', () => {
+      // Menu item: Preferences
+      if (dom.preferencesMenuItem) {
+        dom.preferencesMenuItem.addEventListener('click', () => {
           dom.settingsModal.classList.remove('hidden');
           dom.menuDropdown.classList.add('hidden');
         });
       }
 
-      // Menu item: Restart Tour
-      if (dom.restartTourMenuItem) {
-        dom.restartTourMenuItem.addEventListener('click', () => {
+      // Menu item: Voice
+      if (dom.voiceMenuItem) {
+        dom.voiceMenuItem.addEventListener('click', () => {
+          dom.voiceModal.classList.remove('hidden');
           dom.menuDropdown.classList.add('hidden');
-          if (typeof window.restartOnboardingTour === 'function') {
-            window.restartOnboardingTour();
-          }
+        });
+      }
+
+      // Menu item: Accessibility
+      if (dom.accessibilityMenuItem) {
+        dom.accessibilityMenuItem.addEventListener('click', () => {
+          dom.accessibilityModal.classList.remove('hidden');
+          dom.menuDropdown.classList.add('hidden');
         });
       }
 
@@ -3324,31 +2414,6 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.logoutMenuItem.addEventListener('click', () => {
           handleLogout();
           dom.menuDropdown.classList.add('hidden');
-        });
-      }
-    }
-
-    // Placement menu dropdown toggle
-    if (dom.placementMenuToggleBtn && dom.placementMenuDropdown) {
-      dom.placementMenuToggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dom.placementMenuDropdown.classList.toggle('hidden');
-      });
-
-      // Close menu when clicking outside
-      document.addEventListener('click', (e) => {
-        if (dom.placementMenuDropdown && !dom.placementMenuDropdown.classList.contains('hidden')) {
-          if (!dom.placementMenuToggleBtn.contains(e.target) && !dom.placementMenuDropdown.contains(e.target)) {
-            dom.placementMenuDropdown.classList.add('hidden');
-          }
-        }
-      });
-
-      // Placement menu item: Logout
-      if (dom.placementLogoutMenuItem) {
-        dom.placementLogoutMenuItem.addEventListener('click', () => {
-          handleLogout();
-          dom.placementMenuDropdown.classList.add('hidden');
         });
       }
     }
@@ -3366,15 +2431,63 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
-    // Dialect select - update STT language when changed
-    if (dom.dialectSelect) {
-      dom.dialectSelect.addEventListener('change', (e) => {
-        const dialect = e.target.value;
-        userSettings.dialect = dialect;
-        STTManager.updateLanguage(dialect);
-        console.log('[Settings] Dialect changed to:', dialect);
+    // Voice modal close button
+    if (dom.closeVoiceBtn) {
+      dom.closeVoiceBtn.addEventListener('click', () => {
+        dom.voiceModal.classList.add('hidden');
       });
-      debugLog('âœ… Dialect select listener set');
+    }
+
+    // Accessibility modal close button
+    if (dom.closeAccessibilityBtn) {
+      dom.closeAccessibilityBtn.addEventListener('click', () => {
+        dom.accessibilityModal.classList.add('hidden');
+      });
+    }
+
+    // Close relationships view button
+    const closeRelationshipsBtn = document.getElementById('close-relationships-btn');
+    if (closeRelationshipsBtn) {
+      closeRelationshipsBtn.addEventListener('click', () => {
+        hideRelationshipsView();
+      });
+    }
+
+    // Dark mode theme selector in Preferences
+    if (dom.darkModeSetting) {
+      // Function to apply theme
+      const applyTheme = (theme) => {
+        if (theme === 'auto') {
+          // Use system preference
+          const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.body.classList.toggle('dark-mode', systemDark);
+        } else if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      };
+
+      // Handle theme selection change
+      dom.darkModeSetting.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        localStorage.setItem('themePreference', theme);
+        applyTheme(theme);
+      });
+
+      // Listen for system theme changes (only applies in 'auto' mode)
+      const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      systemThemeQuery.addEventListener('change', (e) => {
+        const currentTheme = localStorage.getItem('themePreference') || 'auto';
+        if (currentTheme === 'auto') {
+          document.body.classList.toggle('dark-mode', e.matches);
+        }
+      });
+
+      // Initialize from localStorage
+      const savedTheme = localStorage.getItem('themePreference') || 'auto';
+      dom.darkModeSetting.value = savedTheme;
+      applyTheme(savedTheme);
     }
 
     // Voice speed slider
@@ -3384,9 +2497,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.voiceSpeedValue.textContent = `${speed.toFixed(1)}x`;
         userSettings.voiceSpeed = speed;
       });
-      debugLog('âœ… Voice speed slider listener set');
+      debugLog('✅ Voice speed slider listener set');
     } else {
-      console.warn('âŒ Voice speed slider not found');
+      console.warn('❌ Voice speed slider not found');
     }
 
     // Voice pitch slider
@@ -3397,9 +2510,9 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         dom.voicePitchValue.textContent = labels[pitch + 3] || 'Normal';
         userSettings.voicePitch = pitch;
       });
-      debugLog('âœ… Voice pitch slider listener set');
+      debugLog('✅ Voice pitch slider listener set');
     } else {
-      console.warn('âŒ Voice pitch slider not found');
+      console.warn('❌ Voice pitch slider not found');
     }
 
     // Debug log toggle
@@ -3412,7 +2525,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         const isHidden = debugContent.classList.contains('hidden');
         if (isHidden) {
           debugContent.classList.remove('hidden');
-          debugToggleBtn.textContent = 'âˆ’';
+          debugToggleBtn.textContent = '−';
         } else {
           debugContent.classList.add('hidden');
           debugToggleBtn.textContent = '+';
@@ -3432,7 +2545,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         // Make sure content is visible (expanded)
         debugContent.classList.remove('hidden');
         const debugToggle = document.getElementById('voice-debug-toggle');
-        if (debugToggle) debugToggle.textContent = 'âˆ’';
+        if (debugToggle) debugToggle.textContent = '−';
 
         // Create log entry
         const logEntry = document.createElement('div');
@@ -3458,7 +2571,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     if (dom.testVoiceBtn) {
       console.log('[Voice] Setting up test voice button listener');
       dom.testVoiceBtn.addEventListener('click', async () => {
-        addVoiceDebugLog('ðŸ”˜ Test Voice button clicked', 'info');
+        addVoiceDebugLog('🔘 Test Voice button clicked', 'info');
 
         try {
           const testText = 'Hello! This is a test of the voice system. How does this sound to you?';
@@ -3466,33 +2579,33 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           const characterGender = 'female';
           const currentSpeed = parseFloat(dom.voiceSpeedSlider.value);
 
-          addVoiceDebugLog(`ðŸ“ Text: "${testText}"`, 'info');
-          addVoiceDebugLog(`ðŸ‘¤ Character: ${characterName} (${characterGender})`, 'info');
-          addVoiceDebugLog(`ðŸ”§ Voice Provider: Cartesia (auto-fallback to OpenAI â†’ Google)`, 'info');
-          addVoiceDebugLog(`ðŸŽ¤ Voice: Auto-selected based on character`, 'info');
-          addVoiceDebugLog(`âš¡ Voice Speed: ${currentSpeed}x`, 'info');
+          addVoiceDebugLog(`📝 Text: "${testText}"`, 'info');
+          addVoiceDebugLog(`👤 Character: ${characterName} (${characterGender})`, 'info');
+          addVoiceDebugLog(`🔧 Voice Provider: Cartesia (auto-fallback to OpenAI → Google)`, 'info');
+          addVoiceDebugLog(`🎤 Voice: Auto-selected based on character`, 'info');
+          addVoiceDebugLog(`⚡ Voice Speed: ${currentSpeed}x`, 'info');
 
           // Temporarily override settings for testing
           const savedSpeed = userSettings.voiceSpeed;
           userSettings.voiceSpeed = currentSpeed;
 
-          addVoiceDebugLog('ðŸ”Š Calling TTSManager.speak()...', 'info');
+          addVoiceDebugLog('🔊 Calling TTSManager.speak()...', 'info');
           await TTSManager.speak(testText, characterName, characterGender);
-          addVoiceDebugLog('âœ… TTSManager.speak() completed', 'success');
+          addVoiceDebugLog('✅ TTSManager.speak() completed', 'success');
 
           // Restore saved settings
           userSettings.voiceSpeed = savedSpeed;
         } catch (error) {
-          addVoiceDebugLog(`âŒ Error: ${error.message}`, 'error');
+          addVoiceDebugLog(`❌ Error: ${error.message}`, 'error');
           console.error('[Voice Test Error]', error);
         }
       });
-      debugLog('âœ… Test voice button listener set');
+      debugLog('✅ Test voice button listener set');
     } else {
-      console.warn('âŒ Test voice button not found in DOM');
+      console.warn('❌ Test voice button not found in DOM');
     }
 
-    debugLog('âœ… Settings event listeners set');
+    debugLog('✅ Settings event listeners set');
 
     if (dom.saveSettingsBtn) {
       dom.saveSettingsBtn.addEventListener('click', async () => {
@@ -3501,9 +2614,6 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           userSettings.formality = dom.formalitySelect.value;
           userSettings.voiceSpeed = parseFloat(dom.voiceSpeedSlider.value);
           userSettings.voicePitch = parseInt(dom.voicePitchSlider.value);
-
-          // Update STT language when dialect changes
-          STTManager.updateLanguage(userSettings.dialect);
 
           try {
             await setDoc(doc(db, 'users', currentUser.uid), {
@@ -3526,10 +2636,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     function applyHighContrast(enabled) {
       if (enabled) {
         document.body.classList.add('high-contrast');
-        debugLog('âœ… High contrast mode enabled');
+        debugLog('✅ High contrast mode enabled');
       } else {
         document.body.classList.remove('high-contrast');
-        debugLog('âœ… High contrast mode disabled');
+        debugLog('✅ High contrast mode disabled');
       }
       // Save preference
       localStorage.setItem('highContrast', enabled ? 'true' : 'false');
@@ -3563,7 +2673,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
       // Save preference
       localStorage.setItem('fontSize', size);
-      debugLog(`âœ… Font size set to: ${size}`);
+      debugLog(`✅ Font size set to: ${size}`);
     }
 
     // Load saved font size preference
@@ -3587,7 +2697,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         // Close settings modal
         if (dom.settingsModal && !dom.settingsModal.classList.contains('hidden')) {
           dom.settingsModal.classList.add('hidden');
-          debugLog('âŒ¨ï¸ Closed settings modal with Escape');
+          debugLog('⌨️ Closed settings modal with Escape');
           return;
         }
 
@@ -3596,7 +2706,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         modals.forEach(modal => {
           if (modal.id !== 'settings-modal') {
             modal.classList.add('hidden');
-            debugLog(`âŒ¨ï¸ Closed modal ${modal.id} with Escape`);
+            debugLog(`⌨️ Closed modal ${modal.id} with Escape`);
           }
         });
 
@@ -3607,7 +2717,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.questView.style.display = 'flex';
           updateMobileNavActive('quests');
           TTSManager.stop();
-          debugLog('âŒ¨ï¸ Returned to quest list with Escape');
+          debugLog('⌨️ Returned to quest list with Escape');
         }
       }
 
@@ -3618,10 +2728,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           const isHidden = dom.settingsModal.classList.contains('hidden');
           if (isHidden) {
             dom.settingsModal.classList.remove('hidden');
-            debugLog('âŒ¨ï¸ Opened settings with Ctrl/Cmd+K');
+            debugLog('⌨️ Opened settings with Ctrl/Cmd+K');
           } else {
             dom.settingsModal.classList.add('hidden');
-            debugLog('âŒ¨ï¸ Closed settings with Ctrl/Cmd+K');
+            debugLog('⌨️ Closed settings with Ctrl/Cmd+K');
           }
         }
       }
@@ -3634,7 +2744,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.chatView.style.display = 'none';
           dom.questView.style.display = 'flex';
           updateMobileNavActive('quests');
-          debugLog('âŒ¨ï¸ Toggled to quest view with Ctrl/Cmd+/');
+          debugLog('⌨️ Toggled to quest view with Ctrl/Cmd+/');
         }
       }
     });
@@ -3665,7 +2775,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       // Announce new message after a small delay to ensure screen readers pick it up
       setTimeout(() => {
         srAnnouncements.textContent = message;
-        debugLog(`ðŸ“¢ Screen reader announcement: ${message}`);
+        debugLog(`📢 Screen reader announcement: ${message}`);
       }, 100);
 
       // Clear after announcement to avoid repetition
@@ -3713,40 +2823,32 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
     const tourSteps = [
       {
-        target: 'img[alt*="Santiago"]',
-        title: 'Meet Santiago, Your Guide! 👋',
-        message: 'I\'m Santiago! I\'ll help you learn Spanish through exciting quests and conversations.',
+        target: '#welcome-message',
+        title: 'Welcome to ConvoQuest! 🎉',
+        message: 'This is your quest hub where you can see all available language learning adventures.',
         position: 'bottom'
       },
       {
         target: '#quest-list-container',
-        title: 'Choose Your Quest 🗺️',
-        message: 'Browse through interactive quests. Each quest is a unique conversation adventure that teaches you real Spanish!',
+        title: 'Choose Your Quest',
+        message: 'Browse through quests and click on one to start your Spanish learning journey!',
         position: 'top'
       },
       {
-        target: '.quest-card',
-        title: 'Quest Details 📋',
-        message: 'Each card shows difficulty, time estimate, and level requirement. Start with beginner quests and work your way up!',
-        position: 'right'
-      },
-      {
-        target: '#menu-toggle-btn',
-        title: 'Menu Options ⚙️',
-        message: 'Access dark mode, settings, and logout from this menu. Customize your learning experience!',
+        target: '#settings-btn',
+        title: 'Personalize Your Experience',
+        message: 'Access settings here to adjust font size, high contrast mode, and other accessibility features.',
         position: 'bottom'
       },
       {
-        target: '#daily-progress',
-        title: 'Track Your Progress 📊',
-        message: 'Your daily XP, current streak, and completed quests are shown here. Build your streak by practicing daily!',
-        position: 'bottom'
+        target: '#mobile-bottom-nav',
+        title: 'Quick Navigation (Mobile)',
+        message: 'Use the bottom navigation to quickly switch between quests, quiz, and your profile.',
+        position: 'top'
       }
     ];
 
     let currentTourStep = 0;
-    let highlightedElement = null;
-    let originalStyles = {};
 
     function positionTooltip(targetElement, position) {
       const targetRect = targetElement.getBoundingClientRect();
@@ -3806,27 +2908,6 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         return;
       }
 
-      // Restore previous element's styles
-      if (highlightedElement && originalStyles) {
-        highlightedElement.style.position = originalStyles.position || '';
-        highlightedElement.style.zIndex = originalStyles.zIndex || '';
-        highlightedElement.style.backgroundColor = originalStyles.backgroundColor || '';
-      }
-
-      // Save and elevate current element
-      highlightedElement = targetElement;
-      originalStyles = {
-        position: targetElement.style.position,
-        zIndex: targetElement.style.zIndex,
-        backgroundColor: targetElement.style.backgroundColor
-      };
-
-      // Elevate element above spotlight
-      if (!targetElement.style.position || targetElement.style.position === 'static') {
-        targetElement.style.position = 'relative';
-      }
-      targetElement.style.zIndex = '10000';
-
       const rect = targetElement.getBoundingClientRect();
 
       // Position spotlight
@@ -3866,15 +2947,6 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     }
 
     function endTour() {
-      // Restore highlighted element's styles
-      if (highlightedElement && originalStyles) {
-        highlightedElement.style.position = originalStyles.position || '';
-        highlightedElement.style.zIndex = originalStyles.zIndex || '';
-        highlightedElement.style.backgroundColor = originalStyles.backgroundColor || '';
-        highlightedElement = null;
-        originalStyles = {};
-      }
-
       onboardingOverlay.classList.add('hidden');
       onboardingSpotlight.classList.add('hidden');
       onboardingTooltip.classList.add('hidden');
@@ -3887,7 +2959,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       currentTourStep = 0;
       showTourStep(currentTourStep);
       announceToScreenReader('Welcome tour started');
-      debugLog('ðŸŽ“ Onboarding tour started');
+      debugLog('🎓 Onboarding tour started');
     }
 
     // Event listeners for onboarding
@@ -3919,38 +2991,85 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       startOnboardingTour();
     };
 
-    debugLog('âœ… All event listeners set successfully');
+    debugLog('✅ All event listeners set successfully');
   } catch (error) {
-    debugLog(`âŒ Error setting up event listeners: ${error.message}`);
+    debugLog(`❌ Error setting up event listeners: ${error.message}`);
     console.error('Event listener error:', error);
   }
 
+  // Auto-login for development mode (before auth state listener)
+  if (isDevMode) {
+    console.log('🔧 DEV MODE DETECTED - hostname:', window.location.hostname);
+    console.log('🔧 DEV MODE: Login page completely bypassed on localhost');
+
+    // Wait a moment for Firebase to initialize, then auto-login
+    setTimeout(() => {
+      (async () => {
+        console.log('🔧 DEV MODE: Auto-login starting...');
+
+        const devEmail = 'dev@convoquest.local';
+        const devPassword = 'devpassword123';
+
+        try {
+          // Check if already logged in
+          const currentAuthUser = auth.currentUser;
+
+          if (!currentAuthUser) {
+            console.log('🔐 Attempting to sign in with:', devEmail);
+            await signInWithEmailAndPassword(auth, devEmail, devPassword);
+            console.log('✅ DEV MODE: Auto-login successful!');
+          } else {
+            console.log('✅ DEV MODE: Already logged in as:', currentAuthUser.displayName);
+          }
+        } catch (error) {
+          console.log('❌ Sign in error:', error.code, error.message);
+
+          // If account doesn't exist, create it
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email') {
+            console.log('📝 DEV MODE: Creating dev account...');
+            try {
+              const userCredential = await createUserWithEmailAndPassword(auth, devEmail, devPassword);
+              await updateProfile(userCredential.user, {
+                displayName: 'Dev User'
+              });
+              console.log('✅ DEV MODE: Dev account created and logged in!');
+            } catch (createError) {
+              console.error('❌ Failed to create dev account:', createError);
+              alert('DEV MODE ERROR: Failed to create dev account. Check console for details.');
+            }
+          } else {
+            console.error('❌ Auto-login failed:', error);
+            alert('DEV MODE ERROR: Auto-login failed. Check console for details.');
+          }
+        }
+      })();
+    }, 500); // Wait 500ms for Firebase to be ready
+  }
+
   // Auth state listener
-  debugLog('ðŸ” Setting up auth state listener...');
+  debugLog('🔐 Setting up auth state listener...');
 
   // Use real Firebase Auth
   onAuthStateChanged(auth, async (user) => {
-      // Normal auth flow (same for localhost and production)
       if (user) {
         currentUser = user;
         if (dom.userDisplayName) {
           dom.userDisplayName.textContent = user.displayName || 'User';
         }
         if (dom.welcomeMessage) {
-          const firstName = (user.displayName || 'Explorer').split(' ')[0];
-          dom.welcomeMessage.textContent = `Hey ${firstName}!`;
+          dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'User'}!`;
         }
 
         // Hide auth container and show main app
         if (dom.authContainer) {
           dom.authContainer.style.display = 'none';
-          debugLog('âœ… Auth container hidden');
+          debugLog('✅ Auth container hidden');
         }
 
         try {
           // Load user data
           const userData = await loadUserData(user);
-          debugLog(`ðŸ“Š User data loaded: ${JSON.stringify(userData ? { placementCompleted: userData.placementCompleted, onboardingQuestCompleted: userData.onboardingQuestCompleted } : 'null')}`);
+          debugLog(`📊 User data loaded: ${JSON.stringify(userData ? { placementCompleted: userData.placementCompleted, onboardingQuestCompleted: userData.onboardingQuestCompleted } : 'null')}`);
 
           // Pass user progress to the quest map
           if (typeof window.updateUserProgress === 'function') {
@@ -3974,7 +3093,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           }
         } catch (error) {
           console.error('[PRODUCTION MODE] Error in auth flow:', error);
-          debugLog(`âŒ Error in auth flow: ${error.message}`);
+          debugLog(`❌ Error in auth flow: ${error.message}`);
           // Fallback to placement test if there's an error
           showView('placement-view');
         }
@@ -3988,29 +3107,34 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.mainAppView.classList.remove('active');
         }
 
-        // Show auth container when logged out
-        if (dom.authContainer) {
-          dom.authContainer.style.display = 'flex';
-          dom.authContainer.classList.add('active');
-          debugLog('âœ… Auth container shown');
-        }
+        // Only show auth container on production (not on localhost)
+        if (!isDevMode) {
+          // Show auth container when logged out
+          if (dom.authContainer) {
+            dom.authContainer.style.display = 'flex';
+            dom.authContainer.classList.add('active');
+            debugLog('✅ Auth container shown');
+          }
 
-        // Show login view
-        showAuthView('login-view');
-        debugLog('Login view shown.');
+          // Show login view
+          showAuthView('login-view');
+          debugLog('Login view shown.');
+        } else {
+          console.log('🔧 DEV MODE: Not showing login page, auto-login will handle it');
+        }
       }
     });
 
   // Initialize quest list
-  debugLog('ðŸ“‹ Initializing quest list...');
+  debugLog('📋 Initializing quest list...');
   renderQuests();
 
   // Initialize quest map
   if (typeof window.initializeQuestMap === 'function') {
-    debugLog('ðŸ—ºï¸ Initializing quest map...');
+    debugLog('🗺️ Initializing quest map...');
     window.initializeQuestMap();
   } else {
-    debugLog('âš ï¸ Quest map init function not found');
+    debugLog('⚠️ Quest map init function not found');
   }
 
   // Expose functions for quest map
@@ -4123,11 +3247,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       dom.questView.style.display = 'flex';
       updateMobileNavActive('quests');
       TTSManager.stop();
-      debugLog('â¬…ï¸ Swiped right: Returned to quest list');
+      debugLog('⬅️ Swiped right: Returned to quest list');
     }
     // Swipe left (not implemented for now - could be used for quick actions)
     else if (deltaX < 0 && inQuestView) {
-      debugLog('âž¡ï¸ Swiped left in quest view');
+      debugLog('➡️ Swiped left in quest view');
       // Future: Could implement quest navigation or quick access to profile
     }
   }
@@ -4165,21 +3289,21 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     }, { passive: true });
   }
 
-  debugLog('âœ… Application initialized successfully');
+  debugLog('✅ Application initialized successfully');
   console.log('[ConvoQuest] Application initialized successfully');
 }
 
 // Auto-initialize when DOM is ready
-console.log('ðŸŸ¢ Setting up auto-initialization...');
-console.log('ðŸŸ¢ Document ready state:', document.readyState);
+console.log('🟢 Setting up auto-initialization...');
+console.log('🟢 Document ready state:', document.readyState);
 
 if (document.readyState === 'loading') {
-  console.log('ðŸŸ¢ Waiting for DOMContentLoaded...');
+  console.log('🟢 Waiting for DOMContentLoaded...');
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('ðŸŸ¢ DOMContentLoaded fired, calling initializeApp...');
+    console.log('🟢 DOMContentLoaded fired, calling initializeApp...');
     initializeApp();
   });
 } else {
-  console.log('ðŸŸ¢ DOM already ready, calling initializeApp immediately...');
+  console.log('🟢 DOM already ready, calling initializeApp immediately...');
   initializeApp();
 }
