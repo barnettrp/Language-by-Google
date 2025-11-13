@@ -21,6 +21,12 @@ import {
 } from 'firebase/firestore';
 console.log('🟢 Firebase firestore imports loaded');
 
+// Import character relationship system
+import { CHARACTER_DATABASE, getRelationshipLevel, getRelationshipLevelData } from './character-database.js';
+import * as RelationshipSystem from './relationships.js';
+import { showRelationshipsView, hideRelationshipsView, initializeCharacterSearch, showAffinityNotification } from './relationships-ui.js';
+console.log('🟢 Relationship system imports loaded');
+
 // Debug logging helper
 // Logs to browser console (for debugging with F12 Developer Tools)
 function debugLog(msg) {
@@ -50,6 +56,12 @@ export function initializeApp() {
   // Dev mode detection (set once, used throughout)
   const isDevMode = window.location.hostname === 'localhost' ||
                     window.location.hostname === '127.0.0.1';
+
+  // Hide auth container immediately on localhost
+  if (isDevMode && dom.authContainer) {
+    dom.authContainer.style.display = 'none';
+    console.log('🔧 DEV MODE: Auth container hidden on page load');
+  }
 
   // Objective tracking variables
   let stageMessageCount = 0;
@@ -96,8 +108,20 @@ export function initializeApp() {
     welcomeMessage: document.getElementById('welcome-message'),
     logoutBtn: document.getElementById('logout-btn'),
     settingsBtn: document.getElementById('settings-btn'),
+    menuToggleBtn: document.getElementById('menu-toggle-btn'),
+    menuDropdown: document.getElementById('menu-dropdown'),
+    relationshipsMenuItem: document.getElementById('relationships-menu-item'),
+    preferencesMenuItem: document.getElementById('preferences-menu-item'),
+    voiceMenuItem: document.getElementById('voice-menu-item'),
+    accessibilityMenuItem: document.getElementById('accessibility-menu-item'),
+    logoutMenuItem: document.getElementById('logout-menu-item'),
     settingsModal: document.getElementById('settings-modal'),
+    voiceModal: document.getElementById('voice-modal'),
+    accessibilityModal: document.getElementById('accessibility-modal'),
+    darkModeSetting: document.getElementById('dark-mode-setting'),
     closeSettingsBtn: document.getElementById('close-settings-btn'),
+    closeVoiceBtn: document.getElementById('close-voice-btn'),
+    closeAccessibilityBtn: document.getElementById('close-accessibility-btn'),
     dialectSelect: document.getElementById('dialect-select'),
     formalitySelect: document.getElementById('formality-select'),
     voiceSpeedSlider: document.getElementById('voice-speed-slider'),
@@ -834,7 +858,7 @@ export function initializeApp() {
         dom.quizOptions.innerHTML = '';
         question.opts.forEach((option, index) => {
           const optionBtn = document.createElement('button');
-          optionBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all';
+          optionBtn.className = 'w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all';
           optionBtn.textContent = option;
           optionBtn.addEventListener('click', () => this.selectOption(index, optionBtn));
           dom.quizOptions.appendChild(optionBtn);
@@ -842,7 +866,7 @@ export function initializeApp() {
 
         // Add "I don't know" option
         const dontKnowBtn = document.createElement('button');
-        dontKnowBtn.className = 'w-full text-left p-4 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
+        dontKnowBtn.className = 'w-full text-left p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all text-gray-600 italic';
         dontKnowBtn.textContent = "No sé (I don't know)";
         dontKnowBtn.addEventListener('click', () => this.selectOption(-1, dontKnowBtn));
         dom.quizOptions.appendChild(dontKnowBtn);
@@ -2288,7 +2312,111 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (e.key === 'Enter') handlePlacementSend();
       });
     }
+
+    // Retake Placement Test button
+    if (dom.retakePlacementBtn) {
+      dom.retakePlacementBtn.addEventListener('click', async () => {
+        console.log('[RetakePlacement] Button clicked');
+
+        if (!currentUser) {
+          console.error('[RetakePlacement] No user logged in');
+          return;
+        }
+
+        try {
+          // Reset placement and onboarding status in Firebase
+          await setDoc(doc(db, 'users', currentUser.uid), {
+            placementCompleted: false,
+            onboardingQuestCompleted: false,
+            placementLevel: null,
+            placementScore: null,
+            completedQuests: [] // Reset quest progress to start fresh
+          }, { merge: true });
+
+          console.log('[RetakePlacement] User data reset successfully');
+
+          // Close settings modal
+          if (dom.settingsModal) {
+            dom.settingsModal.classList.add('hidden');
+          }
+
+          // Initialize and show placement test
+          PlacementTestManager.init();
+          showView('placement-view');
+
+          console.log('[RetakePlacement] Placement test restarted');
+        } catch (error) {
+          console.error('[RetakePlacement] Error resetting user data:', error);
+          alert('Error resetting placement test. Please try again.');
+        }
+      });
+    }
+
     debugLog('✅ Placement event listeners set');
+
+    // Menu dropdown toggle
+    if (dom.menuToggleBtn && dom.menuDropdown) {
+      dom.menuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dom.menuDropdown.classList.toggle('hidden');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (dom.menuDropdown && !dom.menuDropdown.classList.contains('hidden')) {
+          if (!dom.menuToggleBtn.contains(e.target) && !dom.menuDropdown.contains(e.target)) {
+            dom.menuDropdown.classList.add('hidden');
+          }
+        }
+      });
+
+      // Menu item: Relationships/Friendships
+      if (dom.relationshipsMenuItem) {
+        dom.relationshipsMenuItem.addEventListener('click', async () => {
+          if (currentUser) {
+            dom.menuDropdown.classList.add('hidden');
+            await showRelationshipsView(currentUser, CHARACTER_DATABASE, {
+              getUserRelationships: RelationshipSystem.getUserRelationships,
+              getRelationshipLevelData: RelationshipSystem.getRelationshipLevelData,
+              getDaysSinceLastContact: RelationshipSystem.getDaysSinceLastContact
+            });
+            initializeCharacterSearch();
+          }
+        });
+      }
+
+      // Menu item: Preferences
+      if (dom.preferencesMenuItem) {
+        dom.preferencesMenuItem.addEventListener('click', () => {
+          dom.settingsModal.classList.remove('hidden');
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+
+      // Menu item: Voice
+      if (dom.voiceMenuItem) {
+        dom.voiceMenuItem.addEventListener('click', () => {
+          dom.voiceModal.classList.remove('hidden');
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+
+      // Menu item: Accessibility
+      if (dom.accessibilityMenuItem) {
+        dom.accessibilityMenuItem.addEventListener('click', () => {
+          dom.accessibilityModal.classList.remove('hidden');
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+
+      // Menu item: Logout
+      if (dom.logoutMenuItem) {
+        dom.logoutMenuItem.addEventListener('click', () => {
+          handleLogout();
+          dom.menuDropdown.classList.add('hidden');
+        });
+      }
+    }
 
     // Settings modal
     if (dom.settingsBtn) {
@@ -2301,6 +2429,65 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       dom.closeSettingsBtn.addEventListener('click', () => {
         dom.settingsModal.classList.add('hidden');
       });
+    }
+
+    // Voice modal close button
+    if (dom.closeVoiceBtn) {
+      dom.closeVoiceBtn.addEventListener('click', () => {
+        dom.voiceModal.classList.add('hidden');
+      });
+    }
+
+    // Accessibility modal close button
+    if (dom.closeAccessibilityBtn) {
+      dom.closeAccessibilityBtn.addEventListener('click', () => {
+        dom.accessibilityModal.classList.add('hidden');
+      });
+    }
+
+    // Close relationships view button
+    const closeRelationshipsBtn = document.getElementById('close-relationships-btn');
+    if (closeRelationshipsBtn) {
+      closeRelationshipsBtn.addEventListener('click', () => {
+        hideRelationshipsView();
+      });
+    }
+
+    // Dark mode theme selector in Preferences
+    if (dom.darkModeSetting) {
+      // Function to apply theme
+      const applyTheme = (theme) => {
+        if (theme === 'auto') {
+          // Use system preference
+          const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.body.classList.toggle('dark-mode', systemDark);
+        } else if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      };
+
+      // Handle theme selection change
+      dom.darkModeSetting.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        localStorage.setItem('themePreference', theme);
+        applyTheme(theme);
+      });
+
+      // Listen for system theme changes (only applies in 'auto' mode)
+      const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      systemThemeQuery.addEventListener('change', (e) => {
+        const currentTheme = localStorage.getItem('themePreference') || 'auto';
+        if (currentTheme === 'auto') {
+          document.body.classList.toggle('dark-mode', e.matches);
+        }
+      });
+
+      // Initialize from localStorage
+      const savedTheme = localStorage.getItem('themePreference') || 'auto';
+      dom.darkModeSetting.value = savedTheme;
+      applyTheme(savedTheme);
     }
 
     // Voice speed slider
@@ -2810,6 +2997,55 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     console.error('Event listener error:', error);
   }
 
+  // Auto-login for development mode (before auth state listener)
+  if (isDevMode) {
+    console.log('🔧 DEV MODE DETECTED - hostname:', window.location.hostname);
+    console.log('🔧 DEV MODE: Login page completely bypassed on localhost');
+
+    // Wait a moment for Firebase to initialize, then auto-login
+    setTimeout(() => {
+      (async () => {
+        console.log('🔧 DEV MODE: Auto-login starting...');
+
+        const devEmail = 'dev@convoquest.local';
+        const devPassword = 'devpassword123';
+
+        try {
+          // Check if already logged in
+          const currentAuthUser = auth.currentUser;
+
+          if (!currentAuthUser) {
+            console.log('🔐 Attempting to sign in with:', devEmail);
+            await signInWithEmailAndPassword(auth, devEmail, devPassword);
+            console.log('✅ DEV MODE: Auto-login successful!');
+          } else {
+            console.log('✅ DEV MODE: Already logged in as:', currentAuthUser.displayName);
+          }
+        } catch (error) {
+          console.log('❌ Sign in error:', error.code, error.message);
+
+          // If account doesn't exist, create it
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email') {
+            console.log('📝 DEV MODE: Creating dev account...');
+            try {
+              const userCredential = await createUserWithEmailAndPassword(auth, devEmail, devPassword);
+              await updateProfile(userCredential.user, {
+                displayName: 'Dev User'
+              });
+              console.log('✅ DEV MODE: Dev account created and logged in!');
+            } catch (createError) {
+              console.error('❌ Failed to create dev account:', createError);
+              alert('DEV MODE ERROR: Failed to create dev account. Check console for details.');
+            }
+          } else {
+            console.error('❌ Auto-login failed:', error);
+            alert('DEV MODE ERROR: Auto-login failed. Check console for details.');
+          }
+        }
+      })();
+    }, 500); // Wait 500ms for Firebase to be ready
+  }
+
   // Auth state listener
   debugLog('🔐 Setting up auth state listener...');
 
@@ -2871,16 +3107,21 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           dom.mainAppView.classList.remove('active');
         }
 
-        // Show auth container when logged out
-        if (dom.authContainer) {
-          dom.authContainer.style.display = 'flex';
-          dom.authContainer.classList.add('active');
-          debugLog('✅ Auth container shown');
-        }
+        // Only show auth container on production (not on localhost)
+        if (!isDevMode) {
+          // Show auth container when logged out
+          if (dom.authContainer) {
+            dom.authContainer.style.display = 'flex';
+            dom.authContainer.classList.add('active');
+            debugLog('✅ Auth container shown');
+          }
 
-        // Show login view
-        showAuthView('login-view');
-        debugLog('Login view shown.');
+          // Show login view
+          showAuthView('login-view');
+          debugLog('Login view shown.');
+        } else {
+          console.log('🔧 DEV MODE: Not showing login page, auto-login will handle it');
+        }
       }
     });
 
