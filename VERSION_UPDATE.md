@@ -26,7 +26,12 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v2.3.3** (2025-11-15)
+**v2.3.4** (2025-11-16)
+
+### Changes in v2.3.4:
+- **Debug Console Removed**: Removed debugging console from production build for cleaner UI
+- **Performance**: Eliminated console interception overhead for better performance
+- **Clean Interface**: No more debug panel at bottom of screen
 
 ### Changes in v2.3.3:
 - **Quest Clue Visibility**: Fixed invisible clue text in quest completion popup

@@ -944,24 +944,11 @@
 
   <!-- UI FIX: Removed mt-10 from this container -->
   <div id="app-container" class="contained-area rounded-xl shadow-2xl flex flex-col overflow-hidden relative">
-    <!-- Debug Console -->
-    <div id="debug-console-wrapper" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;">
-      <div style="background: black; opacity: 0.95; border-top: 2px solid lime;">
-        <div id="debug-console-header" style="color: yellow; font-weight: bold; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: monospace; font-size: 12px; user-select: none;">
-          <span>🐛 DEBUG CONSOLE (TTS Troubleshooting)</span>
-          <button id="debug-console-toggle" style="background: lime; color: black; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 11px;">−</button>
-        </div>
-        <div id="debug-console" style="background: black; color: lime; padding: 10px; max-height: 200px; overflow-y: auto; font-size: 11px; font-family: monospace; display: block;">
-          <div style="color: cyan; margin-bottom: 5px;">Waiting for logs...</div>
-        </div>
-      </div>
-    </div>
-
     <!-- AUTH VIEW -->
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.3.3</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.3.4</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -1784,89 +1771,6 @@
       }
     }
 
-    // Early debug logging
-    const debugConsole = document.getElementById('debug-console');
-    const debugConsoleToggle = document.getElementById('debug-console-toggle');
-    const debugConsoleHeader = document.getElementById('debug-console-header');
-
-    if (debugConsole) {
-      const timestamp = new Date().toLocaleTimeString();
-      debugConsole.innerHTML = ''; // Clear initial message
-      debugConsole.innerHTML += `[${timestamp}] 🟢 HTML loaded, Firebase config set<br>`;
-      debugConsole.innerHTML += `[${timestamp}] 🟢 About to load app.js module...<br>`;
-
-      // Toggle functionality
-      let isMinimized = false;
-      const toggleConsole = () => {
-        isMinimized = !isMinimized;
-        debugConsole.style.display = isMinimized ? 'none' : 'block';
-        debugConsoleToggle.textContent = isMinimized ? '+' : '−';
-      };
-
-      debugConsoleToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleConsole();
-      });
-
-      debugConsoleHeader.addEventListener('click', toggleConsole);
-
-      // Intercept console.log to show in debug panel
-      const originalLog = console.log;
-      console.log = function(...args) {
-        originalLog.apply(console, args);
-        const msg = args.join(' ');
-        const time = new Date().toLocaleTimeString();
-        debugConsole.innerHTML += `[${time}] ${msg}<br>`;
-        debugConsole.scrollTop = debugConsole.scrollHeight;
-      };
-
-      // Intercept console.error too
-      const originalError = console.error;
-      console.error = function(...args) {
-        originalError.apply(console, args);
-        const msg = args.join(' ');
-        const time = new Date().toLocaleTimeString();
-        debugConsole.innerHTML += `[${time}] ❌ ${msg}<br>`;
-        debugConsole.scrollTop = debugConsole.scrollHeight;
-      };
-
-      // Intercept console.warn too
-      const originalWarn = console.warn;
-      console.warn = function(...args) {
-        originalWarn.apply(console, args);
-        const msg = args.join(' ');
-        const time = new Date().toLocaleTimeString();
-        debugConsole.innerHTML += `[${time}] ⚠️ ${msg}<br>`;
-        debugConsole.scrollTop = debugConsole.scrollHeight;
-      };
-    }
-
-    // Catch ALL JavaScript errors (including module loading errors)
-    window.addEventListener('error', (e) => {
-      if (debugConsole) {
-        const timestamp = new Date().toLocaleTimeString();
-        debugConsole.innerHTML += `[${timestamp}] ❌ ERROR: ${e.message}<br>`;
-        if (e.filename) {
-          debugConsole.innerHTML += `[${timestamp}] 📁 File: ${e.filename}:${e.lineno}:${e.colno}<br>`;
-        }
-        if (e.error && e.error.stack) {
-          debugConsole.innerHTML += `[${timestamp}] 📚 Stack: ${e.error.stack.substring(0, 200)}<br>`;
-        }
-        debugConsole.scrollTop = debugConsole.scrollHeight;
-      }
-    });
-
-    // Catch unhandled promise rejections (common with ES modules)
-    window.addEventListener('unhandledrejection', (e) => {
-      if (debugConsole) {
-        const timestamp = new Date().toLocaleTimeString();
-        debugConsole.innerHTML += `[${timestamp}] ❌ PROMISE REJECTION: ${e.reason}<br>`;
-        if (e.reason && e.reason.stack) {
-          debugConsole.innerHTML += `[${timestamp}] 📚 Stack: ${e.reason.stack.substring(0, 200)}<br>`;
-        }
-        debugConsole.scrollTop = debugConsole.scrollHeight;
-      }
-    });
   </script>
 
   <!-- Santiago Welcome Card - Dismiss Functionality -->
