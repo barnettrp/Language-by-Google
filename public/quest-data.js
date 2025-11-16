@@ -341,8 +341,8 @@ const QUEST_DATABASE = {
     // ========================================
     "quest-zero-onboarding": {
       id: "quest-zero-onboarding",
-      title: "The Adventure Begins",
-      objective: "A mysterious message has arrived. Discover who sent it and why they need your help.",
+      title: "Meet Santiago, Your Guide",
+      objective: "Santiago, your friendly Spanish tutor, needs your help with an urgent matter involving his abuela!",
       mapLocation: {
         id: "starting-point",
         name: "A Mysterious Starting Point",

@@ -63,7 +63,9 @@
       "Bash(git restore:*)",
       "WebFetch(domain:localhost)",
       "Bash(node test-irt.js:*)",
-      "Bash(PORT=5174 npm run dev:*)"
+      "Bash(PORT=5174 npm run dev:*)",
+      "Bash(git merge:*)",
+      "Bash(git diff:*)"
     ],
     "deny": [],
     "ask": []

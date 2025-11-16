@@ -961,7 +961,7 @@
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.1.1</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.3.3</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -1119,7 +1119,7 @@
                   <span>Logout</span>
                 </button>
                 <div class="px-4 py-2 text-xs text-gray-400 font-mono text-center border-t border-gray-100 mt-1">
-                  v2.1.1
+                  v2.3.3
                 </div>
               </div>
             </div>
@@ -1178,15 +1178,11 @@
       <div id="chat-view" class="hidden flex-col h-full">
         <header class="p-4 border-b border-gray-200/80 flex justify-between items-center flex-shrink-0">
           <div class="flex flex-col flex-1 min-w-0">
-            <h1 id="chat-title" class="text-base font-bold text-gray-800 whitespace-nowrap"></h1>
-            <div id="objectives-progress" class="text-xs text-blue-600 font-medium mt-1 hidden cursor-pointer hover:underline" title="Click to view quest objective">
-              <span id="objectives-count">0/0</span> objectives completed
-            </div>
+            <h1 id="chat-title" class="text-base font-bold text-gray-800 overflow-hidden text-ellipsis whitespace-nowrap">The Adventure Begins</h1>
           </div>
           <div class="flex gap-2 items-center">
-            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.1.1</span>
+            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.3.3</span>
             <button id="repeat-tts-btn" title="Repeat last TTS audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
-            <button id="autoplay-toggle-btn" title="Toggle auto-play audio responses" class="text-gray-600 hover:text-blue-500 px-3 py-1 rounded-md text-sm transition-colors">🔇 Auto-play</button>
             <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
           </div>
         </header>
@@ -1845,12 +1841,30 @@
       };
     }
 
-    // Catch module loading errors
+    // Catch ALL JavaScript errors (including module loading errors)
     window.addEventListener('error', (e) => {
-      if (debugConsole && e.filename && e.filename.includes('.js')) {
+      if (debugConsole) {
         const timestamp = new Date().toLocaleTimeString();
         debugConsole.innerHTML += `[${timestamp}] ❌ ERROR: ${e.message}<br>`;
-        debugConsole.innerHTML += `[${timestamp}] ❌ File: ${e.filename}<br>`;
+        if (e.filename) {
+          debugConsole.innerHTML += `[${timestamp}] 📁 File: ${e.filename}:${e.lineno}:${e.colno}<br>`;
+        }
+        if (e.error && e.error.stack) {
+          debugConsole.innerHTML += `[${timestamp}] 📚 Stack: ${e.error.stack.substring(0, 200)}<br>`;
+        }
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      }
+    });
+
+    // Catch unhandled promise rejections (common with ES modules)
+    window.addEventListener('unhandledrejection', (e) => {
+      if (debugConsole) {
+        const timestamp = new Date().toLocaleTimeString();
+        debugConsole.innerHTML += `[${timestamp}] ❌ PROMISE REJECTION: ${e.reason}<br>`;
+        if (e.reason && e.reason.stack) {
+          debugConsole.innerHTML += `[${timestamp}] 📚 Stack: ${e.reason.stack.substring(0, 200)}<br>`;
+        }
+        debugConsole.scrollTop = debugConsole.scrollHeight;
       }
     });
   </script>

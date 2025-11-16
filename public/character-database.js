@@ -742,17 +742,15 @@ function getCharactersGroupedByLevel(userRelationships) {
   return grouped;
 }
 
-// Export for use in app.js
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    CHARACTER_DATABASE,
-    RELATIONSHIP_LEVELS,
-    AFFINITY_ACTIONS,
-    getRelationshipLevel,
-    getUnlockedBackstory,
-    getAvailableQuests,
-    calculateInactivityPenalty,
-    getCharactersByAffinity,
-    getCharactersGroupedByLevel
-  };
-}
+// ES Module exports for use in browser
+export {
+  CHARACTER_DATABASE,
+  RELATIONSHIP_LEVELS,
+  AFFINITY_ACTIONS,
+  getRelationshipLevel,
+  getUnlockedBackstory,
+  getAvailableQuests,
+  calculateInactivityPenalty,
+  getCharactersByAffinity,
+  getCharactersGroupedByLevel
+};

@@ -22,9 +22,10 @@ import {
 console.log('🟢 Firebase firestore imports loaded');
 
 // Import character relationship system
-import { CHARACTER_DATABASE, getRelationshipLevel, getRelationshipLevelData } from './character-database.js';
+import { CHARACTER_DATABASE, getRelationshipLevel } from './character-database.js';
 import * as RelationshipSystem from './relationships.js';
 import { showRelationshipsView, hideRelationshipsView, initializeCharacterSearch, showAffinityNotification } from './relationships-ui.js';
+// getRelationshipLevelData is available as RelationshipSystem.getRelationshipLevelData
 console.log('🟢 Relationship system imports loaded');
 
 // Debug logging helper
@@ -56,12 +57,6 @@ export function initializeApp() {
   // Dev mode detection (set once, used throughout)
   const isDevMode = window.location.hostname === 'localhost' ||
                     window.location.hostname === '127.0.0.1';
-
-  // Hide auth container immediately on localhost
-  if (isDevMode && dom.authContainer) {
-    dom.authContainer.style.display = 'none';
-    console.log('🔧 DEV MODE: Auth container hidden on page load');
-  }
 
   // Objective tracking variables
   let stageMessageCount = 0;
@@ -176,7 +171,8 @@ export function initializeApp() {
     placementChatInput: document.getElementById('placement-chat-input'),
     placementSendBtn: document.getElementById('placement-send-btn'),
     retakePlacementBtn: document.getElementById('retake-placement-btn'),
-    darkModeToggle: document.getElementById('dark-mode-toggle')
+    darkModeToggle: document.getElementById('dark-mode-toggle'),
+    devModeIndicator: document.getElementById('dev-mode-indicator')
   };
 
   // Check for critical missing elements
@@ -186,6 +182,39 @@ export function initializeApp() {
     debugLog(`❌ Missing critical elements: ${missingElements.join(', ')}`);
   } else {
     debugLog('✅ All critical DOM elements found');
+  }
+
+  // Dev mode bypass - execute AFTER DOM elements are loaded
+  if (isDevMode) {
+    console.log('🔧 DEV MODE: Bypassing authentication, going straight to app');
+
+    // Hide auth container and show main app immediately
+    if (dom.authContainer) {
+      dom.authContainer.style.display = 'none';
+      dom.authContainer.classList.remove('active');
+      console.log('🔧 DEV MODE: Auth container hidden');
+    }
+    if (dom.mainAppView) {
+      dom.mainAppView.style.display = 'flex';
+      dom.mainAppView.classList.add('active');
+      console.log('🔧 DEV MODE: Main app view shown');
+    }
+
+    // Set a fake current user for dev mode
+    currentUser = {
+      uid: 'dev-user',
+      displayName: 'Dev User',
+      email: 'dev@convoquest.local'
+    };
+
+    if (dom.userDisplayName) {
+      dom.userDisplayName.textContent = 'Dev User';
+    }
+    if (dom.welcomeMessage) {
+      dom.welcomeMessage.textContent = 'Welcome, Dev User!';
+    }
+
+    console.log('✅ DEV MODE: Bypass complete - main app should be visible');
   }
 
   // Content Moderation System
@@ -492,19 +521,22 @@ export function initializeApp() {
       console.log('[TTS] ===== NEW SPEAK REQUEST =====');
       console.log('[TTS] isSpeaking flag:', isSpeaking);
 
-      // CRITICAL: If already speaking, abort immediately and wait
+      // CRITICAL: If already speaking, stop current audio and wait for it to fully stop
       if (isSpeaking) {
-        console.log('[TTS] ⚠️ Already speaking! Aborting previous and waiting...');
+        console.log('[TTS] ⚠️ Already speaking! Interrupting current audio...');
         this.stop();
-        // Wait briefly for audio to fully stop and cleanup
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Force release the lock
+        isSpeaking = false;
+        // Wait for cleanup to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('[TTS] Previous audio interrupted and cleaned up');
       }
 
       // Set flag immediately to block any other calls
       isSpeaking = true;
       console.log('[TTS] Lock acquired, isSpeaking = true');
 
-      // Aggressively stop any audio that might be playing
+      // Aggressively stop any audio that might be playing (safety check)
       this.stop();
 
       try {
@@ -1101,26 +1133,39 @@ export function initializeApp() {
   // Authentication functions
   debugLog('📝 Setting up authentication functions...');
   async function handleLogin() {
-    const email = dom.loginEmailInput.value.trim();
-    const password = dom.loginPasswordInput.value;
+    console.log('🔐 handleLogin called');
+    const email = dom.loginEmailInput?.value?.trim() || '';
+    const password = dom.loginPasswordInput?.value || '';
+
+    console.log('📧 Email:', email);
+    console.log('🔑 Password length:', password.length);
 
     if (!email || !password) {
+      console.warn('⚠️ Missing email or password');
       alert('Please fill in all fields');
       return;
     }
 
     try {
-      dom.loginBtn.disabled = true;
-      dom.loginBtn.textContent = 'Signing In...';
-      
+      console.log('🔄 Attempting to sign in...');
+      if (dom.loginBtn) {
+        dom.loginBtn.disabled = true;
+        dom.loginBtn.textContent = 'Signing In...';
+      }
+
       await signInWithEmailAndPassword(auth, email, password);
+      console.log('✅ Sign in successful - onAuthStateChanged will handle UI update');
       // onAuthStateChanged will handle the UI update
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       alert('Login failed: ' + error.message);
     } finally {
-      dom.loginBtn.disabled = false;
-      dom.loginBtn.textContent = 'Login';
+      if (dom.loginBtn) {
+        dom.loginBtn.disabled = false;
+        dom.loginBtn.textContent = 'Login';
+      }
     }
   }
 
@@ -1316,7 +1361,12 @@ export function initializeApp() {
       `;
 
       if (!isLocked) {
-        questEl.addEventListener('click', () => startQuest(questKey));
+        questEl.addEventListener('click', () => {
+          console.log(`🎯 Quest card clicked: ${questKey}`);
+          startQuest(questKey);
+        });
+      } else {
+        console.log(`🔒 Quest is locked: ${questKey}`);
       }
 
       return questEl;
@@ -1361,6 +1411,7 @@ export function initializeApp() {
 
   // Start a quest
   function startQuest(questKey) {
+    console.log(`📍 startQuest called with: ${questKey}`);
     debugLog(`📍 startQuest called with: ${questKey}`);
     currentQuest = questKey;
     currentStage = "1";
@@ -1375,12 +1426,17 @@ export function initializeApp() {
     stageStartTime = Date.now(); // Track when stage started
     lastObjectiveAttemptCount = {}; // Reset attempt tracking
 
+    console.log(`🔍 Looking for quest in quests object...`);
+    console.log(`📚 Available quests:`, Object.keys(quests));
     const quest = quests[currentQuest];
     if (!quest) {
-      console.error(`Quest not found: ${questKey}`);
+      console.error(`❌ Quest not found: ${questKey}`);
+      console.error(`Available quests are:`, Object.keys(quests));
       debugLog(`❌ Quest not found: ${questKey}`);
+      alert(`Quest "${questKey}" not found. Available quests: ${Object.keys(quests).join(', ')}`);
       return;
     }
+    console.log(`✅ Quest found:`, quest.title);
 
     const stage = quest.stages[currentStage];
     if (!stage) {
@@ -1901,6 +1957,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
   // Update objectives progress UI
   function updateObjectivesUI() {
+    // Check if objectives UI elements exist (they may have been removed)
+    if (!dom.objectivesProgress || !dom.objectivesCount) {
+      return; // Silently skip if UI elements don't exist
+    }
+
     const quest = quests[currentQuest];
     const stage = quest.stages[currentStage];
 
@@ -2044,7 +2105,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         <div class="text-5xl mb-3">🎉</div>
         <div class="text-xl font-bold mb-2">Quest Complete!</div>
         <div class="text-sm mb-3">You've completed all objectives for this quest.</div>
-        ${stage.reward?.clue ? `<div class="text-sm mt-2 italic bg-white/50 p-3 rounded-lg">"${stage.reward.clue}"</div>` : ''}
+        ${stage.reward?.clue ? `<div class="text-sm mt-2 italic bg-white/70 p-3 rounded-lg text-gray-800 font-medium border border-gray-300">"${stage.reward.clue}"</div>` : ''}
         ${stage.reward?.xp ? `<div class="text-lg mt-3 font-bold text-green-700">+${stage.reward.xp} XP earned! ⭐</div>` : ''}
         <button id="continue-after-stage-btn" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md">
           Return to Quests
@@ -2216,7 +2277,37 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   try {
     if (dom.showSignupBtn) dom.showSignupBtn.addEventListener('click', () => showView('signup-view'));
     if (dom.showLoginBtn) dom.showLoginBtn.addEventListener('click', () => showView('login-view'));
-    if (dom.loginBtn) dom.loginBtn.addEventListener('click', handleLogin);
+    if (dom.loginBtn) {
+      dom.loginBtn.addEventListener('click', (e) => {
+        console.log('🔵 Login button clicked');
+        e.preventDefault();
+        handleLogin();
+      });
+      console.log('✅ Login button event listener attached');
+    } else {
+      console.error('❌ Login button not found in DOM');
+    }
+
+    // Add Enter key support for login
+    if (dom.loginPasswordInput) {
+      dom.loginPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          console.log('🔵 Enter key pressed in password field');
+          e.preventDefault();
+          handleLogin();
+        }
+      });
+    }
+    if (dom.loginEmailInput) {
+      dom.loginEmailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          console.log('🔵 Enter key pressed in email field');
+          e.preventDefault();
+          handleLogin();
+        }
+      });
+    }
+
     if (dom.signupBtn) dom.signupBtn.addEventListener('click', handleSignup);
     if (dom.logoutBtn) dom.logoutBtn.addEventListener('click', handleLogout);
     debugLog('✅ Auth event listeners set');
@@ -2997,53 +3088,10 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     console.error('Event listener error:', error);
   }
 
-  // Auto-login for development mode (before auth state listener)
-  if (isDevMode) {
-    console.log('🔧 DEV MODE DETECTED - hostname:', window.location.hostname);
-    console.log('🔧 DEV MODE: Login page completely bypassed on localhost');
-
-    // Wait a moment for Firebase to initialize, then auto-login
-    setTimeout(() => {
-      (async () => {
-        console.log('🔧 DEV MODE: Auto-login starting...');
-
-        const devEmail = 'dev@convoquest.local';
-        const devPassword = 'devpassword123';
-
-        try {
-          // Check if already logged in
-          const currentAuthUser = auth.currentUser;
-
-          if (!currentAuthUser) {
-            console.log('🔐 Attempting to sign in with:', devEmail);
-            await signInWithEmailAndPassword(auth, devEmail, devPassword);
-            console.log('✅ DEV MODE: Auto-login successful!');
-          } else {
-            console.log('✅ DEV MODE: Already logged in as:', currentAuthUser.displayName);
-          }
-        } catch (error) {
-          console.log('❌ Sign in error:', error.code, error.message);
-
-          // If account doesn't exist, create it
-          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email') {
-            console.log('📝 DEV MODE: Creating dev account...');
-            try {
-              const userCredential = await createUserWithEmailAndPassword(auth, devEmail, devPassword);
-              await updateProfile(userCredential.user, {
-                displayName: 'Dev User'
-              });
-              console.log('✅ DEV MODE: Dev account created and logged in!');
-            } catch (createError) {
-              console.error('❌ Failed to create dev account:', createError);
-              alert('DEV MODE ERROR: Failed to create dev account. Check console for details.');
-            }
-          } else {
-            console.error('❌ Auto-login failed:', error);
-            alert('DEV MODE ERROR: Auto-login failed. Check console for details.');
-          }
-        }
-      })();
-    }, 500); // Wait 500ms for Firebase to be ready
+  // Auto-login for development mode - DISABLED (we bypass auth entirely now)
+  // In dev mode, auth is completely bypassed and main app is shown immediately
+  if (false && isDevMode) {
+    console.log('🔧 DEV MODE: Firebase auto-login disabled - using auth bypass instead');
   }
 
   // Auth state listener
