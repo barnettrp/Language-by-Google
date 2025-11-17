@@ -360,29 +360,96 @@ async function handleCartesiaTTSRequest(req, res) {
 
       // Cartesia voice IDs - Real Spanish voices from Cartesia API
       const CARTESIA_VOICES = {
-        // Male voices
+        // Male voices - different ages and styles
         'spanish_narrator': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Deep and resonant, perfect for narratives
         'male_default': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Spanish Narrator Man
+        'male_young': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Young male (adjust speed higher)
+        'male_mature': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Mature male
+        'male_elder': '34dbb662-8e98-413c-a1ef-1a3407675fe7', // Elder male (adjust speed lower)
 
-        // Female voices
+        // Female voices - different ages and styles
         'marta': '5c29d7e3-a133-4c7e-804a-1d9c6dea83f6', // Smooth, casual South American
         'teresa': '0afd8614-31cb-438c-8a46-80650e19c29c', // Casual, great for conversations
         'peninsular_narrator': 'a956b555-5c82-404f-9580-243b5178978d', // Calm, Peninsular dialect
         'female_default': '5c29d7e3-a133-4c7e-804a-1d9c6dea83f6', // Marta (casual and natural)
+        'female_young': '0afd8614-31cb-438c-8a46-80650e19c29c', // Teresa (young, energetic)
+        'female_mature': '5c29d7e3-a133-4c7e-804a-1d9c6dea83f6', // Marta (mature)
+        'female_elder': 'a956b555-5c82-404f-9580-243b5178978d', // Peninsular (calm, elder)
       };
+
+      // Character voice mapping - select voice based on character
+      function selectVoiceForCharacter(characterName, characterGender) {
+        const name = characterName?.toLowerCase() || '';
+
+        // Elderly/Respected characters (deeper, slower voices)
+        if (name.includes('don pedro') || name.includes('don ernesto')) {
+          return { voice: CARTESIA_VOICES.male_elder, speed: 0.75 };
+        }
+        if (name.includes('señor rivera')) {
+          return { voice: CARTESIA_VOICES.male_elder, speed: 0.8 };
+        }
+        if (name.includes('santiago')) {
+          return { voice: CARTESIA_VOICES.male_mature, speed: 0.85 };
+        }
+
+        // Young energetic male characters
+        if (name.includes('andrés')) {
+          return { voice: CARTESIA_VOICES.male_young, speed: 0.95 };
+        }
+        if (name.includes('javier')) {
+          return { voice: CARTESIA_VOICES.male_young, speed: 0.9 };
+        }
+        if (name.includes('carlos') && name.includes('musician')) {
+          return { voice: CARTESIA_VOICES.male_young, speed: 0.9 };
+        }
+
+        // Mature professional male characters
+        if (name.includes('mateo') && name.includes('concierge')) {
+          return { voice: CARTESIA_VOICES.male_mature, speed: 0.85 };
+        }
+        if (name.includes('roberto') && name.includes('chef')) {
+          return { voice: CARTESIA_VOICES.male_mature, speed: 0.85 };
+        }
+        if (name.includes('miguel')) {
+          return { voice: CARTESIA_VOICES.male_mature, speed: 0.85 };
+        }
+
+        // Young energetic female characters
+        if (name.includes('carolina') && name.includes('festival')) {
+          return { voice: CARTESIA_VOICES.female_young, speed: 0.95 };
+        }
+        if (name.includes('sofia') && name.includes('barista')) {
+          return { voice: CARTESIA_VOICES.female_young, speed: 0.9 };
+        }
+        if (name.includes('elena') && name.includes('vendor')) {
+          return { voice: CARTESIA_VOICES.female_young, speed: 0.9 };
+        }
+
+        // Mature professional female characters
+        if (name.includes('maría') && name.includes('vendor')) {
+          return { voice: CARTESIA_VOICES.female_mature, speed: 0.85 };
+        }
+        if (name.includes('lucía') && name.includes('security')) {
+          return { voice: CARTESIA_VOICES.female_mature, speed: 0.85 };
+        }
+
+        // Default based on gender
+        if (characterGender === 'female') {
+          return { voice: CARTESIA_VOICES.female_default, speed: 0.85 };
+        } else {
+          return { voice: CARTESIA_VOICES.male_default, speed: 0.85 };
+        }
+      }
 
       // If user has selected a specific voice, use that
       if (preferredVoice && preferredVoice !== 'auto') {
         selectedVoice = CARTESIA_VOICES[preferredVoice] || CARTESIA_VOICES.male_default;
         baseSpeed = 0.85;  // Slightly slower for more natural speech
       } else {
-        // Auto-select voice based on character gender
-        if (characterGender === 'female') {
-          selectedVoice = CARTESIA_VOICES.female_default;
-        } else {
-          selectedVoice = CARTESIA_VOICES.male_default;
-        }
-        baseSpeed = 0.85;  // Slightly slower for more natural speech
+        // Auto-select voice based on character name and gender
+        const voiceConfig = selectVoiceForCharacter(characterName, characterGender);
+        selectedVoice = voiceConfig.voice;
+        baseSpeed = voiceConfig.speed;
       }
 
       const finalSpeed = baseSpeed * speedMultiplier;

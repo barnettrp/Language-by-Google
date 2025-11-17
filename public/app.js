@@ -1270,7 +1270,7 @@ export function initializeApp() {
 
     Object.entries(quests).forEach(([questKey, quest]) => {
       const prerequisites = quest.prerequisites || [];
-      const isLocked = !prerequisites.every(prereq => completedQuests.includes(prereq));
+      const isLocked = false; // All quests unlocked for now
       const isCompleted = completedQuests.includes(questKey);
 
       const questData = { questKey, quest, isLocked, isCompleted, prerequisites };
