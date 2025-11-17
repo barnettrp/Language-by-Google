@@ -2375,47 +2375,74 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         recognition = new SpeechRecognition();
         recognition.lang = 'es-MX'; // Spanish (Mexico) - can be changed based on dialect setting
         recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.interimResults = true; // Show interim results for better UX
+        recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
           isListening = true;
           dom.micBtn.textContent = '🔴'; // Red dot to indicate recording
           dom.micBtn.style.opacity = '1';
+          dom.chatInput.placeholder = 'Listening...';
+          console.log('🎤 Speech recognition started');
         };
 
         recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
+          console.log('🎤 Speech recognition result received');
+          const last = event.results.length - 1;
+          const transcript = event.results[last][0].transcript;
+          console.log('🎤 Transcript:', transcript);
+
+          // Update input with transcript (interim or final)
           dom.chatInput.value = transcript;
           dom.chatInput.focus();
         };
 
+        recognition.onspeechend = () => {
+          console.log('🎤 Speech ended');
+          recognition.stop();
+        };
+
         recognition.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
+          console.error('🎤 Speech recognition error:', event.error);
           isListening = false;
           dom.micBtn.textContent = '🎤';
-          if (event.error === 'not-allowed') {
+          dom.chatInput.placeholder = 'Type your reply...';
+
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
             alert('Microphone access denied. Please allow microphone access in your browser settings.');
+          } else if (event.error === 'no-speech') {
+            console.log('🎤 No speech detected');
+          } else if (event.error === 'aborted') {
+            console.log('🎤 Speech recognition aborted');
+          } else {
+            console.error('🎤 Speech recognition error details:', event);
           }
         };
 
         recognition.onend = () => {
+          console.log('🎤 Speech recognition ended');
           isListening = false;
           dom.micBtn.textContent = '🎤';
+          dom.chatInput.placeholder = 'Type your reply...';
         };
 
         dom.micBtn.addEventListener('click', () => {
           if (isListening) {
+            console.log('🎤 Stopping speech recognition');
             recognition.stop();
           } else {
+            console.log('🎤 Starting speech recognition');
             try {
               recognition.start();
             } catch (error) {
-              console.error('Error starting speech recognition:', error);
+              console.error('🎤 Error starting speech recognition:', error);
+              alert('Error starting microphone: ' + error.message);
             }
           }
         });
       } else {
         // Browser doesn't support speech recognition
+        console.warn('🎤 Speech recognition not supported');
         dom.micBtn.style.opacity = '0.5';
         dom.micBtn.title = 'Speech recognition not supported in this browser';
       }
