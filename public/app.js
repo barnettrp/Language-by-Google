@@ -138,6 +138,7 @@ export function initializeApp() {
     chatContainer: document.getElementById('chat-container'),
     chatInput: document.getElementById('chat-input'),
     sendBtn: document.getElementById('send-btn'),
+    micBtn: document.getElementById('mic-btn'),
     hintBtn: document.getElementById('hint-btn'),
     objectivesProgress: document.getElementById('objectives-progress'),
     objectivesCount: document.getElementById('objectives-count'),
@@ -2361,6 +2362,63 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       dom.chatInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') sendChatMessage();
       });
+    }
+
+    // Voice input with microphone button
+    if (dom.micBtn) {
+      let recognition = null;
+      let isListening = false;
+
+      // Check if browser supports speech recognition
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'es-MX'; // Spanish (Mexico) - can be changed based on dialect setting
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          isListening = true;
+          dom.micBtn.textContent = '🔴'; // Red dot to indicate recording
+          dom.micBtn.style.opacity = '1';
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          dom.chatInput.value = transcript;
+          dom.chatInput.focus();
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          isListening = false;
+          dom.micBtn.textContent = '🎤';
+          if (event.error === 'not-allowed') {
+            alert('Microphone access denied. Please allow microphone access in your browser settings.');
+          }
+        };
+
+        recognition.onend = () => {
+          isListening = false;
+          dom.micBtn.textContent = '🎤';
+        };
+
+        dom.micBtn.addEventListener('click', () => {
+          if (isListening) {
+            recognition.stop();
+          } else {
+            try {
+              recognition.start();
+            } catch (error) {
+              console.error('Error starting speech recognition:', error);
+            }
+          }
+        });
+      } else {
+        // Browser doesn't support speech recognition
+        dom.micBtn.style.opacity = '0.5';
+        dom.micBtn.title = 'Speech recognition not supported in this browser';
+      }
     }
     debugLog('✅ Chat event listeners set');
 
