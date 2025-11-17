@@ -48,7 +48,9 @@ export function initializeApp() {
 
   // Application variables
   let currentUser = null;
-  let userSettings = {};
+  let userSettings = {
+    completedQuests: []
+  };
   let currentQuest = null;
   let currentStage = null;
   let messages = [];
@@ -2163,6 +2165,11 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
   // Mark a quest as complete in Firestore
   async function completeQuest(questId) {
     if (!currentUser) return;
+
+    // Ensure completedQuests array exists
+    if (!userSettings.completedQuests) {
+      userSettings.completedQuests = [];
+    }
 
     // Add questId to the local state to prevent duplicates
     if (!userSettings.completedQuests.includes(questId)) {
