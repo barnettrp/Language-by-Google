@@ -77,6 +77,13 @@ export function initializeApp() {
   let isSpeaking = false; // Prevent concurrent speak() calls
   let lastTTSBlob = null; // Store last TTS audio for repeat functionality
 
+  // Voice recognition state (accessible globally for cleanup on message send)
+  let voiceRecognition = null;
+  let voiceIsListening = false;
+  let voiceFinalTranscript = '';
+  let voiceSilenceTimeout = null;
+  let voiceRestartAttempts = 0;
+
   // Placement test state
   let placementQuestions = [];
   let currentQuestionIndex = 0;
@@ -1790,6 +1797,9 @@ export function initializeApp() {
     const message = dom.chatInput.value.trim();
     if (!message) return;
 
+    // Stop and clear voice recognition if active
+    stopAndClearVoiceRecognition();
+
     // Unlock audio on user message send (for autoplay policy)
     unlockAudio();
 
@@ -2371,30 +2381,50 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
       });
     }
 
+    // Helper function to stop and clear voice recognition (called when sending message)
+    function stopAndClearVoiceRecognition() {
+      if (voiceRecognition && voiceIsListening) {
+        console.log('🎤 [Cleanup] Stopping voice recognition due to message send');
+        voiceIsListening = false; // Prevent auto-restart
+        voiceRecognition.stop();
+      }
+
+      // Clear all voice state
+      voiceFinalTranscript = '';
+      voiceRestartAttempts = 0;
+      if (voiceSilenceTimeout) {
+        clearTimeout(voiceSilenceTimeout);
+        voiceSilenceTimeout = null;
+      }
+
+      // Reset UI
+      if (dom.micBtn) {
+        dom.micBtn.textContent = '🎤';
+      }
+      if (dom.chatInput) {
+        dom.chatInput.placeholder = 'Type your reply...';
+      }
+    }
+
     // Voice input with microphone button
     if (dom.micBtn) {
-      let recognition = null;
-      let isListening = false;
       let isRecording = false; // Track if actually receiving audio
-      let silenceTimeout = null;
-      let finalTranscript = '';
-      let restartAttempts = 0;
       const MAX_RESTART_ATTEMPTS = 3;
 
       // Check if browser supports speech recognition
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = 'es-MX'; // Spanish (Mexico) - can be changed based on dialect setting
-        recognition.continuous = true; // Keep listening for better detection
-        recognition.interimResults = true; // Show interim results for better UX
-        recognition.maxAlternatives = 3; // Consider multiple alternatives for better accuracy
+        voiceRecognition = new SpeechRecognition();
+        voiceRecognition.lang = 'es-MX'; // Spanish (Mexico) - can be changed based on dialect setting
+        voiceRecognition.continuous = true; // Keep listening for better detection
+        voiceRecognition.interimResults = true; // Show interim results for better UX
+        voiceRecognition.maxAlternatives = 3; // Consider multiple alternatives for better accuracy
 
-        recognition.onstart = () => {
-          isListening = true;
+        voiceRecognition.onstart = () => {
+          voiceIsListening = true;
           isRecording = false; // Not yet receiving audio
-          finalTranscript = '';
-          restartAttempts = 0;
+          voiceFinalTranscript = '';
+          voiceRestartAttempts = 0;
           dom.micBtn.textContent = '🔴'; // Red dot to indicate recording
           dom.micBtn.style.opacity = '1';
           dom.chatInput.placeholder = 'Listening... Speak now!';
@@ -2402,31 +2432,31 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         };
 
         // Audio start event - microphone is actually picking up sound
-        recognition.onaudiostart = () => {
+        voiceRecognition.onaudiostart = () => {
           isRecording = true;
           dom.chatInput.placeholder = 'Listening... I can hear you!';
           console.log('🎤 Audio input started - microphone is active');
         };
 
         // Audio end event - microphone stopped picking up sound
-        recognition.onaudioend = () => {
+        voiceRecognition.onaudioend = () => {
           isRecording = false;
           console.log('🎤 Audio input ended');
         };
 
         // Sound start event - actual speech detected
-        recognition.onsoundstart = () => {
+        voiceRecognition.onsoundstart = () => {
           console.log('🎤 Sound detected');
           dom.chatInput.placeholder = 'Listening... Got it!';
         };
 
-        recognition.onresult = (event) => {
+        voiceRecognition.onresult = (event) => {
           console.log('🎤 Speech recognition result received');
 
           // Clear any existing silence timeout since we got new input
-          if (silenceTimeout) {
-            clearTimeout(silenceTimeout);
-            silenceTimeout = null;
+          if (voiceSilenceTimeout) {
+            clearTimeout(voiceSilenceTimeout);
+            voiceSilenceTimeout = null;
           }
 
           let interimTranscript = '';
@@ -2435,7 +2465,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
+              voiceFinalTranscript += transcript + ' ';
               console.log('🎤 Final transcript:', transcript);
             } else {
               interimTranscript += transcript;
@@ -2444,56 +2474,56 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           }
 
           // Update input with combined transcript
-          dom.chatInput.value = (finalTranscript + interimTranscript).trim();
+          dom.chatInput.value = (voiceFinalTranscript + interimTranscript).trim();
           dom.chatInput.focus();
 
           // Auto-stop after 2 seconds of silence if we have some text
-          if (finalTranscript.trim() && !silenceTimeout) {
-            silenceTimeout = setTimeout(() => {
-              if (isListening && dom.chatInput.value.trim()) {
+          if (voiceFinalTranscript.trim() && !voiceSilenceTimeout) {
+            voiceSilenceTimeout = setTimeout(() => {
+              if (voiceIsListening && dom.chatInput.value.trim()) {
                 console.log('🎤 Auto-stopping after silence period');
-                recognition.stop();
+                voiceRecognition.stop();
               }
             }, 2000);
           }
         };
 
-        recognition.onerror = (event) => {
+        voiceRecognition.onerror = (event) => {
           console.error('🎤 Speech recognition error:', event.error);
 
           // Clear silence timeout on error
-          if (silenceTimeout) {
-            clearTimeout(silenceTimeout);
-            silenceTimeout = null;
+          if (voiceSilenceTimeout) {
+            clearTimeout(voiceSilenceTimeout);
+            voiceSilenceTimeout = null;
           }
 
           // Handle different error types
           if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-            isListening = false;
+            voiceIsListening = false;
             dom.micBtn.textContent = '🎤';
             dom.chatInput.placeholder = 'Type your reply...';
             alert('Microphone access denied. Please allow microphone access in your browser settings.');
           } else if (event.error === 'no-speech') {
             console.log('🎤 No speech detected, auto-restarting...');
             // Auto-restart if no speech detected and user hasn't manually stopped
-            if (isListening && restartAttempts < MAX_RESTART_ATTEMPTS) {
-              restartAttempts++;
-              dom.chatInput.placeholder = `Listening... Speak now! (${restartAttempts}/${MAX_RESTART_ATTEMPTS})`;
+            if (voiceIsListening && voiceRestartAttempts < MAX_RESTART_ATTEMPTS) {
+              voiceRestartAttempts++;
+              dom.chatInput.placeholder = `Listening... Speak now! (${voiceRestartAttempts}/${MAX_RESTART_ATTEMPTS})`;
               // Recognition will auto-restart via onend handler
             } else {
-              isListening = false;
+              voiceIsListening = false;
               dom.micBtn.textContent = '🎤';
               dom.chatInput.placeholder = 'Type your reply...';
               console.log('🎤 Max restart attempts reached, stopping');
             }
           } else if (event.error === 'aborted') {
             console.log('🎤 Speech recognition aborted');
-            isListening = false;
+            voiceIsListening = false;
             dom.micBtn.textContent = '🎤';
             dom.chatInput.placeholder = 'Type your reply...';
           } else if (event.error === 'audio-capture') {
             console.error('🎤 Microphone not available or in use');
-            isListening = false;
+            voiceIsListening = false;
             dom.micBtn.textContent = '🎤';
             dom.chatInput.placeholder = 'Type your reply...';
             alert('Microphone is not available. Please check if another application is using it.');
@@ -2503,59 +2533,59 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
           }
         };
 
-        recognition.onend = () => {
-          console.log('🎤 Speech recognition ended, isListening:', isListening);
+        voiceRecognition.onend = () => {
+          console.log('🎤 Speech recognition ended, voiceIsListening:', voiceIsListening);
 
           // Clear silence timeout
-          if (silenceTimeout) {
-            clearTimeout(silenceTimeout);
-            silenceTimeout = null;
+          if (voiceSilenceTimeout) {
+            clearTimeout(voiceSilenceTimeout);
+            voiceSilenceTimeout = null;
           }
 
           // Auto-restart if user hasn't manually stopped and we haven't exceeded attempts
-          if (isListening && restartAttempts < MAX_RESTART_ATTEMPTS) {
-            console.log('🎤 Auto-restarting recognition...');
+          if (voiceIsListening && voiceRestartAttempts < MAX_RESTART_ATTEMPTS) {
+            console.log('🎤 Auto-restarting voiceRecognition...');
             setTimeout(() => {
               try {
-                recognition.start();
+                voiceRecognition.start();
               } catch (error) {
                 console.error('🎤 Error restarting recognition:', error);
-                isListening = false;
+                voiceIsListening = false;
                 dom.micBtn.textContent = '🎤';
                 dom.chatInput.placeholder = 'Type your reply...';
               }
             }, 100); // Small delay before restart
           } else {
-            isListening = false;
+            voiceIsListening = false;
             isRecording = false;
-            finalTranscript = '';
-            restartAttempts = 0;
+            voiceFinalTranscript = '';
+            voiceRestartAttempts = 0;
             dom.micBtn.textContent = '🎤';
             dom.chatInput.placeholder = 'Type your reply...';
           }
         };
 
         dom.micBtn.addEventListener('click', () => {
-          if (isListening) {
+          if (voiceIsListening) {
             console.log('🎤 User manually stopping speech recognition');
-            isListening = false; // Set this first to prevent auto-restart
-            recognition.stop();
+            voiceIsListening = false; // Set this first to prevent auto-restart
+            voiceRecognition.stop();
           } else {
             console.log('🎤 Starting speech recognition');
-            finalTranscript = '';
-            restartAttempts = 0;
+            voiceFinalTranscript = '';
+            voiceRestartAttempts = 0;
             dom.chatInput.value = ''; // Clear input when starting
             try {
-              recognition.start();
+              voiceRecognition.start();
             } catch (error) {
               console.error('🎤 Error starting speech recognition:', error);
               // Recognition might already be running, try stopping first
               if (error.message.includes('already started')) {
                 console.log('🎤 Recognition already started, stopping and restarting...');
-                recognition.stop();
+                voiceRecognition.stop();
                 setTimeout(() => {
                   try {
-                    recognition.start();
+                    voiceRecognition.start();
                   } catch (retryError) {
                     console.error('🎤 Error on retry:', retryError);
                     alert('Error starting microphone: ' + retryError.message);
