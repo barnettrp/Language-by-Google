@@ -26,7 +26,21 @@ Every time we make changes to the app, update the version number so users can ve
 
 ## Current Version
 
-**v2.3.4** (2025-11-16)
+**v2.5.3** (2025-11-30)
+
+### Changes in v2.5.3:
+- **Relationship System Integration**: Added character relationship tracking with affinity mechanics
+  - +3 affinity for polite language (por favor, gracias, etc.)
+  - +5 affinity for completing quest stages
+  - +15 affinity for completing full quests
+  - Dynamic AI greetings based on relationship level and time since last contact
+  - Inactivity penalties to maintain relationship authenticity
+- **Visual Redesign**: New purple/orange/gold color palette with dark mode as default
+  - Enhanced glassmorphism effects with improved blur and saturation
+  - New animations: xp-gain, glow-pulse, flame-flicker, button-glow
+  - Updated button gradients to purple theme
+  - Improved UI contrast and visual hierarchy
+- **Voice Input Fix**: Fixed auto-restart issue after silence period in voice recognition
 
 ### Changes in v2.3.4:
 - **Debug Console Removed**: Removed debugging console from production build for cleaner UI

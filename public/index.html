@@ -22,27 +22,38 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     :root {
-      --bg-gradient-start: #667eea;
-      --bg-gradient-mid1: #764ba2;
-      --bg-gradient-mid2: #f093fb;
-      --bg-gradient-mid3: #4facfe;
-      --bg-gradient-end: #00f2fe;
-      --container-bg: rgba(255, 255, 255, 0.95);
-      --text-primary: #1f2937;
-      --text-secondary: #6b7280;
-      --border-color: rgba(255, 255, 255, 0.3);
+      /* New purple/orange color palette - dark mode as default */
+      --bg-gradient-start: #0F0D1A;
+      --bg-gradient-mid1: #1A1625;
+      --bg-gradient-mid2: #252033;
+      --bg-gradient-mid3: #6D28D9;
+      --bg-gradient-end: #7C3AED;
+      --container-bg: rgba(37, 32, 51, 0.8);
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --border-color: rgba(167, 139, 250, 0.2);
+      --primary-purple: #7C3AED;
+      --primary-purple-dark: #6D28D9;
+      --primary-purple-light: #A78BFA;
+      --accent-orange: #F97316;
+      --accent-orange-light: #FB923C;
+      --gold: #FBBF24;
+      --gold-light: #FCD34D;
+      --success: #10B981;
+      --success-light: #34D399;
     }
 
     body.dark-mode {
-      --bg-gradient-start: #1a1a2e;
-      --bg-gradient-mid1: #16213e;
-      --bg-gradient-mid2: #0f3460;
-      --bg-gradient-mid3: #162447;
-      --bg-gradient-end: #1f1f2e;
-      --container-bg: rgba(30, 30, 46, 0.95);
-      --text-primary: #e5e7eb;
-      --text-secondary: #9ca3af;
-      --border-color: rgba(255, 255, 255, 0.1);
+      /* Keep same as default since dark mode is now the default */
+      --bg-gradient-start: #0F0D1A;
+      --bg-gradient-mid1: #1A1625;
+      --bg-gradient-mid2: #252033;
+      --bg-gradient-mid3: #6D28D9;
+      --bg-gradient-end: #7C3AED;
+      --container-bg: rgba(37, 32, 51, 0.8);
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --border-color: rgba(167, 139, 250, 0.2);
     }
 
     /* High Contrast Mode - Light Theme */
@@ -134,15 +145,15 @@
 
     /* Keyboard Navigation - Enhanced Focus Indicators */
     body.keyboard-navigation *:focus {
-      outline: 3px solid #667eea !important;
+      outline: 3px solid #7C3AED !important;
       outline-offset: 2px !important;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2) !important;
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.3) !important;
     }
 
     body.dark-mode.keyboard-navigation *:focus {
-      outline: 3px solid #a8b5ff !important;
+      outline: 3px solid #A78BFA !important;
       outline-offset: 2px !important;
-      box-shadow: 0 0 0 4px rgba(168, 181, 255, 0.2) !important;
+      box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.3) !important;
     }
 
     /* Skip to content link for screen readers */
@@ -150,7 +161,7 @@
       position: absolute;
       top: -100px;
       left: 0;
-      background: #667eea;
+      background: #7C3AED;
       color: white;
       padding: 8px 16px;
       text-decoration: none;
@@ -194,9 +205,9 @@
 
     #onboarding-spotlight {
       position: fixed;
-      border: 3px solid #667eea;
+      border: 3px solid #7C3AED;
       border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 20px rgba(102, 126, 234, 0.5);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 20px rgba(124, 58, 237, 0.5);
       pointer-events: none;
       z-index: 9999;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -278,7 +289,7 @@
     }
 
     .onboarding-dot.active {
-      background: #667eea;
+      background: #7C3AED;
       transform: scale(1.3);
     }
 
@@ -287,7 +298,7 @@
     }
 
     body.dark-mode .onboarding-dot.active {
-      background: #a8b5ff;
+      background: #A78BFA;
     }
 
     /* Font Size Options */
@@ -354,6 +365,46 @@
       animation: scale-in 0.4s ease-out;
     }
 
+    /* New animations for visual redesign */
+    @keyframes xp-gain {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      50% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
+      100% { transform: translateY(-40px) scale(1); opacity: 0; }
+    }
+
+    .animate-xp-gain {
+      animation: xp-gain 1s ease-out forwards;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.5), 0 0 20px rgba(124, 58, 237, 0.3); }
+      50% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.8), 0 0 40px rgba(124, 58, 237, 0.5); }
+    }
+
+    .glow-effect {
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes flame-flicker {
+      0%, 100% { transform: scaleY(1) scaleX(1); filter: brightness(1); }
+      25% { transform: scaleY(1.1) scaleX(0.95); filter: brightness(1.2); }
+      50% { transform: scaleY(0.95) scaleX(1.05); filter: brightness(0.9); }
+      75% { transform: scaleY(1.05) scaleX(0.98); filter: brightness(1.1); }
+    }
+
+    .streak-flame {
+      animation: flame-flicker 0.8s ease-in-out infinite;
+    }
+
+    @keyframes button-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(249, 115, 22, 0.3); }
+      50% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 30px rgba(249, 115, 22, 0.4); }
+    }
+
+    .button-glow:hover {
+      animation: button-glow 1.5s ease-in-out infinite;
+    }
+
     /* XP Progress Bar Minimized State */
     #xp-progress-bar {
       transition: all 0.5s ease-out;
@@ -384,15 +435,20 @@
 
     .contained-area {
       background: var(--container-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
       border: 2px solid var(--border-color);
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-      transition: background 0.3s ease, border 0.3s ease;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 60px rgba(124, 58, 237, 0.1);
+      transition: all 0.3s ease;
     }
 
     body.dark-mode .contained-area {
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 0 0 60px rgba(124, 58, 237, 0.15);
+    }
+
+    .contained-area:hover {
+      border-color: rgba(167, 139, 250, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 80px rgba(124, 58, 237, 0.2);
     }
 
     body.dark-mode .text-gray-800 {
@@ -949,7 +1005,7 @@
     <div id="auth-container" class="main-view active flex-col h-full p-6 justify-center relative">
       <!-- Version Display -->
       <div class="absolute top-4 left-4 z-10">
-        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.5.2</span>
+        <span class="text-xs text-gray-400 font-mono bg-white/80 dark:bg-gray-800/80 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm" title="App Version - Refresh to check for updates">v2.5.3</span>
       </div>
       <!-- Dark Mode Toggle for Auth Screen -->
       <div class="absolute top-4 right-4 z-10">
@@ -969,7 +1025,7 @@
         <p id="verification-error" class="text-red-500 text-sm mb-2 text-center h-4"></p>
         <p id="verification-success" class="text-green-600 text-sm mb-2 text-center h-4"></p>
         <div class="space-y-2">
-          <button id="resend-verification-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Resend Verification Email</button>
+          <button id="resend-verification-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white p-3 rounded-md font-semibold hover:from-purple-700 hover:to-purple-600 transition-all">Resend Verification Email</button>
           <button id="check-verification-btn" class="w-full bg-gray-600 text-white p-3 rounded-md font-semibold hover:bg-gray-700 transition-colors">I've Verified - Refresh</button>
           <button id="verification-logout-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline pt-2">Logout</button>
         </div>
@@ -977,7 +1033,7 @@
       <div id="login-view">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ConvoQuest Portal</h1>
         <!-- Dev Mode Auto-Login Indicator -->
-        <div id="dev-mode-indicator" class="hidden mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 rounded-lg text-center">
+        <div id="dev-mode-indicator" class="hidden mb-4 p-4 bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-2 border-green-400 rounded-lg text-center">
           <div class="flex items-center justify-center gap-3 mb-2">
             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
             <p class="text-green-700 font-bold text-lg">🔧 Dev Mode Active</p>
@@ -991,7 +1047,7 @@
         </div>
         <p id="login-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
-          <button id="login-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Login</button>
+          <button id="login-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white p-3 rounded-md font-semibold hover:from-purple-700 hover:to-purple-600 transition-all">Login</button>
           <button id="forgot-password-btn" class="w-full text-center text-sm text-gray-600 hover:text-blue-600 hover:underline">Forgot Password?</button>
           <button id="show-signup-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Don't have an account? Sign Up</button>
         </div>
@@ -1027,7 +1083,7 @@
         </div>
         <p id="signup-error" class="text-red-500 text-sm mt-2 text-center h-4"></p>
         <div class="mt-4 space-y-2">
-          <button id="signup-btn" class="w-full bg-blue-600 text-white p-3 rounded-md font-semibold hover:bg-blue-700 transition-colors">Sign Up</button>
+          <button id="signup-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white p-3 rounded-md font-semibold hover:from-purple-700 hover:to-purple-600 transition-all">Sign Up</button>
           <button id="show-login-btn" class="w-full text-center text-sm text-blue-600 hover:underline">Already have an account? Login</button>
         </div>
       </div>
@@ -1047,7 +1103,7 @@
               <span id="estimated-level" class="font-semibold text-blue-600"></span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="placement-progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              <div id="placement-progress-bar" class="bg-gradient-to-r from-purple-600 to-orange-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
           </div>
 
@@ -1059,7 +1115,7 @@
             </div>
           </div>
 
-          <button id="submit-quiz-btn" class="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next Question</button>
+          <button id="submit-quiz-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white p-3 rounded-md font-semibold hover:from-purple-700 hover:to-purple-600 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed">Next Question</button>
           <button id="complete-placement-btn" class="w-full mt-3 bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 transition-colors">Complete Placement Test</button>
         </div>
       </div>
@@ -1107,14 +1163,14 @@
                   <span>Logout</span>
                 </button>
                 <div class="px-4 py-2 text-xs text-gray-400 font-mono text-center border-t border-gray-100 mt-1">
-                  v2.5.2
+                  v2.5.3
                 </div>
               </div>
             </div>
           </div>
         </header>
         <!-- Daily Progress Tracker -->
-        <div id="daily-tracker" class="hidden p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+        <div id="daily-tracker" class="hidden p-3 bg-gradient-to-r from-purple-900/20 to-purple-800/20 border-b border-purple-500/30">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <span class="text-2xl">🔥</span>
@@ -1129,12 +1185,12 @@
             </div>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            <div id="progress-bar" class="bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
         </div>
 
         <!-- Santiago Welcome Card (dismissible) -->
-        <div id="santiago-welcome-card" class="mx-4 mt-4 mb-3 bg-gradient-to-r from-blue-50 via-sky-50 to-teal-50 rounded-xl border-2 border-blue-300 shadow-sm overflow-hidden">
+        <div id="santiago-welcome-card" class="mx-4 mt-4 mb-3 bg-gradient-to-r from-purple-900/30 via-purple-800/30 to-purple-700/30 rounded-xl border-2 border-purple-500/40 shadow-sm overflow-hidden">
           <div class="flex items-start gap-4 p-4">
             <!-- Santiago Avatar -->
             <div class="flex-shrink-0">
@@ -1145,7 +1201,7 @@
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
                   <h3 class="text-base font-bold text-gray-800">Ready to explore?</h3>
-                  <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-semibold">Santiago</span>
+                  <span class="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full font-semibold glow-effect">Santiago</span>
                 </div>
                 <button id="dismiss-santiago-card" class="text-gray-400 hover:text-gray-600 transition-colors" title="Dismiss">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1169,14 +1225,14 @@
             <h1 id="chat-title" class="text-base font-bold text-gray-800 overflow-hidden text-ellipsis whitespace-nowrap">The Adventure Begins</h1>
           </div>
           <div class="flex gap-2 items-center">
-            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.5.2</span>
+            <span class="text-xs text-gray-400 mr-1 font-mono" title="App Version">v2.5.3</span>
             <button id="repeat-tts-btn" title="Repeat last TTS audio" class="text-gray-600 hover:text-green-500 px-3 py-1 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>🔄 Repeat</button>
-            <button id="end-session-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors">Back to Quests</button>
+            <button id="end-session-btn" class="bg-gradient-to-r from-orange-600 to-orange-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:from-orange-700 hover:to-orange-600 transition-all button-glow">Back to Quests</button>
           </div>
         </header>
 
         <!-- XP Progress Bar -->
-        <div id="xp-progress-bar" class="bg-gradient-to-r from-purple-50 via-blue-50 to-teal-50 px-4 py-3 border-b border-purple-100 flex-shrink-0">
+        <div id="xp-progress-bar" class="bg-gradient-to-r from-purple-900/30 via-purple-800/30 to-purple-700/30 px-4 py-3 border-b border-purple-500/20 flex-shrink-0">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <span class="text-xl">⭐</span>
@@ -1197,14 +1253,14 @@
             </div>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-            <div id="xp-bar-fill" class="bg-gradient-to-r from-purple-500 via-blue-500 to-teal-500 h-3 rounded-full transition-all duration-700 ease-out relative overflow-hidden" style="width: 0%">
+            <div id="xp-bar-fill" class="bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 h-3 rounded-full transition-all duration-700 ease-out relative overflow-hidden glow-effect" style="width: 0%">
               <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
             </div>
           </div>
         </div>
 
         <!-- Quest Instructions Card - Compact Version -->
-        <div id="quest-instructions-card" class="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-purple-200 flex-shrink-0 transition-all duration-300">
+        <div id="quest-instructions-card" class="bg-gradient-to-r from-purple-900/20 to-purple-800/20 border-b border-purple-500/30 flex-shrink-0 transition-all duration-300">
           <!-- Minimized State (Default) -->
           <div id="quest-card-minimized" class="p-3 cursor-pointer hover:bg-purple-100/50 transition-colors" onclick="toggleQuestCard()">
             <div class="flex items-center justify-between">
@@ -1229,12 +1285,12 @@
             </div>
             <div class="flex gap-3">
               <div class="flex-shrink-0">
-                <div id="character-avatar-expanded" class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-3xl shadow-lg"></div>
+                <div id="character-avatar-expanded" class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center text-3xl shadow-lg glow-effect"></div>
               </div>
               <div class="flex-1">
                 <h2 id="quest-title" class="text-base font-bold text-gray-800 mb-1 whitespace-nowrap"></h2>
                 <p id="character-name-display" class="text-sm text-purple-600 font-semibold mb-2"></p>
-                <div class="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
+                <div class="bg-purple-900/20 border-l-4 border-purple-500 p-2 rounded">
                   <p id="quest-objective-display" class="text-xs text-blue-800"></p>
                 </div>
               </div>
@@ -1252,7 +1308,7 @@
             <button id="hint-btn" title="Get a hint" class="p-2 text-gray-600 hover:text-blue-500">💡</button>
             <input type="text" id="chat-input" placeholder="Type your reply..." class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button id="mic-btn" title="Use microphone" class="p-2 text-gray-600 hover:text-blue-500">🎤</button>
-            <button id="send-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 transition-colors">Send</button>
+            <button id="send-btn" class="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-2 rounded-md font-semibold hover:from-purple-700 hover:to-purple-600 transition-all button-glow">Send</button>
           </div>
         </div>
       </div>
@@ -1413,7 +1469,7 @@
 
             <!-- Actions -->
             <div class="flex gap-3">
-              <button id="modal-chat-btn" class="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+              <button id="modal-chat-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-600 transition-all">
                 💬 Chat
               </button>
               <button id="modal-gift-btn" class="flex-1 bg-purple-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
@@ -1432,7 +1488,7 @@
       <div id="character-intro-card" class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
         <!-- Large Character Avatar -->
         <div class="mb-6">
-          <div id="character-intro-avatar" class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-6xl shadow-xl border-4 border-white">
+          <div id="character-intro-avatar" class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center text-6xl shadow-xl border-4 border-purple-500/50 glow-effect">
             🎭
           </div>
         </div>
@@ -1451,7 +1507,7 @@
         </div>
 
         <!-- Continue Button -->
-        <button id="character-intro-continue-btn" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-bold text-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
+        <button id="character-intro-continue-btn" class="w-full bg-gradient-to-r from-purple-600 to-orange-500 text-white px-6 py-3 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg button-glow">
           Start Conversation
         </button>
       </div>

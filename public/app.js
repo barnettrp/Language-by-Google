@@ -341,11 +341,84 @@ export function initializeApp() {
     },
 
     async sendMessage(text) {
-      const systemInstruction = "You are a helpful Spanish language tutor.";
+      let systemInstruction = "You are a helpful Spanish language tutor. Your goal is to help the user practice Spanish naturally within the quest scenario.";
+      
+      let characterId = null;
+      if (currentUser && currentQuest && currentStage !== null) {
+        const quest = quests[currentQuest];
+        const stage = quest?.stages?.[currentStage];
+        const characterName = stage?.characterName;
+
+        if (characterName) {
+          for (const charId in CHARACTER_DATABASE) {
+            if (CHARACTER_DATABASE[charId].name === characterName || CHARACTER_DATABASE[charId].fullName.includes(characterName)) {
+              characterId = charId;
+              break;
+            }
+          }
+        }
+      }
+
+      if (currentUser && characterId) {
+        const relationships = await RelationshipSystem.getUserRelationships(currentUser.uid);
+        const relationship = relationships[characterId];
+        const character = CHARACTER_DATABASE[characterId];
+
+        if (relationship && character) {
+          const affinity = relationship.affinity || 0;
+          const levelData = RelationshipSystem.getRelationshipLevelData(affinity);
+          const daysSince = RelationshipSystem.getDaysSinceLastContact(relationship.lastContact);
+
+          systemInstruction += `\n\nRELATIONSHIP STATUS: ${levelData.level} (${levelData.levelEn}) - Affinity ${affinity}/100
+
+WHAT THE PLAYER KNOWS ABOUT YOU:
+${relationship.unlockedContent && relationship.unlockedContent.length > 0 ? relationship.unlockedContent.join(', ') : 'Basic info only'}
+
+RECENT INTERACTIONS:
+- Last spoke ${daysSince === 0 ? 'today' : daysSince === 1 ? 'yesterday' : daysSince + ' days ago'}
+- Total conversations: ${relationship.conversationCount || 0}
+- Quests completed together: ${relationship.questsCompleted?.length || 0}
+
+CONVERSATION STYLE:
+- ${getGreetingInstructions(levelData.level, daysSince, character)}
+- ${getPersonalityInstructions(affinity, character)}
+`;
+        }
+      }
+
       const contents = [{ role: "user", parts: [{ text }] }];
       return this.callAPI(systemInstruction, contents);
     }
   };
+
+  // Helper functions for AI system prompt generation (Relationship System)
+  function getGreetingInstructions(level, daysSince, character) {
+    if (level === 'stranger') {
+      return 'Greet them politely but professionally as you just met.';
+    } else if (level === 'acquaintance') {
+      return 'Greet them warmly and show you recognize them.';
+    } else if (level === 'friend') {
+      if (daysSince > 7) {
+        return `Greet them enthusiastically - you haven't seen them in ${daysSince} days! Show you missed them.`;
+      }
+      return 'Greet them as a friend with warmth and familiarity.';
+    } else { // Close Friend / Confidant
+      if (daysSince > 7) {
+        return `Greet them with concern and excitement - where have they been? You were worried!`;
+      }
+      return 'Greet them as a close friend or confidant with deep warmth and affection.';
+    }
+  }
+
+  function getPersonalityInstructions(affinity, character) {
+    if (affinity < 50) {
+      return 'Be friendly but somewhat reserved. Don't share deep personal information yet.';
+    } else if (affinity < 75) {
+      return 'Be open and friendly. You can share some personal stories and ask about their life.';
+    } else { // Close Friend / Confidant
+      return 'Be very open and trusting. Share deeper secrets, ask for advice, confide in them.';
+    }
+  }
 
   // Initialize persistent audio element for better autoplay support
   const initPersistentAudio = () => {
@@ -1820,6 +1893,52 @@ export function initializeApp() {
     }
 
     addMessage('user', message);
+
+    // --- Relationship System Integration: Check for polite language ---
+    const politeWords = ['por favor', 'gracias', 'muchas gracias', 'de nada', 'con permiso', 'disculpe', 'perdón', 'hola', 'adiós'];
+    const userMessage = message.toLowerCase();
+    
+    // Get current character ID (similar logic as in quest completion)
+    let characterId = null;
+    if (currentQuest && currentStage !== null) {
+      const quest = quests[currentQuest];
+      const stage = quest?.stages?.[currentStage];
+      const characterName = stage?.characterName;
+
+      if (characterName) {
+        for (const charId in CHARACTER_DATABASE) {
+          if (CHARACTER_DATABASE[charId].name === characterName || CHARACTER_DATABASE[charId].fullName.includes(characterName)) {
+            characterId = charId;
+            break;
+          }
+        }
+      }
+    }
+
+    if (currentUser && characterId && politeWords.some(word => userMessage.includes(word))) {
+      debugLog(`[Relationship] Polite language detected for ${CHARACTER_DATABASE[characterId].name}. Awarding affinity.`);
+      const affinityResult = await RelationshipSystem.updateAffinity(
+        currentUser.uid,
+        characterId,
+        3, // +3 affinity for polite language
+        'Used polite language'
+      );
+
+      if (affinityResult && affinityResult.affinityChange > 0) {
+        showAffinityNotification(
+          CHARACTER_DATABASE[characterId].name,
+          affinityResult.affinityChange,
+          affinityResult.oldAffinity,
+          affinityResult.newAffinity,
+          affinityResult.reason
+        );
+        if (affinityResult.levelChanged) {
+          console.log(`🎉 Relationship with ${CHARACTER_DATABASE[characterId].name} leveled up to ${affinityResult.newLevel}!`);
+        }
+      }
+    }
+    // --- End Relationship System Integration ---
+
     dom.chatInput.value = '';
     dom.sendBtn.disabled = true;
     dom.sendBtn.textContent = 'Sending...';
@@ -1904,8 +2023,62 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
 
         // Show completion notification after a delay to let user read farewell
         console.log('[Farewell] Scheduling completion notification in 4.5 seconds');
-        setTimeout(() => {
+        setTimeout(async () => {
           console.log('[Farewell] Timeout fired, calling showStageCompletionNotification()');
+
+          // --- Relationship System Integration: Award affinity for completing stage ---
+          const quest = quests[currentQuest];
+          const stage = quest.stages[currentStage];
+          const characterName = stage.characterName;
+
+          // Find character ID from name
+          let characterId = null;
+          if (characterName) {
+            for (const charId in CHARACTER_DATABASE) {
+              if (CHARACTER_DATABASE[charId].name === characterName || CHARACTER_DATABASE[charId].fullName.includes(characterName)) {
+                characterId = charId;
+                break;
+              }
+            }
+          }
+
+          if (currentUser && characterId) {
+            debugLog(`[Relationship] Processing affinity for ${characterName} (ID: ${characterId})`);
+
+            // Initialize relationship if first meeting or not yet tracked
+            await RelationshipSystem.initializeRelationship(currentUser.uid, characterId);
+
+            // Record conversation
+            await RelationshipSystem.recordConversation(currentUser.uid, characterId, currentQuest);
+
+            // Award affinity for completing stage
+            const affinityResult = await RelationshipSystem.updateAffinity(
+              currentUser.uid,
+              characterId,
+              5, // +5 affinity for completing a quest stage
+              'Completed quest stage'
+            );
+
+            // Show notification if affinity changed
+            if (affinityResult && affinityResult.affinityChange > 0) {
+              showAffinityNotification(
+                characterName,
+                affinityResult.affinityChange,
+                affinityResult.oldAffinity,
+                affinityResult.newAffinity,
+                affinityResult.reason
+              );
+
+              // Check if level changed
+              if (affinityResult.levelChanged) {
+                console.log(`🎉 Relationship with ${characterName} leveled up to ${affinityResult.newLevel}!`);
+                // TODO: Show special level-up notification
+                // This could be a separate, more prominent notification than the affinity change
+              }
+            }
+          }
+          // --- End Relationship System Integration ---
+
           showStageCompletionNotification();
         }, 4500);
       } else {
@@ -2184,6 +2357,46 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
     // Add questId to the local state to prevent duplicates
     if (!userSettings.completedQuests.includes(questId)) {
       userSettings.completedQuests.push(questId);
+
+      // --- Relationship System Integration: Bonus affinity for completing entire quest ---
+      const quest = quests[questId];
+      const characterName = quest.stages[0]?.characterName; // Assuming main character is in first stage
+
+      let characterId = null;
+      if (characterName) {
+        for (const charId in CHARACTER_DATABASE) {
+          if (CHARACTER_DATABASE[charId].name === characterName || CHARACTER_DATABASE[charId].fullName.includes(characterName)) {
+            characterId = charId;
+            break;
+          }
+        }
+      }
+
+      if (currentUser && characterId) {
+        debugLog(`[Relationship] Quest '${questId}' completed. Awarding bonus affinity to ${CHARACTER_DATABASE[characterId].name}.`);
+        await RelationshipSystem.recordQuestCompletion(currentUser.uid, characterId, questId);
+
+        const affinityResult = await RelationshipSystem.updateAffinity(
+          currentUser.uid,
+          characterId,
+          15, // +15 affinity for completing entire quest
+          `Completed quest: ${quest.title}`
+        );
+
+        if (affinityResult && affinityResult.affinityChange > 0) {
+          showAffinityNotification(
+            CHARACTER_DATABASE[characterId].name,
+            affinityResult.affinityChange,
+            affinityResult.oldAffinity,
+            affinityResult.newAffinity,
+            affinityResult.reason
+          );
+          if (affinityResult.levelChanged) {
+            console.log(`🎉 Relationship with ${CHARACTER_DATABASE[characterId].name} leveled up to ${affinityResult.newLevel}!`);
+          }
+        }
+      }
+      // --- End Relationship System Integration ---
     }
 
     // Re-render quests to reflect the change
@@ -2482,6 +2695,7 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
             voiceSilenceTimeout = setTimeout(() => {
               if (voiceIsListening && dom.chatInput.value.trim()) {
                 console.log('🎤 Auto-stopping after silence period');
+                voiceIsListening = false; // Prevent auto-restart
                 voiceRecognition.stop();
               }
             }, 2000);
@@ -3349,6 +3563,15 @@ REMEMBER: Always end responses with a question mark (?) to keep conversation flo
         if (dom.welcomeMessage) {
           dom.welcomeMessage.textContent = `Welcome, ${user.displayName || 'User'}!`;
         }
+
+        // --- Relationship System Integration: Apply inactivity penalties ---
+        debugLog('[Relationship] Checking for inactivity penalties...');
+        const relationships = await RelationshipSystem.getUserRelationships(user.uid);
+        for (const characterId of Object.keys(relationships)) {
+          await RelationshipSystem.applyInactivityPenalty(user.uid, characterId);
+        }
+        debugLog('[Relationship] Inactivity penalties applied (if any).');
+        // --- End Relationship System Integration ---
 
         // Hide auth container and show main app
         if (dom.authContainer) {
